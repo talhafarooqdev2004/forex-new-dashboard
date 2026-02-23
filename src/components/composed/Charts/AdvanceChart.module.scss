@@ -1,0 +1,692 @@
+.frameParent {
+    width: 100%;
+    min-width: 0;
+    height: 503px;
+    min-height: 300px;
+    position: relative;
+    border-radius: 12px;
+    background-color: #1a1d23;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 11.59px;
+    color: #9ca3af;
+    font-family: Inter;
+}
+
+.frameParent::-webkit-scrollbar {
+    height: 6px;
+}
+
+.frameParent::-webkit-scrollbar-track {
+    background: #374151;
+}
+
+.frameParent::-webkit-scrollbar-thumb {
+    background-color: #9ca3af;
+    border-radius: 3px;
+}
+
+.chartContent {
+    min-width: 1100px;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.advancedChartParent {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    height: 54px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: left;
+    font-size: 20px;
+    color: #fff;
+}
+
+.advancedChart {
+    align-self: stretch;
+    position: relative;
+    line-height: 24px;
+    flex-shrink: 0;
+}
+
+.eurusd1mJan {
+    align-self: stretch;
+    position: relative;
+    font-size: 13px;
+    line-height: 20px;
+    color: #9ca3af;
+    flex-shrink: 0;
+}
+
+.frameChild {
+    position: absolute;
+    top: 424.5px;
+    left: 78.5px;
+    border-top: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 999px;
+    height: 1px;
+}
+
+.frameItem {
+    position: absolute;
+    top: 386.5px;
+    left: 78.5px;
+    border-top: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 999px;
+    height: 1px;
+}
+
+.frameInner {
+    position: absolute;
+    top: 348.5px;
+    left: 78.5px;
+    border-top: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 999px;
+    height: 1px;
+}
+
+.lineDiv {
+    position: absolute;
+    top: 310.5px;
+    left: 78.5px;
+    border-top: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 999px;
+    height: 1px;
+}
+
+.frameChild2 {
+    position: absolute;
+    top: 272.5px;
+    left: 78.5px;
+    border-top: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 999px;
+    height: 1px;
+}
+
+.frameChild3 {
+    position: absolute;
+    top: 234.5px;
+    left: 78.5px;
+    border-top: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 999px;
+    height: 1px;
+}
+
+.frameChild4 {
+    position: absolute;
+    top: 196.5px;
+    left: 78.5px;
+    border-top: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 999px;
+    height: 1px;
+}
+
+.frameChild5 {
+    position: absolute;
+    top: 158.5px;
+    left: 78.5px;
+    border-top: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 999px;
+    height: 1px;
+}
+
+.frameChild6 {
+    position: absolute;
+    top: 120.5px;
+    left: 78.5px;
+    border-top: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 999px;
+    height: 1px;
+}
+
+.frameChild7 {
+    position: absolute;
+    top: 120.5px;
+    left: 77.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild8 {
+    position: absolute;
+    top: 120.5px;
+    left: 127.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild9 {
+    position: absolute;
+    top: 120.5px;
+    left: 177.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild10 {
+    position: absolute;
+    top: 120.5px;
+    left: 227.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild11 {
+    position: absolute;
+    top: 120.5px;
+    left: 277.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild12 {
+    position: absolute;
+    top: 120.5px;
+    left: 327.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild13 {
+    position: absolute;
+    top: 120.5px;
+    left: 377.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild14 {
+    position: absolute;
+    top: 120.5px;
+    left: 427.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild15 {
+    position: absolute;
+    top: 120.5px;
+    left: 477.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild16 {
+    position: absolute;
+    top: 120.5px;
+    left: 527.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild17 {
+    position: absolute;
+    top: 120.5px;
+    left: 577.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild18 {
+    position: absolute;
+    top: 120.5px;
+    left: 627.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild19 {
+    position: absolute;
+    top: 120.5px;
+    left: 677.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild20 {
+    position: absolute;
+    top: 120.5px;
+    left: 727.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild21 {
+    position: absolute;
+    top: 120.5px;
+    left: 777.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild22 {
+    position: absolute;
+    top: 120.5px;
+    left: 827.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild23 {
+    position: absolute;
+    top: 120.5px;
+    left: 877.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild24 {
+    position: absolute;
+    top: 120.5px;
+    left: 927.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild25 {
+    position: absolute;
+    top: 120.5px;
+    left: 977.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild26 {
+    position: absolute;
+    top: 120.5px;
+    left: 1027.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.frameChild27 {
+    position: absolute;
+    top: 120.5px;
+    left: 1077.5px;
+    border-right: 1px solid #9ca3af;
+    box-sizing: border-box;
+    width: 1px;
+    height: 305px;
+}
+
+.group {
+    position: absolute;
+    height: 2.78%;
+    top: 87.87%;
+    right: 88.91%;
+    bottom: 9.34%;
+    left: 11.12%;
+}
+
+.b {
+    position: absolute;
+    width: 100%;
+    top: 0%;
+    left: 0%;
+    display: inline-block;
+}
+
+.b2 {
+    position: absolute;
+    width: 1.5%;
+    top: 75.55%;
+    left: 3.91%;
+    display: inline-block;
+}
+
+.b3 {
+    position: absolute;
+    width: 1.5%;
+    top: 67.99%;
+    left: 3.91%;
+    display: inline-block;
+}
+
+.b4 {
+    position: absolute;
+    top: 60.44%;
+    left: 3.47%;
+}
+
+.b5 {
+    position: absolute;
+    top: 52.88%;
+    left: 3.56%;
+}
+
+.b6 {
+    position: absolute;
+    top: 45.33%;
+    left: 3.47%;
+}
+
+.b7 {
+    position: absolute;
+    top: 37.77%;
+    left: 3.47%;
+}
+
+.b8 {
+    position: absolute;
+    top: 30.22%;
+    left: 3.47%;
+}
+
+.group2 {
+    position: absolute;
+    height: 2.78%;
+    width: 2.21%;
+    top: 87.87%;
+    right: 80.04%;
+    bottom: 9.34%;
+    left: 17.75%;
+}
+
+.group3 {
+    position: absolute;
+    height: 2.78%;
+    width: 2.94%;
+    top: 87.87%;
+    right: 73.21%;
+    bottom: 9.34%;
+    left: 23.84%;
+}
+
+.group4 {
+    position: absolute;
+    height: 2.78%;
+    width: 2.94%;
+    top: 87.87%;
+    right: 66.82%;
+    bottom: 9.34%;
+    left: 30.24%;
+}
+
+.group5 {
+    position: absolute;
+    height: 2.78%;
+    width: 2.7%;
+    top: 87.87%;
+    right: 60.81%;
+    bottom: 9.34%;
+    left: 36.49%;
+}
+
+.group6 {
+    position: absolute;
+    height: 2.78%;
+    width: 3.19%;
+    top: 87.87%;
+    right: 55.02%;
+    bottom: 9.34%;
+    left: 41.8%;
+}
+
+.group7 {
+    position: absolute;
+    height: 2.78%;
+    width: 4.05%;
+    top: 87.87%;
+    right: 47.86%;
+    bottom: 9.34%;
+    left: 48.09%;
+}
+
+.group8 {
+    position: absolute;
+    height: 2.78%;
+    width: 4.05%;
+    top: 87.87%;
+    right: 41.44%;
+    bottom: 9.34%;
+    left: 54.51%;
+}
+
+.group9 {
+    position: absolute;
+    height: 2.78%;
+    width: 2.94%;
+    top: 87.87%;
+    right: 35.77%;
+    bottom: 9.34%;
+    left: 61.28%;
+}
+
+.group10 {
+    position: absolute;
+    height: 2.78%;
+    width: 2.94%;
+    top: 87.87%;
+    right: 29.55%;
+    bottom: 9.34%;
+    left: 67.5%;
+}
+
+.group11 {
+    position: absolute;
+    height: 2.78%;
+    width: 2.94%;
+    top: 87.87%;
+    right: 23.31%;
+    bottom: 9.34%;
+    left: 73.75%;
+}
+
+.group12 {
+    position: absolute;
+    height: 2.78%;
+    width: 3.19%;
+    top: 87.87%;
+    right: 16.8%;
+    bottom: 9.34%;
+    left: 80.02%;
+}
+
+.group13 {
+    position: absolute;
+    height: 2.78%;
+    width: 2.94%;
+    top: 87.87%;
+    right: 10.69%;
+    bottom: 9.34%;
+    left: 86.36%;
+}
+
+.rectangleDiv {
+    position: absolute;
+    top: 311px;
+    left: 128px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 114px;
+}
+
+.frameChild28 {
+    position: absolute;
+    top: 311px;
+    left: 195px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 114px;
+}
+
+.frameChild29 {
+    position: absolute;
+    top: 327px;
+    left: 265px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 98px;
+}
+
+.frameChild30 {
+    position: absolute;
+    top: 387px;
+    left: 335px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 38px;
+}
+
+.frameChild31 {
+    position: absolute;
+    top: 273px;
+    left: 405px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 152px;
+}
+
+.frameChild32 {
+    position: absolute;
+    top: 349px;
+    left: 475px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 76px;
+}
+
+.frameChild33 {
+    position: absolute;
+    top: 365px;
+    left: 543px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 46px;
+    height: 60px;
+}
+
+.frameChild34 {
+    position: absolute;
+    top: 387px;
+    left: 613px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 46px;
+    height: 38px;
+}
+
+.frameChild35 {
+    position: absolute;
+    top: 311px;
+    left: 683px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 46px;
+    height: 114px;
+}
+
+.frameChild36 {
+    position: absolute;
+    top: 284px;
+    left: 753px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 141px;
+}
+
+.frameChild37 {
+    position: absolute;
+    top: 311px;
+    left: 823px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 114px;
+}
+
+.frameChild38 {
+    position: absolute;
+    top: 349px;
+    left: 893px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 76px;
+}
+
+.frameChild39 {
+    position: absolute;
+    top: 273px;
+    left: 963px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: #9ca3af;
+    width: 44px;
+    height: 152px;
+}
+
+.vectorIcon {
+    position: absolute;
+    height: 31.41%;
+    width: 80.07%;
+    top: 28.43%;
+    right: 8.54%;
+    bottom: 40.16%;
+    left: 11.39%;
+    max-width: 100%;
+    overflow: hidden;
+    max-height: 100%;
+}

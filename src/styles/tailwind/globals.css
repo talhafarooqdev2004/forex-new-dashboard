@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-white;
+    font-family: var(--font-inter);
+  }
+
+  h1 {
+    @apply text-5xl font-bold leading-tight;
+    @apply xl:text-6xl 2xl:text-7xl 3xl:text-8xl;
+  }
+
+  h2 {
+    @apply text-4xl font-semibold leading-snug;
+    @apply xl:text-5xl 2xl:text-6xl 3xl:text-7xl;
+  }
+
+  h3 {
+    @apply text-3xl font-semibold leading-snug;
+    /* @apply xl:text-4xl 2xl:text-5xl 3xl:text-6xl; */
+  }
+
+  h4 {
+    @apply text-2xl font-semibold leading-normal;
+    /* @apply xl:text-3xl 2xl:text-4xl 3xl:text-5xl; */
+  }
+
+  h5 {
+    @apply text-base font-semibold leading-normal;
+    @apply xl:text-lg 2xl:text-xl 3xl:text-2xl;
+  }
+
+  h6 {
+    @apply text-lg font-semibold leading-relaxed tracking-wide;
+    /* @apply xl:text-xl 2xl:text-2xl 3xl:text-3xl; */
+  }
+
+  /* h1, h2, h3, h4, h5, h6 {
+  
+  } */
+
+  p, span, li, a, small {
+    @apply text-sm;
+    /* @apply xl:text-lg 2xl:text-xl 3xl:text-2xl; */
+  }
+
+  button {
+    @apply outline-none;
+  }
+  
+:root {
+  --primary: 229 231 235;
+  --secondary: 156 163 175;
+
+  --charcoal: 18 20 23;
+  --dark-grey: 26 29 35;
+  --stroke: 106 114 130;
+
+  --green: 0 255 127;
+  --green-ii: 0 227 113;
+  --green-dark: 0 198 99;
+  --bullish: 124 255 0;
+
+  --lemon-glacier: 253 255 0;
+  --bright-yellow: 253 255 0;
+  --mandarine: 255 168 0;
+
+  --royal-blue: 48 92 222;
+  --electric-blue: 59 130 246;
+
+  --sell: 250 0 63;
+
+  --sidebar-active: 59 130 246;
+  --pressed: 34 41 52;
+
+  --background: 255 255 255;
+  --foreground: 0 0 0;
+}
+
+.dark {
+  /* Dark Theme Overrides */
+  --background: 18 18 24;
+  --foreground: 255 255 255;
+
+  --primary: 18 18 24;
+  --secondary: 120 120 130;
+
+  --charcoal: 22 22 32;
+  --dark-grey: 30 30 40;
+  --stroke: 60 60 75;
+}
+}
+
+/* classes that are used across the whole project */
+
+/* Ticker */
+.ticker {
+  @apply flex items-center gap-2.5 h-10 px-4 rounded-[10px] bg-darkGrey min-w-[100px] flex-shrink-0;
+}
+
+/* Scrollable container */
+.scrollable-container {
+  overflow-y: auto;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #E5E7EB #374151; /* thumb | track */
+}
+
+/* Chrome, Edge, Safari */
+.scrollable-container::-webkit-scrollbar {
+  width: 7px;
+}
+
+/* Track (background) */
+.scrollable-container::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+/* Thumb */
+.scrollable-container::-webkit-scrollbar-thumb {
+  background-color: #E5E7EB;
+}
+
+/* Hover */
+.scrollable-container::-webkit-scrollbar-thumb:hover {
+  background-color: #d1d5db;
+}
+
+/* Horizontal Scroll */
+.horizontal-scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #374151;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.horizontal-scroll::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;
+  border-radius: 3px;
+}

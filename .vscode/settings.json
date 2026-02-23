@@ -1,0 +1,20 @@
+{
+    "css.lint.unknownAtRules": "ignore",
+    "scss.lint.unknownAtRules": "ignore",
+    "less.lint.unknownAtRules": "ignore",
+    // makes sure Tailwind works inside JSX/TSX
+    "tailwindCSS.includeLanguages": {
+        "javascript": "javascript",
+        "javascriptreact": "javascriptreact",
+        "typescript": "typescript",
+        "typescriptreact": "typescriptreact"
+    },
+    // enables IntelliSense inside className=""
+    "editor.quickSuggestions": {
+        "strings": true
+    },
+    // ensures .css files are parsed as Tailwind (important for globals.css)
+    "files.associations": {
+        "*.css": "tailwindcss"
+    }
+}

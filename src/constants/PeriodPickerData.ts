@@ -1,0 +1,51 @@
+import { MonthProps } from "@/types";
+
+export const months: MonthProps[] = [{
+    shortName: "Jan",
+    name: "January",
+    monthIndex: 0,
+}, {
+    shortName: "Feb",
+    name: "February",
+    monthIndex: 1,
+}, {
+    shortName: "Mar",
+    name: "March",
+    monthIndex: 2,
+}, {
+    shortName: "Apr",
+    name: "April",
+    monthIndex: 3,
+}, {
+    shortName: "May",
+    name: "May",
+    monthIndex: 4,
+}, {
+    shortName: "Jun",
+    name: "June",
+    monthIndex: 5,
+}, {
+    shortName: "Jul",
+    name: "July",
+    monthIndex: 6,
+}, {
+    shortName: "Aug",
+    name: "August",
+    monthIndex: 7,
+}, {
+    shortName: "Sep",
+    name: "September",
+    monthIndex: 8,
+}, {
+    shortName: "Oct",
+    name: "October",
+    monthIndex: 9,
+}, {
+    shortName: "Nov",
+    name: "November",
+    monthIndex: 10,
+}, {
+    shortName: "Dec",
+    name: "December",
+    monthIndex: 11,
+}];

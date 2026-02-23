@@ -1,0 +1,48 @@
+.sideBarItem {
+    @apply flex justify-between items-center gap-3 p-3 rounded-xl w-full;
+
+    &:hover {
+        @apply bg-pressed;
+    }
+
+    &.active {
+        @apply bg-sidebarActive;
+
+        svg {
+            stroke: white;
+        }
+    }
+}
+
+.chevronRightIcon {
+    @apply w-4 h-4 stroke-1 text-secondary;
+}
+
+.sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--secondary) / 0.2) transparent;
+
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        @apply bg-secondary/20 rounded-full;
+
+        &:hover {
+            @apply bg-secondary/40;
+        }
+    }
+}
+
+.sidebarItems {
+    @apply overflow-y-auto flex-1 w-full;
+    max-height: calc(100vh - 130px);
+    padding-right: 6px;
+    margin-right: -4px;
+    scrollbar-gutter: stable;
+}
