@@ -19,8 +19,8 @@ export default function CommitmentsofTradersOverview() {
 
 function CommitmentsofTraders({ children }: React.PropsWithChildren) {
     return (
-        <div className="overflow-x-auto">
-            <table className="mt-8 border-separate border-spacing-x-2 border-spacing-y-7 -ml-2">
+        <div className="horizontal-scroll">
+            <table className="mt-8 border-separate border-spacing-x-2 border-spacing-y-7 -ml-2 min-w-[700px]">
                 <thead>
                     <tr className="text-sm">
                         <th>Symbol</th>

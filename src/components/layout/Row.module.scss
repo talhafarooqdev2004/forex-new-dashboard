@@ -1,0 +1,21 @@
+.row {
+    display: flex;
+    width: 100%;
+    color: #000000;
+    justify-content: center;
+
+    >div {
+        flex-grow: 1;
+        text-align: center;
+        border-left: 1px solid #E5E7EB;
+        border-right: 1px solid #E5E7EB;
+
+        &:first-child {
+            border-left: none;
+        }
+
+        &:last-child {
+            border-right: none;
+        }
+    }
+}

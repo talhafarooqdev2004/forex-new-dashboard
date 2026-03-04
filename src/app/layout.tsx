@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Arimo, Inter } from "next/font/google";
+import { Arimo, Arima, Inter } from "next/font/google";
 import "@/styles/tailwind/globals.css";
 import "@/styles/scss/main.scss";
 import { Header } from "@/components/layout";
@@ -17,6 +17,12 @@ const arimo = Arimo({
   weight: ["400", "500", "600", "700"],
 });
 
+const arima = Arima({
+  variable: "--font-arima",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "Forex Fundamentals Edge",
   description: "This is a Forex Fundamentals Edge project.",
@@ -30,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${arimo.variable} antialiased overflow-x-auto`}
+        className={`${inter.variable} ${arimo.variable} ${arima.variable} antialiased overflow-x-auto`}
         suppressHydrationWarning
       >
         <div className="flex min-w-[1024px] w-full">

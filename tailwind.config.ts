@@ -22,7 +22,8 @@ const config: Config = {
 				]
 			},
 			fontFamily: {
-				arimo: 'var(--font-arimo)'
+				arimo: 'var(--font-arimo)',
+				arima: 'var(--font-arima)'
 			},
 			flex: {
 				'2': '2 2 0%'
@@ -81,7 +82,7 @@ const config: Config = {
 					foreground: 'hsl(var(--destructive-foreground))'
 				},
 				border: 'hsl(var(--border))',
-				input: 'hsl(var(--input))',
+				input: 'rgba(255, 255, 255, 0.10)',
 				ring: 'hsl(var(--ring))',
 				chart: {
 					'1': 'hsl(var(--chart-1))',

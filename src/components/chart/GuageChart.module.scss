@@ -1,0 +1,12 @@
+.guageChartContainer {
+    position: relative;
+    overflow: visible;
+    display: flex;
+    justify-content: center;
+
+    .guageChartImg {
+        height: 100%;
+        width: auto;
+        display: block;
+    }
+}

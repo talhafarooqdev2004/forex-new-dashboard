@@ -1,9 +1,11 @@
 import { cn } from "@/lib/utils";
 
-export default function Section({ className, children }: React.PropsWithChildren<{ className?: string }>) {
+export default function Section({ padding = true, className, children }: React.PropsWithChildren<{ padding?: boolean, className?: string }>) {
+    const baseClass = "bg-darkGrey rounded-xl flex-1";
+
     return (
-        <div className={cn("bg-darkGrey rounded-xl p-6", className)}>
+        <section className={cn(baseClass, "p-6", className)}>
             {children}
-        </div>
+        </section>
     );
 };

@@ -15,16 +15,29 @@ const buttonVariants = cva(
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
           "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        primary:
+          "bg-[#152339] rounded-[12px] text-white",
         secondary:
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        "dark-grey": "bg-[#1a1c21] rounded-[4px] outline outline-[0.80px] outline-offset-[-0.80px] outline-white/10 font-arima",
+        "save-to-history": "bg-[#D0870066] rounded-[4px] border border-solid border-[#8D660B] text-[#FFDF20]",
+        "send-alert": "bg-[#00E37166] rounded-[4px] border border-solid border-greenDark text-white",
+        "telegram": "bg-[#2B7FFF] rounded-[4px] rounded-xl text-white",
+        "whatsapp": "bg-[#00A63E] rounded-[4px] rounded-xl text-white",
+        "discord": "bg-[#9810FA] rounded-[4px] rounded-xl text-white",
       },
       size: {
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
+        "dark-grey": "h-8 px-[10px]",
+        "save-to-history": "h-9 px-4 py-2",
+        "send-alert": "h-9 px-4 py-2",
+        "social": "h-9 px-5",
+        "primary": "h-10 px-3 py-3",
       },
     },
     defaultVariants: {
@@ -36,7 +49,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 
