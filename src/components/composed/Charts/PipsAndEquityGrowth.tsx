@@ -13,54 +13,54 @@ const EQUITY_AREA_PATH =
 export default function PipsAndEquityGrowth() {
   return (
     <div className="rounded-[12px] w-full min-w-0 overflow-hidden">
-      <div className="w-full min-w-0 horizontal-scroll">
-        <div className="relative bg-[#1a1d23] h-[350px] min-w-[557px] overflow-clip rounded-[12px]">
+      <div className="w-full min-w-0 horizontal-scroll bg-darkGrey rounded-[12px]">
+        <div className="relative h-[350px] min-w-[557px] overflow-clip rounded-[12px] text-foreground">
 
           {/* Y-Axis Labels - exact positions from Frame81 */}
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-white top-[42px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-foreground top-[42px]">
             1.30K
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-white top-[83px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-foreground top-[83px]">
             1.20K
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-white top-[124px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-foreground top-[124px]">
             1.10K
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-white top-[165px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-foreground top-[165px]">
             1.00K
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-white top-[239px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] not-italic text-[20px] text-foreground top-[239px]">
             600
           </p>
 
           {/* X-Axis Labels - exact positions from Frame81 */}
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[81px] not-italic text-[20px] text-white top-[263px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[81px] not-italic text-[20px] text-foreground top-[263px]">
             Jan
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[148px] not-italic text-[20px] text-white top-[263px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[148px] not-italic text-[20px] text-foreground top-[263px]">
             Feb
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[215px] not-italic text-[20px] text-white top-[263px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[215px] not-italic text-[20px] text-foreground top-[263px]">
             Mar
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[282px] not-italic text-[20px] text-white top-[263px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[282px] not-italic text-[20px] text-foreground top-[263px]">
             Apr
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[349px] not-italic text-[20px] text-white top-[263px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[349px] not-italic text-[20px] text-foreground top-[263px]">
             May
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[416px] not-italic text-[20px] text-white top-[263px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[416px] not-italic text-[20px] text-foreground top-[263px]">
             Jun
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[483px] not-italic text-[20px] text-white top-[263px]">
+          <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[483px] not-italic text-[20px] text-foreground top-[263px]">
             Jul
           </p>
 
           {/* Legend labels - exact from Frame81 */}
-          <p className="absolute font-['Inter',sans-serif] font-normal leading-[22px] left-[75px] not-italic text-[16px] text-white top-[305px] tracking-[-0.18px]">
+          <p className="absolute font-['Inter',sans-serif] font-normal leading-[22px] left-[75px] not-italic text-[16px] text-foreground top-[305px] tracking-[-0.18px]">
             Pips
           </p>
-          <p className="absolute font-['Inter',sans-serif] font-normal leading-[22px] left-[203px] not-italic text-[16px] text-white top-[305px] tracking-[-0.18px]">
+          <p className="absolute font-['Inter',sans-serif] font-normal leading-[22px] left-[203px] not-italic text-[16px] text-foreground top-[305px] tracking-[-0.18px]">
             Equity
           </p>
 

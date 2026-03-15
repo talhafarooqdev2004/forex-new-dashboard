@@ -6,7 +6,7 @@
     }
 
     &.active {
-        @apply bg-sidebarActive;
+        @apply bg-sidebarActive text-white;
 
         svg {
             stroke: white;

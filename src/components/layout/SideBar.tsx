@@ -4,11 +4,13 @@ import styles from "./SideBar.module.scss";
 
 import Image from "next/image";
 import Link from "next/link";
-import { Icon } from "@/components/composed";
+import { SvgIcon } from "@/components/composed";
 import { ChevronRightIcon } from "lucide-react";
 import { sidebarItems } from "@/constants/sidebarItems";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { IconName } from "../composed/SvgIcon";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 export default function SideBar() {
     const pathname = usePathname();
@@ -21,7 +23,7 @@ export default function SideBar() {
                 {sidebarItems.map((item) => (
                     <SideBarItem
                         key={item.href}
-                        icon={item.icon}
+                        icon={item.icon as IconName}
                         href={item.href}
                         active={item.href === pathname}
                     >
@@ -34,19 +36,19 @@ export default function SideBar() {
 };
 
 function BrandLogo() {
+    const { theme } = useTheme();
+    const logoSrc = theme === "light" ? "/images/brand-logo-black.png" : "/images/brand-logo.png";
     return (
-
         <Link href="/" className="w-20 h-20 relative">
             <Image
-                src="/images/brand-logo.png"
+                src={logoSrc}
                 alt="Logo"
                 fill
                 className="object-contain"
             />
         </Link>
-
     );
-};
+}
 
 function SideBarItems({ children }: { children: React.ReactNode }) {
     return (
@@ -62,7 +64,7 @@ function SideBarItem({
     active,
     children
 }: {
-    icon: string,
+    icon: IconName,
     href: string,
     active: boolean,
     children: React.ReactNode
@@ -73,8 +75,10 @@ function SideBarItem({
             className={cn(styles.sideBarItem, active && styles.active)}
         >
             <div className="flex items-center [max-width:1250px]:gap-1 gap-1">
-                <Icon width={16} height={16} name={icon} />
-                <span className="font-normal text-white whitespace-nowrap">{children}</span>
+                <span className={active ? "text-white" : "text-foreground"}>
+                    <SvgIcon icon={icon} />
+                </span>
+                <span className="font-normal text-sidebarText whitespace-nowrap">{children}</span>
             </div>
             <ChevronRightIcon className={styles.chevronRightIcon} />
         </Link>

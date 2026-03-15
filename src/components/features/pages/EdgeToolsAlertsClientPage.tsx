@@ -119,8 +119,8 @@ function Guage({ title, score }: { title: string, score: number }) {
                     height={100}
                     className="ml-4"
                 />
-                <span className="text-primary font-semibold text-lg -mt-12">{score}</span>
-                <span className="text-primary font-semibold text-lg -mt-2">Score</span>
+                <span className="text-foreground font-semibold text-lg -mt-12">{score}</span>
+                <span className="text-foreground font-semibold text-lg -mt-2">Score</span>
             </div>
         </div>
     );

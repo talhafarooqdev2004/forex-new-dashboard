@@ -10,7 +10,7 @@ export default function PeriodPicker() {
         <div className="flex items-center gap-5">
             <div className="flex items-center gap-3">
                 <span className="text-[#99A1AF]">Year</span>
-                <div className="bg-[#364153] rounded-[4px] px-3 h-6 text-center">
+                <div className="bg-[#364153] text-white rounded-[4px] px-3 h-6 text-center">
                     <span>{currentYear}</span>
                 </div>
             </div>

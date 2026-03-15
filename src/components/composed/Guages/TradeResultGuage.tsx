@@ -9,7 +9,7 @@ export interface TradeResultGuageProps {
 
 export default function TradeResultGuage({ label, profitValue, lossValue }: TradeResultGuageProps) {
     return (
-        <div className="bg-[#1a1d23] rounded-[12px] h-[350px] w-full flex flex-col items-center justify-center gap-12 overflow-clip">
+        <div className="bg-darkGrey rounded-[12px] h-[350px] w-full flex flex-col items-center justify-center gap-12 overflow-clip">
             <div className="relative w-[140px] h-[140px] flex items-center justify-center">
                 {/* Surface */}
                 <div className="absolute inset-0 overflow-clip">
@@ -38,7 +38,7 @@ export default function TradeResultGuage({ label, profitValue, lossValue }: Trad
             </div>
 
             {/* Label */}
-            <p className="font-['Inter:Medium',sans-serif] font-medium text-[12px] text-white tracking-[-0.18px]">{label}</p>
+            <p className="font-['Inter:Medium',sans-serif] font-medium text-[12px] text-foreground tracking-[-0.18px]">{label}</p>
         </div>
     );
 }

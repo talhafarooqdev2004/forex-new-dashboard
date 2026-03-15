@@ -91,7 +91,7 @@ function CommitmentsofTrader({ bank, currentPositioning, positionChange, cotNetI
 function CotNetIndexBar({ cotNetIndex, noBg = false }: { cotNetIndex: string, noBg?: boolean }) {
     return (
         <div className="h-[19px] rounded-2xl w-[9.5px]">
-            <div className={cn(noBg ? "bg-[#364153]" : Number(cotNetIndex) > 0 ? "bg-[#00A63E]" : "bg-sell", "h-full rounded-2xl")}>
+            <div className={cn(noBg ? "bg-currencyStrengthIndexBackground" : Number(cotNetIndex) > 0 ? "bg-[#00A63E]" : "bg-sell", "h-full rounded-2xl")}>
 
             </div>
         </div>

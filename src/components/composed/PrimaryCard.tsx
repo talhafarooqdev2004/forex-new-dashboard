@@ -9,4 +9,4 @@ export default function PrimaryCard({ children, className }: PropsWithChildren<{
             {children}
         </div>
     );
-}
+};

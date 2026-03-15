@@ -4,6 +4,7 @@ import "@/styles/tailwind/globals.css";
 import "@/styles/scss/main.scss";
 import { Header } from "@/components/layout";
 import SideBar from "@/components/layout/SideBar";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -34,23 +35,32 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var k='forex-dashboard-theme';var v=localStorage.getItem(k);var d=!(v==='light'||(v!=='dark'&&!window.matchMedia('(prefers-color-scheme: dark)').matches));document.documentElement.classList.toggle('dark',d);})();`,
+          }}
+        />
+      </head>
       <body
-        className={`${inter.variable} ${arimo.variable} ${arima.variable} antialiased overflow-x-auto`}
+        className={`${inter.variable} ${arimo.variable} ${arima.variable} antialiased overflow-x-auto bg-background text-foreground`}
         suppressHydrationWarning
       >
-        <div className="flex min-w-[1024px] w-full">
-          <div className="w-[19%]">
-            <SideBar />
-          </div>
-          <div className="w-[81%] min-w-0 flex flex-col">
-            <Header />
+        <ThemeProvider>
+          <div className="flex min-w-[1024px] w-full">
+            <div className="w-[19%]">
+              <SideBar />
+            </div>
+            <div className="w-[81%] min-w-0 flex flex-col">
+              <Header />
 
-            <main className="bg-charcoal p-8 min-w-0 flex-1">
-              {children}
-            </main>
+              <main className="bg-charcoal p-8 min-w-0 flex-1">
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
+        </ThemeProvider>
       </body>
     </html>
   );

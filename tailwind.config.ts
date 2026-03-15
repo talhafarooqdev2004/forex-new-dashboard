@@ -35,7 +35,7 @@ const config: Config = {
 			},
 			colors: {
 				primary: "rgb(var(--primary) / <alpha-value>)",
-				secondary: "rgb(var(--secondary) / <alpha-value>)",
+				secondary: "rgba(var(--secondary) / <alpha-value>)",
 
 				background: "rgb(var(--background) / <alpha-value>)",
 				foreground: "rgb(var(--foreground) / <alpha-value>)",
@@ -61,6 +61,12 @@ const config: Config = {
 				sidebarActive: "rgb(var(--sidebar-active) / <alpha-value>)",
 				pressed: "rgb(var(--pressed) / <alpha-value>)",
 
+				sidebarText: "rgb(var(--sidebar-text) / <alpha-value>)",
+
+				currencyStrengthIndexBackground: "rgb(var(--currency-strength-index-background) / <alpha-value>)",
+				switchTrack: "rgb(var(--switch-track) / <alpha-value>)",
+				chartInnerBg: "rgb(var(--chart-inner-bg) / <alpha-value>)",
+
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
@@ -83,6 +89,7 @@ const config: Config = {
 				},
 				border: 'hsl(var(--border))',
 				input: 'rgba(255, 255, 255, 0.10)',
+				inputBg: 'rgb(var(--input-bg) / <alpha-value>)',
 				ring: 'hsl(var(--ring))',
 				chart: {
 					'1': 'hsl(var(--chart-1))',

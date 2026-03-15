@@ -4,32 +4,32 @@ import svgPaths from "@/lib/svg-paths-admin-charts";
 export default function RevenueGrowthChart() {
     return (
         <div className="rounded-[12px] w-full min-w-0 overflow-hidden">
-            <div className="w-full min-w-0 horizontal-scroll">
-                <div className="relative bg-[#1a1d23] h-[370px] min-w-[300px] overflow-clip rounded-[12px]">
+            <div className="w-full min-w-0 horizontal-scroll bg-darkGrey rounded-[12px]">
+                <div className="relative h-[370px] min-w-[300px] overflow-clip rounded-[12px] text-foreground">
                     {/* Y-axis labels */}
-                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-white top-[42px]">
+                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-foreground top-[42px]">
                         1.30K
                     </p>
-                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-white top-[83px]">
+                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-foreground top-[83px]">
                         1.20K
                     </p>
-                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-white top-[124px]">
+                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-foreground top-[124px]">
                         80k
                     </p>
-                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-white top-[165px]">
+                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-foreground top-[165px]">
                         30k
                     </p>
-                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-white top-[239px]">
+                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[11px] text-[20px] text-foreground top-[239px]">
                         600
                     </p>
                     {/* X-axis labels */}
-                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[81px] text-[20px] text-white top-[263px]">
+                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[81px] text-[20px] text-foreground top-[263px]">
                         Jan
                     </p>
-                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[148px] text-[20px] text-white top-[263px]">
+                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[148px] text-[20px] text-foreground top-[263px]">
                         Feb
                     </p>
-                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[215px] text-[20px] text-white top-[263px]">
+                    <p className="absolute font-['Inter',sans-serif] font-bold leading-[24px] left-[215px] text-[20px] text-foreground top-[263px]">
                         Mar
                     </p>
 
@@ -89,7 +89,7 @@ export default function RevenueGrowthChart() {
                             <circle cx="7.5" cy="7.5" fill="#4384DD" r="7.5" />
                         </svg>
                     </div>
-                    <p className="absolute font-['Inter',sans-serif] font-normal leading-[22px] left-[75px] text-[16px] text-white top-[305px] tracking-[-0.18px]">
+                    <p className="absolute font-['Inter',sans-serif] font-normal leading-[22px] left-[75px] text-[16px] text-foreground top-[305px] tracking-[-0.18px]">
                         Revenue
                     </p>
                 </div>

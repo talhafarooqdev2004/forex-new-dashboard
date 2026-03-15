@@ -18,7 +18,7 @@ export default function EducationSidebar() {
         <div className="w-80 shrink-0 px-[20px] py-6">
             <div className="flex items-center gap-2 mb-8">
                 <SvgIcon icon="education-center-icon" />
-                <span className="text-[#B6B6B6] -mt-0.5">Education Center</span>
+                <span className="-mt-0.5" style={{ color: 'rgb(var(--education-sidebar-text))' }}>Education Center</span>
             </div>
 
             <EducationSidebarItems>

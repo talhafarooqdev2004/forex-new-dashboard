@@ -101,7 +101,7 @@ function MapWrap() {
 
 export default function TopCountriesChart() {
     return (
-        <div className="bg-[#1a1d23] rounded-[12px] overflow-hidden w-full min-w-0 min-h-[370px] relative p-6 flex flex-col gap-8">
+        <div className="bg-darkGrey rounded-[12px] overflow-hidden w-full min-w-0 min-h-[370px] relative p-6 flex flex-col gap-8 text-foreground">
             {/* World Map */}
             <MapWrap />
 
@@ -117,7 +117,7 @@ export default function TopCountriesChart() {
                                     className="absolute inset-0 w-full h-full object-cover rounded-[4px]"
                                 />
                             </div>
-                            <p className="font-['Arial',sans-serif] font-bold text-[12px] leading-[16px] text-[#90a1b9] tracking-[-0.16px]">
+                            <p className="font-['Arial',sans-serif] font-bold text-[12px] leading-[16px] text-secondary tracking-[-0.16px]">
                                 {country.name}
                             </p>
                         </div>

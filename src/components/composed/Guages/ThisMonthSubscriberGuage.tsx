@@ -3,12 +3,12 @@ import svgPaths from "@/lib/svg-paths-admin-charts";
 // This Month Subscriber - Responsive version
 export default function ThisMonthSubscriberGuage() {
     return (
-        <div className="bg-[#1a1d23] rounded-[12px] overflow-hidden w-full min-w-0 min-h-[251px] relative flex flex-col md:flex-row flex-wrap items-start justify-center gap-8">
+        <div className="bg-darkGrey rounded-[12px] overflow-hidden w-full min-w-0 min-h-[251px] relative flex flex-col md:flex-row flex-wrap items-start justify-center gap-8 text-foreground">
             {/* Left side stats */}
             <div className="flex flex-col gap-6 w-full md:w-auto">
                 {/* 122 Paid  20% */}
                 <div className="flex items-center gap-[8px]">
-                    <p className="font-['Inter',sans-serif] font-normal text-[16px] leading-[24px] text-[#f1f5f9]">
+                    <p className="font-['Inter',sans-serif] font-normal text-[16px] leading-[24px]">
                         122 Paid
                     </p>
                     <p className="font-['Inter',sans-serif] font-normal text-[16px] leading-[24px] text-[#00d492]">
@@ -17,11 +17,11 @@ export default function ThisMonthSubscriberGuage() {
                 </div>
 
                 {/* Middle divider line */}
-                <div className="w-full md:w-[110px] h-[1px] bg-white opacity-20" />
+                <div className="w-full md:w-[110px] h-[1px] bg-stroke" />
 
                 {/* 120 Paid  Free */}
                 <div className="flex items-center gap-[24px]">
-                    <p className="font-['Inter',sans-serif] font-normal text-[16px] leading-[24px] text-[#f1f5f9]">
+                    <p className="font-['Inter',sans-serif] font-normal text-[16px] leading-[24px]">
                         120 Paid
                     </p>
                     <p className="font-['Inter',sans-serif] font-normal text-[16px] leading-[24px] text-[#00bcff]">
@@ -64,10 +64,10 @@ export default function ThisMonthSubscriberGuage() {
 
                 {/* Center text overlay */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <p className="font-['Arial',sans-serif] font-bold text-[34px] leading-[34px] text-white tracking-[-0.27px]">
+                    <p className="font-['Arial',sans-serif] font-bold text-[34px] leading-[34px] tracking-[-0.27px]">
                         63%
                     </p>
-                    <p className="font-['Arial',sans-serif] font-bold text-[14px] leading-[20px] text-[#62748e] tracking-[-0.27px]">
+                    <p className="font-['Arial',sans-serif] font-bold text-[14px] leading-[20px] text-secondary tracking-[-0.27px]">
                         839
                     </p>
                 </div>

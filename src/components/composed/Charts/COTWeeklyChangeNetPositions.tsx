@@ -87,13 +87,13 @@ const xLabels = [
 export default function COTWeeklyChangeNetPositions() {
     return (
         <Section padding={false} className="w-full">
-            <div className="w-full horizontal-scroll">
+            <div className="w-full horizontal-scroll bg-darkGrey rounded-[12px]">
                 <div
-                    className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/519] overflow-hidden"
+                    className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/519] overflow-hidden text-foreground"
                 >
                 {/* Title */}
                 <p
-                    className="absolute top-[5.20%] font-['Inter',sans-serif] font-bold leading-6 text-[min(1.8vw,20px)] text-white whitespace-nowrap"
+                    className="absolute top-[5.20%] font-['Inter',sans-serif] font-bold leading-6 text-[min(1.8vw,20px)] text-foreground whitespace-nowrap"
                     style={{ left: "calc(50% - min(19.6vw, 220.5px))" }}
                 >
                     Weekly Change Net Non Commercial Positions
@@ -103,7 +103,7 @@ export default function COTWeeklyChangeNetPositions() {
                 {yAxisLabels.map((label, i) => (
                     <p
                         key={`y-${i}`}
-                        className="absolute font-['Inter',sans-serif] font-normal leading-[22px] text-white tracking-[-0.18px] whitespace-nowrap"
+                        className="absolute font-['Inter',sans-serif] font-normal leading-[22px] text-foreground tracking-[-0.18px] whitespace-nowrap"
                         style={{
                             left: label.left,
                             top: label.top,
@@ -131,7 +131,7 @@ export default function COTWeeklyChangeNetPositions() {
                         >
                             <path
                                 d="M1013.61 0.5H0"
-                                stroke="white"
+                                stroke="currentColor"
                                 strokeOpacity={line.opacity}
                             />
                         </svg>
@@ -168,7 +168,7 @@ export default function COTWeeklyChangeNetPositions() {
                 {percentMarkers.map((m, i) => (
                     <span
                         key={`pct-${i}`}
-                        className="absolute -translate-x-1/2 font-['Poppins',sans-serif] font-medium leading-[1.4] text-[min(1.1vw,12px)] text-white text-center"
+                        className="absolute -translate-x-1/2 font-['Poppins',sans-serif] font-medium leading-[1.4] text-[min(1.1vw,12px)] text-foreground text-center"
                         style={{ left: m.left, top: m.top, width: "1.45%" }}
                     >
                         %
@@ -188,7 +188,7 @@ export default function COTWeeklyChangeNetPositions() {
                         }}
                     >
                         <div className="shrink-0" style={{ transform: "rotate(-41.88deg)" }}>
-                            <p className="font-['Inter',sans-serif] font-normal leading-4 text-[min(1.1vw,12px)] text-white text-right tracking-[-0.12px] whitespace-nowrap">
+                            <p className="font-['Inter',sans-serif] font-normal leading-4 text-[min(1.1vw,12px)] text-foreground text-right tracking-[-0.12px] whitespace-nowrap">
                                 {label.text}
                             </p>
                         </div>

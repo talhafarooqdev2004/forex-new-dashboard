@@ -22,8 +22,8 @@
 
         .fxAnalyzerPro__sentimentPanel {
             width: 45%;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            background-color: rgb(26, 29, 35);
+            border-right: 1px solid rgb(var(--stroke));
+            background-color: rgb(var(--dark-grey));
         }
 
         .fxAnalyzerPro__fundamentalsPanel {

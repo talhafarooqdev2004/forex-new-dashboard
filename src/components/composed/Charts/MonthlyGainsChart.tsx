@@ -32,10 +32,10 @@ export default function MonthlyGainsChart() {
     const vGridLefts = [82, 122, 162, 202, 242, 282, 322, 362, 402, 442, 482, 522, 562, 605];
 
     return (
-        <div className="bg-[#1a1d23] relative rounded-[12px] h-[350px] w-full horizontal-scroll">
+        <div className="bg-darkGrey relative rounded-[12px] h-[350px] w-full horizontal-scroll">
             <div className="relative min-w-[661px] h-full mx-auto">
             {/* Title */}
-            <p className="absolute font-['Inter:Bold',sans-serif] font-bold leading-[24px] left-[37px] not-italic text-[20px] text-white top-[22px]">Monthly Gains (Years)</p>
+            <p className="absolute font-['Inter:Bold',sans-serif] font-bold leading-[24px] left-[37px] not-italic text-[20px] text-foreground top-[22px]">Monthly Gains (Years)</p>
 
             {/* Horizontal grid lines */}
             {hGridTops.map((top) => (
@@ -64,15 +64,15 @@ export default function MonthlyGainsChart() {
             ))}
 
             {/* Y-axis labels */}
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-white top-[80px]">400</p>
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-white top-[120px]">300</p>
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-white top-[160px]">200</p>
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-white top-[200px]">100</p>
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-white top-[238px]">0</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-foreground top-[80px]">400</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-foreground top-[120px]">300</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-foreground top-[160px]">200</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-foreground top-[200px]">100</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] left-[58px] not-italic text-[10px] text-foreground top-[238px]">0</p>
 
             {/* X-axis labels */}
             {xLabels.map(({ left, label }) => (
-                <p key={label} className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] not-italic text-[10px] text-white top-[294px]" style={{ left: `${left}px` }}>{label}</p>
+                <p key={label} className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[12px] not-italic text-[10px] text-foreground top-[294px]" style={{ left: `${left}px` }}>{label}</p>
             ))}
 
             {/* Bars */}
@@ -95,7 +95,7 @@ export default function MonthlyGainsChart() {
                         backgroundColor: bar.redBg ? "#e7000b" : "transparent",
                     }}
                 >
-                    <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.286px] left-[8.57px] text-[10px] text-white top-[1.9px]">$300</p>
+                    <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.286px] left-[8.57px] text-[10px] text-foreground top-[1.9px]">$300</p>
                 </div>
             ))}
             </div>

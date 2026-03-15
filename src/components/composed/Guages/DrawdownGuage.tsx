@@ -40,9 +40,9 @@ export default function DrawdownGuage({ type = "daily" }: DrawdownGuageProps) {
                     </div>
                 </div>
 
-                <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[18.778px] left-[calc(50%-38px)] not-italic text-[10px] text-white top-[147.1px] tracking-[-0.1536px]">Daily Drawdown</p>
-                <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.702px] left-[39.97px] text-[8.351px] text-white top-[126.04px]">Drawdown</p>
-                <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.702px] left-[150.4px] text-[8.351px] text-white top-[126.04px]">Buffer</p>
+                <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[18.778px] left-[calc(50%-38px)] not-italic text-[10px] text-foreground top-[147.1px] tracking-[-0.1536px]">Daily Drawdown</p>
+                <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.702px] left-[39.97px] text-[8.351px] text-foreground top-[126.04px]">Drawdown</p>
+                <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.702px] left-[150.4px] text-[8.351px] text-foreground top-[126.04px]">Buffer</p>
             </div>
         );
     }
@@ -81,9 +81,9 @@ export default function DrawdownGuage({ type = "daily" }: DrawdownGuageProps) {
                 </div>
             </div>
 
-            <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[18.778px] left-[calc(50%-38px)] not-italic text-[10px] text-white top-[147.1px] tracking-[-0.1536px]">Total Drawdown</p>
-            <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.702px] left-[39.97px] text-[8.351px] text-white top-[126.04px]">Drawdown</p>
-            <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.702px] left-[150.4px] text-[8.351px] text-white top-[126.04px]">Buffer</p>
+            <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[18.778px] left-[calc(50%-38px)] not-italic text-[10px] text-foreground top-[147.1px] tracking-[-0.1536px]">Total Drawdown</p>
+            <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.702px] left-[39.97px] text-[8.351px] text-foreground top-[126.04px]">Drawdown</p>
+            <p className="absolute font-['Arimo:Regular',sans-serif] font-normal leading-[14.702px] left-[150.4px] text-[8.351px] text-foreground top-[126.04px]">Buffer</p>
         </div>
     );
 }

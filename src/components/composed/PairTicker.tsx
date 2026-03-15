@@ -14,7 +14,7 @@ export default function PairTicker({
     return (
         <div className="ticker">
             <span className="text-secondary">{pair}</span>
-            <span className="text-white">{price}</span>
+            <span className="text-foreground">{price}</span>
             <span
                 className={cn(
                     isPositive ? "text-green" : "text-sell",

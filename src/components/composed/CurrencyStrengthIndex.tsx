@@ -24,7 +24,7 @@ function CurrencyStrengthIndex({ currency, strength, value }: CurrencyStrengthIn
         <div className="flex items-center gap-4">
             <span>{currency}</span>
 
-            <div className="h-[30px] bg-[#1E2939] rounded-[3px] flex w-full">
+            <div className="h-[30px] bg-currencyStrengthIndexBackground rounded-[3px] flex w-full">
                 <div className={cn("relative rounded-[3px]", isPositive ? "bg-[#00C950]" : "bg-[#FF0000]")} style={{ width: `${barWidth}%` }}>
                     <span className="absolute right-2 top-1/2 -translate-y-1/2">{value}</span>
                 </div>

@@ -40,7 +40,7 @@ const FxAnalyzerGauge: React.FC<FxAnalyzerGaugeProps> = ({
                 indicatorStyle={getGaugeIndicatorStyleDynamic(score, indicatorSize)}
                 gaugeZones={gaugeZones}
             />
-            <h1 className="mt-2.5 text-[12px] font-semibold text-white">
+            <h1 className="mt-2.5 text-[12px] font-semibold text-foreground">
                 {label}
             </h1>
         </div>

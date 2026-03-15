@@ -216,11 +216,11 @@ export default function TradingAnalysisClientPage() {
             </AnalyticCards>
 
             <div className="flex flex-col xl:flex-row gap-6 min-w-0 items-start">
-                <Section className="w-full xl:w-[80%] min-w-0 flex-1">
+                <Section hasFlex={false} className="w-full xl:w-[80%] min-w-0">
                     <RelativeDrawdownAnalysisChart />
                 </Section>
 
-                <Section className="w-fit xl:w-[20%] flex flex-col flex-shrink-0 items-center">
+                <Section hasFlex={false} className="w-fit xl:w-[20%] flex flex-col flex-shrink-0 items-center">
                     <DrawdownGuage type="daily" />
                     <DrawdownGuage type="total" />
                 </Section>

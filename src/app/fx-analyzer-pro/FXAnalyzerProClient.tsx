@@ -262,7 +262,7 @@ const getCurrencyStrengthStyle = (score: number | null): { fillPercent: number; 
 };
 
 const cell = (text: React.ReactNode, style?: React.CSSProperties, isLastColumn?: boolean) => (
-    <td className="py-3 px-4 border-b border-white/5" style={{
+    <td className="py-3 px-4 border-b border-stroke text-foreground" style={{
         textAlign: 'center' as const,
         ...style,
     }}>{text}</td>
@@ -324,9 +324,9 @@ export default function FXAnalyzerProClient() {
                     {displayPair ? (
                         <>
                             <div className={styles.fxAnalyzerPro__sentimentPanel} style={{ borderRight: "none", borderRadius: "16px" }}>
-                                <Row className="text-[20px] font-bold" style={{ border: "none", borderTopLeftRadius: "16px", borderTopRightRadius: "16px" }}>
+                                <Row className="text-[20px] font-bold text-foreground" style={{ border: "none", borderTopLeftRadius: "16px", borderTopRightRadius: "16px" }}>
                                     <Col>
-                                        <span className='text-white text-xl'>{displayPair.pair}</span>
+                                        <span className="text-xl">{displayPair.pair}</span>
                                     </Col>
                                 </Row>
                                 <Row className="text-[20px] font-bold text-black" style={{ backgroundColor: "#FFFF00", border: "none" }}>
@@ -341,7 +341,7 @@ export default function FXAnalyzerProClient() {
                                             labelType="netBias"
                                             gaugeZones={DEFAULT_GAUGE_ZONES}
                                         />
-                                        <h1 className="mt-2.5 text-[15px] font-semibold text-white">Net Bias</h1>
+                                        <h1 className="mt-2.5 text-[15px] font-semibold text-foreground">Net Bias</h1>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-5 w-full">
@@ -355,35 +355,35 @@ export default function FXAnalyzerProClient() {
                                 <div className="mt-2.5 overflow-x-auto w-full">
                                     <table className="w-full border-collapse overflow-x-auto" style={{ fontSize: 16 }}>
                                         <tbody>
-                                            <tr className="border-b border-white/5 bg-[#1A1D23]">
-                                                {cell("Fundamental score", { width: 350, fontSize: "14px", fontWeight: 500, color: "white", textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.fundamentalScore != null ? displayPair.fundamentalScore.toString() : "N/A", { width: 200, textAlign: "center", color: "white", fontWeight: 500, fontSize: "14px" })}
+                                            <tr className="border-b border-stroke bg-darkGrey">
+                                                {cell("Fundamental score", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
+                                                {cell(displayPair.fundamentalScore != null ? displayPair.fundamentalScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
                                                 {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getBiasText(displayPair.fundamentalScore)) }}>{displayPair.fundamentalScore != null ? getBiasText(displayPair.fundamentalScore) : "N/A"}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
                                             </tr>
-                                            <tr className="border-b border-white/5 bg-[#1A1D23]">
-                                                {cell("Seasonality", { width: 350, fontSize: "14px", fontWeight: 500, color: "white", textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.seasonalScore != null ? displayPair.seasonalScore.toString() : "N/A", { width: 200, textAlign: "center", color: "white", fontWeight: 500, fontSize: "14px" })}
+                                            <tr className="border-b border-stroke bg-darkGrey">
+                                                {cell("Seasonality", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
+                                                {cell(displayPair.seasonalScore != null ? displayPair.seasonalScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
                                                 {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getSentimentalBias(displayPair.seasonalScore, displayPair.momentumScore)) }}>{getSentimentalBias(displayPair.seasonalScore, displayPair.momentumScore)}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
                                             </tr>
-                                            <tr className="border-b border-white/5 bg-[#1A1D23]">
-                                                {cell("Cot score", { width: 350, fontSize: "14px", fontWeight: 500, color: "white", textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.cotScore != null ? displayPair.cotScore.toString() : "N/A", { width: 200, textAlign: "center", color: "white", fontWeight: 500, fontSize: "14px" })}
+                                            <tr className="border-b border-stroke bg-darkGrey">
+                                                {cell("Cot score", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
+                                                {cell(displayPair.cotScore != null ? displayPair.cotScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
                                                 {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getSentimentalBias(displayPair.cotScore, displayPair.momentumScore)) }}>{getSentimentalBias(displayPair.cotScore, displayPair.momentumScore)}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
                                             </tr>
-                                            <tr className="border-b border-white/5 bg-[#1A1D23]">
-                                                {cell("Trend score", { width: 350, fontSize: "14px", fontWeight: 500, color: "white", textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.trendScore != null ? displayPair.trendScore.toString() : "N/A", { width: 200, textAlign: "center", color: "white", fontWeight: 500, fontSize: "14px" })}
+                                            <tr className="border-b border-stroke bg-darkGrey">
+                                                {cell("Trend score", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
+                                                {cell(displayPair.trendScore != null ? displayPair.trendScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
                                                 {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getBiasText(displayPair.trendScore)) }}>{displayPair.trendScore != null ? getBiasText(displayPair.trendScore) : "N/A"}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
                                             </tr>
-                                            <tr className="border-b border-white/5 bg-[#1A1D23]">
-                                                {cell("Sentiment score", { width: 350, fontSize: "14px", fontWeight: 500, color: "white", textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.sentimentScore != null ? displayPair.sentimentScore.toString() : "N/A", { width: 200, textAlign: "center", color: "white", fontWeight: 500, fontSize: "14px" })}
+                                            <tr className="border-b border-stroke bg-darkGrey">
+                                                {cell("Sentiment score", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
+                                                {cell(displayPair.sentimentScore != null ? displayPair.sentimentScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
                                                 {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getBiasText(displayPair.sentimentScore)) }}>{displayPair.sentimentScore != null ? getBiasText(displayPair.sentimentScore) : "N/A"}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
                                             </tr>
-                                            <tr className="bg-[#1A1D23] rounded-b-2xl">
-                                                {cell("Risk mode", { width: 350, fontSize: "14px", fontWeight: 500, color: "white", textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap", borderBottom: "none" })}
-                                                {cell(displayPair.riskMeter != null ? displayPair.riskMeter.toString() : "N/A", { width: 200, textAlign: "center", color: "white", fontWeight: 500, fontSize: "14px", borderBottom: "none" })}
-                                                {cell(<span className="font-medium" style={{ color: displayPair.riskMeter != null ? (displayPair.riskMeter > 0 ? "#25b73c" : displayPair.riskMeter < 0 ? shortDarkBgColor : "#FFFF00") : "white" }}>{displayPair.riskMeter != null ? (displayPair.riskMeter > 0 ? "Risk On" : displayPair.riskMeter < 0 ? "Risk Off" : "Neutral") : "N/A"}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px", borderBottom: "none" }, true)}
+                                            <tr className="bg-darkGrey rounded-b-2xl">
+                                                {cell("Risk mode", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap", borderBottom: "none" })}
+                                                {cell(displayPair.riskMeter != null ? displayPair.riskMeter.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px", borderBottom: "none" })}
+                                                {cell(<span className="font-medium" style={{ color: displayPair.riskMeter != null ? (displayPair.riskMeter > 0 ? "#25b73c" : displayPair.riskMeter < 0 ? shortDarkBgColor : "#FFFF00") : undefined }}>{displayPair.riskMeter != null ? (displayPair.riskMeter > 0 ? "Risk On" : displayPair.riskMeter < 0 ? "Risk Off" : "Neutral") : "N/A"}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px", borderBottom: "none" }, true)}
                                             </tr>
                                         </tbody>
                                     </table>
@@ -393,19 +393,19 @@ export default function FXAnalyzerProClient() {
                             <div className={cn(styles.fxAnalyzerPro__fundamentalsPanel)}>
                                 <PrimaryCard>
                                     <div className="grid grid-cols-2 gap-4 pb-2">
-                                        <div className="bg-[#1A1D23] rounded-xl overflow-hidden">
-                                            <div className="text-center font-semibold mb-3 text-[15px] text-white">Non comm Positions</div>
+                                        <div className="bg-darkGrey rounded-xl overflow-hidden">
+                                            <div className="text-center font-semibold mb-3 text-[15px] text-foreground">Non comm Positions</div>
                                             <div className="grid gap-4">
                                                 {displayPair.cotPositions && (
                                                     <>
                                                         <div className="flex gap-2 items-center">
-                                                            <div className="w-[34px] font-semibold text-[15px] text-white">{extractBaseCurrency(displayPair.pair)}</div>
+                                                            <div className="w-[34px] font-semibold text-[15px] text-foreground">{extractBaseCurrency(displayPair.pair)}</div>
                                                             <div className="flex-1">
-                                                                <div className="flex justify-between mb-1.5 text-[11px] font-semibold">
-                                                                    <span className="text-white">{displayPair.cotPositions.nonCommercial.short}%</span>
-                                                                    <span className="text-white">{displayPair.cotPositions.nonCommercial.long}%</span>
+                                                                <div className="flex justify-between mb-1.5 text-[11px] font-semibold text-foreground">
+                                                                    <span>{displayPair.cotPositions.nonCommercial.short}%</span>
+                                                                    <span>{displayPair.cotPositions.nonCommercial.long}%</span>
                                                                 </div>
-                                                                <div className="w-full h-[8px] rounded-full overflow-hidden bg-[#2C303A] flex">
+                                                                <div className="w-full h-[8px] rounded-full overflow-hidden bg-inputBg flex">
                                                                     <div style={{ width: `${displayPair.cotPositions.nonCommercial.short}%`, height: '100%', background: shortDarkBgColor }} />
                                                                     <div style={{ width: `${displayPair.cotPositions.nonCommercial.long}%`, height: '100%', background: longDarkBgColor }} />
                                                                 </div>
@@ -417,13 +417,13 @@ export default function FXAnalyzerProClient() {
                                                         </div>
                                                         {displayPair.quoteCurrencyCotPositions && (
                                                             <div className="flex gap-2 items-center mt-2">
-                                                                <div className="w-[34px] font-semibold text-[15px] text-white">{displayPair.pair.length >= 6 ? displayPair.pair.substring(3, 6) : ''}</div>
+                                                                <div className="w-[34px] font-semibold text-[15px] text-foreground">{displayPair.pair.length >= 6 ? displayPair.pair.substring(3, 6) : ''}</div>
                                                                 <div className="flex-1">
-                                                                    <div className="flex justify-between mb-1.5 text-[11px] font-semibold">
-                                                                        <span className="text-white">{displayPair.quoteCurrencyCotPositions.nonCommercial.short}%</span>
-                                                                        <span className="text-white">{displayPair.quoteCurrencyCotPositions.nonCommercial.long}%</span>
+                                                                    <div className="flex justify-between mb-1.5 text-[11px] font-semibold text-foreground">
+                                                                        <span>{displayPair.quoteCurrencyCotPositions.nonCommercial.short}%</span>
+                                                                        <span>{displayPair.quoteCurrencyCotPositions.nonCommercial.long}%</span>
                                                                     </div>
-                                                                    <div className="w-full h-[8px] rounded-full overflow-hidden bg-[#2C303A] flex">
+                                                                    <div className="w-full h-[8px] rounded-full overflow-hidden bg-inputBg flex">
                                                                         <div style={{ width: `${displayPair.quoteCurrencyCotPositions.nonCommercial.short}%`, height: '100%', background: shortDarkBgColor }} />
                                                                         <div style={{ width: `${displayPair.quoteCurrencyCotPositions.nonCommercial.long}%`, height: '100%', background: longDarkBgColor }} />
                                                                     </div>
@@ -438,19 +438,19 @@ export default function FXAnalyzerProClient() {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="bg-[#1A1D23] rounded-xl overflow-hidden">
-                                            <div className="text-center font-semibold mb-3 text-[15px] text-white">Comm Positions</div>
+                                        <div className="bg-darkGrey rounded-xl overflow-hidden">
+                                            <div className="text-center font-semibold mb-3 text-[15px] text-foreground">Comm Positions</div>
                                             <div className="grid gap-4">
                                                 {displayPair.cotPositions && (
                                                     <>
                                                         <div className="flex gap-2 items-center">
-                                                            <div className="w-[34px] font-semibold text-[15px] text-white">{extractBaseCurrency(displayPair.pair)}</div>
+                                                            <div className="w-[34px] font-semibold text-[15px] text-foreground">{extractBaseCurrency(displayPair.pair)}</div>
                                                             <div className="flex-1">
-                                                                <div className="flex justify-between mb-1.5 text-[11px] font-semibold">
-                                                                    <span className="text-white">{displayPair.cotPositions.commercial.short}%</span>
-                                                                    <span className="text-white">{displayPair.cotPositions.commercial.long}%</span>
+                                                                <div className="flex justify-between mb-1.5 text-[11px] font-semibold text-foreground">
+                                                                    <span>{displayPair.cotPositions.commercial.short}%</span>
+                                                                    <span>{displayPair.cotPositions.commercial.long}%</span>
                                                                 </div>
-                                                                <div className="w-full h-[8px] rounded-full overflow-hidden bg-[#2C303A] flex">
+                                                                <div className="w-full h-[8px] rounded-full overflow-hidden bg-inputBg flex">
                                                                     <div style={{ width: `${displayPair.cotPositions.commercial.short}%`, height: '100%', background: shortDarkBgColor }} />
                                                                     <div style={{ width: `${displayPair.cotPositions.commercial.long}%`, height: '100%', background: longDarkBgColor }} />
                                                                 </div>
@@ -462,13 +462,13 @@ export default function FXAnalyzerProClient() {
                                                         </div>
                                                         {displayPair.quoteCurrencyCotPositions && (
                                                             <div className="flex gap-2 items-center mt-2">
-                                                                <div className="w-[34px] font-semibold text-[15px] text-white">{displayPair.pair.length >= 6 ? displayPair.pair.substring(3, 6) : ''}</div>
+                                                                <div className="w-[34px] font-semibold text-[15px] text-foreground">{displayPair.pair.length >= 6 ? displayPair.pair.substring(3, 6) : ''}</div>
                                                                 <div className="flex-1">
-                                                                    <div className="flex justify-between mb-1.5 text-[11px] font-semibold">
-                                                                        <span className="text-white">{displayPair.quoteCurrencyCotPositions.commercial.short}%</span>
-                                                                        <span className="text-white">{displayPair.quoteCurrencyCotPositions.commercial.long}%</span>
+                                                                    <div className="flex justify-between mb-1.5 text-[11px] font-semibold text-foreground">
+                                                                        <span>{displayPair.quoteCurrencyCotPositions.commercial.short}%</span>
+                                                                        <span>{displayPair.quoteCurrencyCotPositions.commercial.long}%</span>
                                                                     </div>
-                                                                    <div className="w-full h-[8px] rounded-full overflow-hidden bg-[#2C303A] flex">
+                                                                    <div className="w-full h-[8px] rounded-full overflow-hidden bg-inputBg flex">
                                                                         <div style={{ width: `${displayPair.quoteCurrencyCotPositions.commercial.short}%`, height: '100%', background: shortDarkBgColor }} />
                                                                         <div style={{ width: `${displayPair.quoteCurrencyCotPositions.commercial.long}%`, height: '100%', background: longDarkBgColor }} />
                                                                     </div>
@@ -486,18 +486,18 @@ export default function FXAnalyzerProClient() {
                                     </div>
 
                                     <div className="mt-2">
-                                        <div className="relative flex items-center justify-center mb-2.5 text-[12px] font-medium text-white/70">
+                                        <div className="relative flex items-center justify-center mb-2.5 text-[12px] font-medium text-foreground/70">
                                             {displayPair.retailPositions && (
                                                 <>
-                                                    <span className="absolute left-0.5 text-white text-[10px] font-semibold">{displayPair.retailPositions.long}%</span>
-                                                    <span className="text-white">Retail Positions</span>
-                                                    <span className="absolute right-0.5 text-white text-[10px] font-semibold">{displayPair.retailPositions.short}%</span>
+                                                    <span className="absolute left-0.5 text-foreground text-[10px] font-semibold">{displayPair.retailPositions.long}%</span>
+                                                    <span className="text-foreground">Retail Positions</span>
+                                                    <span className="absolute right-0.5 text-foreground text-[10px] font-semibold">{displayPair.retailPositions.short}%</span>
                                                 </>
                                             )}
                                         </div>
                                         <div className="w-full">
                                             <div className="relative w-full h-3 rounded-full overflow-visible flex">
-                                                <div className="relative w-full h-full rounded-full overflow-hidden flex bg-white/10">
+                                                <div className="relative w-full h-full rounded-full overflow-hidden flex bg-stroke">
                                                     {displayPair.retailPositions?.long != null && (
                                                         <div style={{ width: `${displayPair.retailPositions.long}%`, height: '100%', background: shortDarkBgColor }} />
                                                     )}
@@ -506,7 +506,7 @@ export default function FXAnalyzerProClient() {
                                                     )}
                                                 </div>
                                                 {displayPair.retailPositions?.long != null && (
-                                                    <div className="absolute top-1/2 -translate-y-1/2 w-[13px] h-[13px] rounded-full bg-white border-2 border-[#1A1D23] z-10" style={{ left: `calc(${displayPair.retailPositions.long}% - 6px)` }} />
+                                                    <div className="absolute top-1/2 -translate-y-1/2 w-[13px] h-[13px] rounded-full bg-foreground border-2 border-darkGrey z-10" style={{ left: `calc(${displayPair.retailPositions.long}% - 6px)` }} />
                                                 )}
                                             </div>
                                         </div>
@@ -514,7 +514,7 @@ export default function FXAnalyzerProClient() {
                                 </PrimaryCard>
 
                                 <PrimaryCard className="mt-3.5">
-                                    <div className="text-center font-semibold mb-3 text-[18px] text-white">Currency strength index</div>
+                                    <div className="text-center font-semibold mb-3 text-[18px] text-foreground">Currency strength index</div>
                                     {(() => {
                                         const baseCurrency = extractBaseCurrency(displayPair.pair);
                                         const quoteCurrency = displayPair.pair.length >= 6 ? displayPair.pair.substring(3, 6) : null;
@@ -529,9 +529,9 @@ export default function FXAnalyzerProClient() {
                                                     const displayValue = rawScore !== null ? rawScore : 'N/A';
                                                     return (
                                                         <div key={`${currency}-${i}`} className="flex items-center gap-4" style={{ marginBottom: i === 0 ? "18px" : "0" }}>
-                                                            <div className="w-[34px] font-semibold text-[15px] text-white">{currency}</div>
+                                                            <div className="w-[34px] font-semibold text-[15px] text-foreground">{currency}</div>
                                                             <div className="relative flex-1 h-5 flex items-center">
-                                                                <div className="relative w-full h-3 rounded-full overflow-hidden bg-[#2C303A]">
+                                                                <div className="relative w-full h-3 rounded-full overflow-hidden bg-inputBg">
                                                                     {fillPercent > 0 && (
                                                                         <div
                                                                             className="absolute left-0 top-0 h-full rounded-full transition-[width] duration-300"
@@ -542,11 +542,11 @@ export default function FXAnalyzerProClient() {
                                                                 {typeof cursorPercent === 'number' && !isNaN(cursorPercent) && (
                                                                     <>
                                                                         <div
-                                                                            className="absolute top-1/2 -translate-y-1/2 w-[13px] h-[13px] rounded-full border-2 border-white z-10 transition-[left] duration-300"
-                                                                            style={{ left: `${cursorPercent}%`, transform: 'translate(-50%, -50%)', background: '#333' }}
+                                                                            className="absolute top-1/2 -translate-y-1/2 w-[13px] h-[13px] rounded-full border-2 border-stroke bg-foreground z-10 transition-[left] duration-300"
+                                                                            style={{ left: `${cursorPercent}%`, transform: 'translate(-50%, -50%)' }}
                                                                         />
                                                                         <div
-                                                                            className="absolute left-0 top-0 -translate-y-full text-white font-semibold text-[11px] whitespace-nowrap pointer-events-none z-[1000]"
+                                                                            className="absolute left-0 top-0 -translate-y-full text-foreground font-semibold text-[11px] whitespace-nowrap pointer-events-none z-[1000]"
                                                                             style={{ left: `${cursorPercent}%`, transform: `translate(${rawScore !== null && rawScore > 0 ? '-50%' : '-80%'}, -100%)` }}
                                                                         >
                                                                             {displayValue}
@@ -563,12 +563,12 @@ export default function FXAnalyzerProClient() {
                                 </PrimaryCard>
 
                                 <div className="mt-3.5">
-                                    <div className="text-center font-semibold bg-[#1A1D23] py-2.5 text-[15px] text-white rounded-t-xl mb-1">Technical Trends</div>
-                                    <table className="w-full border-collapse text-[14px]">
+                                    <div className="text-center font-semibold bg-darkGrey py-2.5 text-[15px] text-foreground rounded-t-xl mb-1">Technical Trends</div>
+                                    <table className="w-full border-collapse text-[14px] text-foreground">
                                         <thead>
-                                            <tr className="border-b border-white/5 bg-[#1A1D23]">
+                                            <tr className="border-b border-stroke bg-darkGrey">
                                                 {['Trade Frame', 'Trend', 'Momentum', '0.873684'].map((h, i) => (
-                                                    <th key={i} className="py-3 px-3 text-center text-white font-medium">{h}</th>
+                                                    <th key={i} className="py-3 px-3 text-center font-medium">{h}</th>
                                                 ))}
                                             </tr>
                                         </thead>
@@ -580,19 +580,15 @@ export default function FXAnalyzerProClient() {
                                             ]).map((r: TechnicalTrendData, i: number) => {
                                                 const rowData = [r.timeFrame, r.trend, r.momentum, r.volatility];
                                                 return (
-                                                    <tr key={i} className="border-b border-white/5 bg-[#1A1D23]">
+                                                    <tr key={i} className="border-b border-stroke bg-darkGrey">
                                                         {rowData.map((c: string, j: number) => {
-                                                            let textColor = "white";
+                                                            let textColor: string | undefined;
                                                             const cellValue = c?.toString().toLowerCase().trim();
                                                             if (j > 0) {
                                                                 if (cellValue === "neutral" || cellValue === "non volatile" || cellValue === "moderate") { textColor = "#FFFF00"; }
-                                                                else if (cellValue === "bullish" || cellValue === "strong bullish") { textColor = "white"; }
-                                                                else if (cellValue === "bearish" || cellValue === "strong bearish") { textColor = "white"; }
-                                                                else if (cellValue === "high" || cellValue === "volatile") { textColor = "white"; }
-                                                                else if (cellValue === "low") { textColor = "white"; }
                                                             }
                                                             return (
-                                                                <td key={j} className="text-center text-white py-3 px-3" style={{ color: textColor, fontWeight: j === 0 ? 500 : "normal", fontSize: j > 2 ? "13px" : "inherit" }}>{c}</td>
+                                                                <td key={j} className="text-center py-3 px-3" style={{ color: textColor, fontWeight: j === 0 ? 500 : "normal", fontSize: j > 2 ? "13px" : "inherit" }}>{c}</td>
                                                             );
                                                         })}
                                                     </tr>
@@ -603,8 +599,8 @@ export default function FXAnalyzerProClient() {
                                 </div>
 
                                 <div className="mt-[18px]">
-                                    <div className="text-center font-semibold bg-[#1A1D23] py-2.5 text-[15px] text-white rounded-t-xl mb-1">Technical Levels</div>
-                                    <table className="w-full border-collapse text-[14px]">
+                                    <div className="text-center font-semibold bg-darkGrey py-2.5 text-[15px] text-foreground rounded-t-xl mb-1">Technical Levels</div>
+                                    <table className="w-full border-collapse text-[14px] text-foreground">
                                         <tbody>
                                             {(() => {
                                                 const levels = displayPair.technicalLevels;
@@ -620,11 +616,11 @@ export default function FXAnalyzerProClient() {
                                                     ['S3', 'N/A', 'R3', 'N/A'],
                                                 ];
                                                 return rows.map((r, i) => (
-                                                    <tr key={i} className="border-b border-white/5 bg-[#1A1D23]">
-                                                        <td className="py-3 px-4 w-[140px] text-white text-left font-medium">{r[0]}</td>
-                                                        <td className="py-3 px-4 text-center text-white">{r[1]}</td>
-                                                        <td className="py-3 px-4 w-[120px] text-white text-center font-medium">{r[2]}</td>
-                                                        <td className="py-3 px-4 text-center text-white">{r[3]}</td>
+                                                    <tr key={i} className="border-b border-stroke bg-darkGrey">
+                                                        <td className="py-3 px-4 w-[140px] text-left font-medium">{r[0]}</td>
+                                                        <td className="py-3 px-4 text-center">{r[1]}</td>
+                                                        <td className="py-3 px-4 w-[120px] text-center font-medium">{r[2]}</td>
+                                                        <td className="py-3 px-4 text-center">{r[3]}</td>
                                                     </tr>
                                                 ));
                                             })()}
@@ -635,7 +631,7 @@ export default function FXAnalyzerProClient() {
                         </>
                     ) : (
                         <div className={styles.fxAnalyzerPro__sentimentPanel}>
-                            <div className="p-12 text-center text-[#6b7280] text-[15px]">
+                            <div className="p-12 text-center text-foreground/70 text-[15px]">
                                 Select a currency pair to view analysis
                             </div>
                         </div>

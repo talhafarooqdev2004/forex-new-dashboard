@@ -91,15 +91,15 @@ const xAxisTicks = [
 export default function COTNonComLongVsShort() {
     return (
         <Section padding={false} className="w-full">
-            <div className="w-full horizontal-scroll">
+            <div className="w-full horizontal-scroll bg-darkGrey rounded-[12px]">
                 <div
-                    className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/666] overflow-hidden"
+                    className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/666] overflow-hidden text-foreground"
                 >
 
                     <div
                         className="absolute left-[37.10%] top-[3.60%] flex items-center justify-center"
                     >
-                        <p className="font-['Inter',sans-serif] font-medium leading-[1.2] text-[min(1.8vw,20px)] text-white text-center whitespace-nowrap">
+                        <p className="font-['Inter',sans-serif] font-medium leading-[1.2] text-[min(1.8vw,20px)] text-foreground text-center whitespace-nowrap">
                             Non Com Long % vs Short %
                         </p>
                     </div>
@@ -114,13 +114,13 @@ export default function COTNonComLongVsShort() {
                     />
                     {/* Legend - Long% text */}
                     <p
-                        className="absolute left-[46.17%] top-[9.36%] -translate-x-1/2 font-['Inter',sans-serif] font-normal leading-[1.4] text-[min(1.2vw,14px)] text-white text-center tracking-[-0.16px] whitespace-nowrap"
+                        className="absolute left-[46.17%] top-[9.36%] -translate-x-1/2 font-['Inter',sans-serif] font-normal leading-[1.4] text-[min(1.2vw,14px)] text-foreground text-center tracking-[-0.16px] whitespace-nowrap"
                     >
                         Long%
                     </p>
                     {/* Legend - Short% text */}
                     <p
-                        className="absolute left-[56.63%] top-[9.36%] -translate-x-1/2 font-['Inter',sans-serif] font-normal leading-[1.4] text-[min(1.2vw,14px)] text-white text-center tracking-[-0.16px] whitespace-nowrap"
+                        className="absolute left-[56.63%] top-[9.36%] -translate-x-1/2 font-['Inter',sans-serif] font-normal leading-[1.4] text-[min(1.2vw,14px)] text-foreground text-center tracking-[-0.16px] whitespace-nowrap"
                     >
                         Short%
                     </p>
@@ -129,7 +129,7 @@ export default function COTNonComLongVsShort() {
                     {labels.map((l, i) => (
                         <p
                             key={`label-${i}`}
-                            className="absolute font-['Poppins',sans-serif] font-medium leading-[1.4] text-[min(1.1vw,12px)] text-white whitespace-nowrap"
+                            className="absolute font-['Poppins',sans-serif] font-medium leading-[1.4] text-[min(1.1vw,12px)] text-foreground whitespace-nowrap"
                             style={{ left: l.left, top: l.top }}
                         >
                             {l.text}
@@ -158,7 +158,7 @@ export default function COTNonComLongVsShort() {
                     {longLabels.map((l, i) => (
                         <p
                             key={`long-${i}`}
-                            className="absolute -translate-x-full font-['Poppins',sans-serif] font-semibold leading-[1.4] text-[min(1.1vw,12px)] text-white text-right"
+                            className="absolute -translate-x-full font-['Poppins',sans-serif] font-semibold leading-[1.4] text-[min(1.1vw,12px)] text-foreground text-right"
                             style={{ left: l.left, top: l.top }}
                         >
                             {l.value}
@@ -169,7 +169,7 @@ export default function COTNonComLongVsShort() {
                     {shortLabels.map((l, i) => (
                         <p
                             key={`short-${i}`}
-                            className="absolute -translate-x-full font-['Poppins',sans-serif] font-semibold leading-[1.4] text-[min(1.1vw,12px)] text-white text-right"
+                            className="absolute -translate-x-full font-['Poppins',sans-serif] font-semibold leading-[1.4] text-[min(1.1vw,12px)] text-foreground text-right"
                             style={{ left: l.left, top: l.top }}
                         >
                             {l.value}
@@ -180,7 +180,7 @@ export default function COTNonComLongVsShort() {
                     {xAxisTicks.map((tick, i) => (
                         <p
                             key={`tick-${i}`}
-                            className="absolute font-['Poppins',sans-serif] font-medium leading-[1.4] text-[min(0.9vw,10.381px)] text-white whitespace-nowrap"
+                            className="absolute font-['Poppins',sans-serif] font-medium leading-[1.4] text-[min(0.9vw,10.381px)] text-foreground whitespace-nowrap"
                             style={{ left: tick.left, top: "94.76%" }}
                         >
                             {tick.value}

@@ -1,17 +1,17 @@
 .dropdown {
     &__btn {
-        color: white;
-        background-color: rgb(26, 29, 35); // darkGrey
+        color: rgb(var(--foreground));
+        background-color: rgb(var(--dark-grey));
         border-radius: 16px;
         padding: 12px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: opacity 0.2s;
 
         &:hover {
-            background-color: rgb(36, 39, 45);
+            opacity: 0.92;
         }
 
         .dropdown__label {
@@ -30,14 +30,14 @@
         z-index: 10;
 
         .dropdown__menuItem {
-            color: #9ca3af; // text-secondary/grey
+            color: rgb(var(--foreground));
             font-size: 16px;
             padding: 8px 24px;
             cursor: pointer;
-            transition: color 0.2s;
+            transition: opacity 0.2s;
 
             &:hover {
-                color: white;
+                opacity: 0.85;
             }
         }
 

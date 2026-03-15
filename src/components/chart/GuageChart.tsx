@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import styles from "./GuageChart.module.scss";
 import GuageChartIndicator from "./GuageChartIndicator";
 
@@ -61,7 +62,7 @@ export default function GuageChart({
 
     const colors = getColors();
     return (
-        <div className={styles.guageChartContainer}>
+        <div className={cn(styles.guageChartContainer, "text-foreground")}>
             <svg
                 width="156"
                 height="83"
@@ -87,15 +88,15 @@ export default function GuageChart({
                     <path id="riskOffArc" d="M 33 116 A 58 58 0 0 1 75 30" fill="none" />
                     <path id="riskOnArc" d="M 107 38 A 58 58 0 0 1 126 95" fill="none" />
                 </defs>
-                <text fontSize="8.5" fontWeight="700" fill="white" textAnchor="middle" fontFamily="'Montserrat', 'Roboto', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" letterSpacing="1px">
+                <text fontSize="8.5" fontWeight="700" fill="currentColor" textAnchor="middle" fontFamily="'Montserrat', 'Roboto', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" letterSpacing="1px">
                     <textPath href={customLeftLabel ? '#riskOffArc' : (labelType === 'netBias' ? '#leftArcLower' : '#leftArc')} startOffset="50%">
                         {customLeftLabel || (labelType === 'netBias' ? 'Sell' : 'Bearish')}
                     </textPath>
                 </text>
-                <text fontSize="8" fontWeight="700" fill="white" textAnchor="middle" fontFamily="'Montserrat', 'Roboto', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" letterSpacing="1px">
+                <text fontSize="8" fontWeight="700" fill="currentColor" textAnchor="middle" fontFamily="'Montserrat', 'Roboto', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" letterSpacing="1px">
                     <textPath href="#centerArc" startOffset="50%">Neutral</textPath>
                 </text>
-                <text fontSize="8.5" fontWeight="700" fill="white" textAnchor="middle" fontFamily="'Montserrat', 'Roboto', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" letterSpacing="1px">
+                <text fontSize="8.5" fontWeight="700" fill="currentColor" textAnchor="middle" fontFamily="'Montserrat', 'Roboto', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" letterSpacing="1px">
                     <textPath href={customRightLabel ? '#riskOnArc' : (labelType === 'netBias' ? '#rightArcLower' : '#rightArc')} startOffset="50%">
                         {customRightLabel || (labelType === 'netBias' ? 'Buy' : 'Bullish')}
                     </textPath>

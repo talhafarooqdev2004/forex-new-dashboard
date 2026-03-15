@@ -103,14 +103,14 @@ function Bar({
 export default function TrendAlignmentScoreChart() {
     return (
         <Section padding={false} className="w-full">
-            <div className="w-full horizontal-scroll">
+            <div className="w-full horizontal-scroll bg-darkGrey rounded-[12px] text-foreground">
                 <div
                     className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/250] overflow-hidden flex flex-col p-[16.8px] pb-[0.8px] gap-4"
                 >
                     {/* Title */}
                     <div className="w-full h-5">
                         <p
-                            className="text-center text-white w-full font-bold text-[min(1.8vw,20px)] leading-6"
+                            className="text-center w-full font-bold text-[min(1.8vw,20px)] leading-6"
                         >
                             Trend Alignment Score
                         </p>
@@ -146,8 +146,8 @@ export default function TrendAlignmentScoreChart() {
                         ))}
 
                         {/* Y-axis labels */}
-                        <p className="absolute text-right text-white text-[10px] top-[0.53%] left-[4.45%] w-[2%]">8</p>
-                        <p className="absolute text-right text-white text-[10px] top-[17.72%] left-[4.45%] w-[2%]">6</p>
+                        <p className="absolute text-right text-[10px] top-[0.53%] left-[4.45%] w-[2%]">8</p>
+                        <p className="absolute text-right text-[10px] top-[17.72%] left-[4.45%] w-[2%]">6</p>
 
                         {/* Bars */}
                         {blueBars.map((bar, i) => (
@@ -164,7 +164,7 @@ export default function TrendAlignmentScoreChart() {
                         {currencyLabels.map((item, i) => (
                             <p
                                 key={`label-${i}`}
-                                className="absolute text-center text-white text-[10px] font-medium top-[81.19%]"
+                                className="absolute text-center text-[10px] font-medium top-[81.19%]"
                                 style={{ left: `${item.leftPct}%`, right: `${item.rightPct}%` }}
                             >
                                 {item.label}
@@ -188,7 +188,7 @@ function LegendItem({ color, label }: { color: string; label: string }) {
     return (
         <div className="flex items-center gap-1">
             <div className="w-2 h-[2px]" style={{ backgroundColor: color }} />
-            <span className="text-white text-[9px] font-normal leading-[13.5px]">{label}</span>
+            <span className="text-[9px] font-normal leading-[13.5px]">{label}</span>
         </div>
     );
 }

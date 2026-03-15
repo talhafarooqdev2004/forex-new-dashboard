@@ -86,15 +86,15 @@ const PINK_MT = 68.59; // all pink bars start at this mt (top of growing-down ar
 export default function DriveIndexChart({ title }: DriveIndexChartProps) {
     return (
         <Section padding={false} className="w-full">
-            <div className="w-full horizontal-scroll">
+            <div className="w-full horizontal-scroll bg-darkGrey rounded-[12px] text-foreground">
                 <div
                     className="relative min-w-[450px] xl:min-w-0 w-full max-w-ful mx-auto aspect-[507/250] overflow-hidden flex flex-col p-4 gap-4"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between w-full h-[28.8px]">
                         <div className="flex items-center gap-2">
-                            <div className="w-[10.3px] h-[11.5px] bg-[#2b7fff] rounded-full" />
-                            <p className="text-white font-bold text-[min(1.8vw,20px)] leading-6">
+                            <div className="w-[10.3px] h-[11.5px] bg-primary rounded-full" />
+                            <p className="font-bold text-[min(1.8vw,20px)] leading-6">
                                 {title}
                             </p>
                         </div>
@@ -107,32 +107,32 @@ export default function DriveIndexChart({ title }: DriveIndexChartProps) {
                     </div>
 
                     {/* Divider line */}
-                    <div className="w-full h-px bg-[#383E47]" />
+                    <div className="w-full h-px bg-stroke" />
 
                     {/* Chart area */}
-                    <div className="relative flex-1 w-full">
+                    <div className="relative flex-1 w-full text-foreground">
                         <svg
                             viewBox={`0 0 ${CHART_W} ${CHART_H}`}
                             width="100%"
                             height="100%"
-                            className="block rounded-[5.8px] bg-black"
+                            className="block rounded-[5.8px] bg-chartInnerBg"
                             preserveAspectRatio="xMidYMid meet"
                         >
                             {/* EUR/USD label */}
-                            <text x={CHART_W / 2} y={15} textAnchor="middle" fill="white" fontFamily="'Arimo', sans-serif" fontWeight={400} fontSize={14.6}>EUR/USD</text>
+                            <text x={CHART_W / 2} y={15} textAnchor="middle" fill="currentColor" fontFamily="'Arimo', sans-serif" fontWeight={400} fontSize={14.6}>EUR/USD</text>
 
                             {/* Y-axis labels */}
                             {yLabels.map((l, i) => (
-                                <text key={i} x={l.ml} y={l.mt + 6} fill="white" fontFamily="'Poppins', sans-serif" fontWeight={500} fontSize={5.7}>{l.text}</text>
+                                <text key={i} x={l.ml} y={l.mt + 6} fill="currentColor" fontFamily="'Poppins', sans-serif" fontWeight={500} fontSize={5.7}>{l.text}</text>
                             ))}
 
                             {/* Grid lines */}
                             {gridLines.map((g, i) => (
-                                <line key={`grid-${i}`} x1={g.ml} y1={g.mt} x2={g.ml + g.w} y2={g.mt} stroke="white" strokeOpacity={0.35} strokeWidth={0.7} />
+                                <line key={`grid-${i}`} x1={g.ml} y1={g.mt} x2={g.ml + g.w} y2={g.mt} stroke="currentColor" strokeOpacity={0.35} strokeWidth={0.7} />
                             ))}
 
                             {/* Zero line */}
-                            <line x1={zeroLine.ml} y1={zeroLine.mt} x2={zeroLine.ml + zeroLine.w} y2={zeroLine.mt} stroke="white" strokeWidth={0.7} />
+                            <line x1={zeroLine.ml} y1={zeroLine.mt} x2={zeroLine.ml + zeroLine.w} y2={zeroLine.mt} stroke="currentColor" strokeWidth={0.7} />
 
                             {/* Green bars */}
                             {greenBars.map((bar, i) => (
@@ -142,14 +142,14 @@ export default function DriveIndexChart({ title }: DriveIndexChartProps) {
                             {/* Green bar value labels */}
                             {greenLabels.map((l, i) => (
                                 <g key={`gl-${i}`} transform={`translate(${l.ml + 1.84}, ${l.mt + 3.8}) rotate(-90)`}>
-                                    <text fill="white" fontFamily="'Poppins', sans-serif" fontWeight={500} fontSize={5.1} textAnchor="middle" dominantBaseline="middle">{l.val}</text>
+                                    <text fill="currentColor" fontFamily="'Poppins', sans-serif" fontWeight={500} fontSize={5.1} textAnchor="middle" dominantBaseline="middle">{l.val}</text>
                                 </g>
                             ))}
 
                             {/* Red bar */}
                             <rect x={redBar.ml} y={redBar.mt} width={BAR_W} height={redBar.h} rx={BAR_R} fill="red" />
                             <g transform={`translate(${redBar.ml + 3.5}, ${redBar.mt + 5.2}) rotate(-90)`}>
-                                <text fill="white" fontFamily="'Poppins', sans-serif" fontWeight={500} fontSize={5.1} textAnchor="middle" dominantBaseline="middle">02</text>
+                                <text fill="currentColor" fontFamily="'Poppins', sans-serif" fontWeight={500} fontSize={5.1} textAnchor="middle" dominantBaseline="middle">02</text>
                             </g>
 
                             {/* Pink bars */}
@@ -160,7 +160,7 @@ export default function DriveIndexChart({ title }: DriveIndexChartProps) {
                             {/* Pink bar value labels */}
                             {pinkBars.map((bar, i) => (
                                 <g key={`pl-${i}`} transform={`translate(${bar.ml + 3.1}, ${PINK_MT + bar.h / 2 + 4}) rotate(-90)`}>
-                                    <text fill="black" fontFamily="'Poppins', sans-serif" fontWeight={500} fontSize={5.1} textAnchor="middle" dominantBaseline="middle">{bar.val}</text>
+                                    <text fill="currentColor" fontFamily="'Poppins', sans-serif" fontWeight={500} fontSize={5.1} textAnchor="middle" dominantBaseline="middle">{bar.val}</text>
                                 </g>
                             ))}
                         </svg>
@@ -170,7 +170,7 @@ export default function DriveIndexChart({ title }: DriveIndexChartProps) {
                             <div className="bg-[#fb2c3633] rounded-[4px] px-2 py-1">
                                 <span className="text-[#ff6467] text-[12px] font-normal leading-4">SELL</span>
                             </div>
-                            <span className="text-[#99a1af] text-[12px] font-normal leading-4">1.1846</span>
+                            <span className="text-secondary text-[12px] font-normal leading-4">1.1846</span>
                         </div>
                     </div>
                 </div>

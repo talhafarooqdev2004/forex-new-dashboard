@@ -18,7 +18,7 @@ const pieData = [
 
 export default function PipsGrowthChart() {
   return (
-    <div className="bg-[#1a1d23] rounded-[12px] w-full border-b-[0.8px] border-[rgba(255,255,255,0.05)] overflow-hidden">
+    <div className="bg-darkGrey rounded-[12px] w-full border-b-[0.8px] border-stroke overflow-hidden text-foreground">
       <div className="w-full horizontal-scroll">
         <div className="flex flex-col lg:flex-row gap-8 p-6 min-w-[800px]">
           {/* Donut Chart Section (Manual SVG) */}
@@ -47,13 +47,13 @@ export default function PipsGrowthChart() {
                   strokeDashoffset={`${-(79 / 100) * 424}`}
                 />
                 {/* Inner stroke */}
-                <circle cx="96" cy="96" r="55" fill="transparent" stroke="white" strokeWidth="1" />
+                <circle cx="96" cy="96" r="55" fill="transparent" stroke="currentColor" strokeWidth="1" />
                 {/* Outer stroke */}
-                <circle cx="96" cy="96" r="80" fill="transparent" stroke="white" strokeWidth="1" />
+                <circle cx="96" cy="96" r="80" fill="transparent" stroke="currentColor" strokeWidth="1" />
               </svg>
               {/* Center text */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="font-['Arimo',sans-serif] font-bold text-[30px] leading-[36px] text-white">79%</span>
+                <span className="font-['Arimo',sans-serif] font-bold text-[30px] leading-[36px]">79%</span>
                 <span className="font-['Arimo',sans-serif] font-bold text-[10px] leading-[15px] text-[#05df72]">Wins</span>
               </div>
               {/* Loss label on the red slice */}
@@ -65,18 +65,18 @@ export default function PipsGrowthChart() {
             <div className="flex gap-4 items-center mt-4">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-[6px] bg-[#00c950]" />
-                <span className="font-['Arima',sans-serif] text-[10px] leading-[15px] text-white">Wins</span>
+                <span className="font-['Arima',sans-serif] text-[10px] leading-[15px]">Wins</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-[6px] bg-[#fb2c36]" />
-                <span className="font-['Arima',sans-serif] text-[10px] leading-[15px] text-white">Losses</span>
+                <span className="font-['Arima',sans-serif] text-[10px] leading-[15px]">Losses</span>
               </div>
             </div>
           </div>
 
           {/* Line Chart Section (Manual SVG) */}
           <div className="flex-1 flex flex-col gap-4 min-w-0 pr-12">
-            <h3 className="font-['Inter',sans-serif] font-bold text-[20px] leading-[24px] text-white tracking-normal">
+            <h3 className="font-['Inter',sans-serif] font-bold text-[20px] leading-[24px] tracking-normal">
               Pips Growth
             </h3>
             <div className="w-full h-[192px] relative">
@@ -104,7 +104,7 @@ export default function PipsGrowthChart() {
                   <g key={i}>
                     <circle cx={p.x} cy={p.y} r="4" fill="#60A5FA" />
                     {p.label && (
-                      <text x={p.x} y={p.y - 10} fill="white" fontSize="10" textAnchor="middle">
+                      <text x={p.x} y={p.y - 10} fill="currentColor" fontSize="10" textAnchor="middle">
                         {p.label}
                       </text>
                     )}
@@ -112,7 +112,7 @@ export default function PipsGrowthChart() {
                 ))}
               </svg>
               {/* Y-Axis Labels (Right) */}
-              <div className="absolute right-0 top-0 h-full flex flex-col justify-between text-white text-[10px] pr-1 translate-x-full">
+              <div className="absolute right-0 top-0 h-full flex flex-col justify-between text-[10px] pr-1 translate-x-full">
                 <span>+800</span>
                 <span>+600</span>
                 <span>+400</span>

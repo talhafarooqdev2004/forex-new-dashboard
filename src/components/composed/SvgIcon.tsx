@@ -1,11 +1,26 @@
-type IconName =
+export type IconName =
     | "user"
     | "inactive-subscribers"
     | "dollar-sign"
     | "revenue-growth"
     | "education-center-icon"
     | "education-icon"
-    | "chevron-right-icon";
+    | "chevron-right-icon"
+    | "technical-dashboard-icon"
+    | "fundamental-dashboard-icon"
+    | "fx-analyzer-pro-icon"
+    | "score-dashboard-icon"
+    | "edge-tools-alerts-icon"
+    | "trading-terminal-icon"
+    | "currency-fundamentals-icon"
+    | "cot-data-analysis-icon"
+    | "seasonal-trends-icon"
+    | "retail-sentiment-icon"
+    | "risk-mode-icon"
+    | "calendar-news-icon"
+    | "trading-journal-icon"
+    | "education-svg-icon"
+    | "forum-svg-icon";
 
 const icons: Record<IconName, React.ReactNode> = {
     user: (
@@ -71,8 +86,558 @@ const icons: Record<IconName, React.ReactNode> = {
             </defs>
         </svg>
     ),
+
+    "technical-dashboard-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                d="M2 2V12.6667C2 13.0203 2.14048 13.3594 2.39052 13.6095C2.64057 13.8595 2.97971 14 3.33333 14H14"
+                stroke="currentColor"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M12.6667 6L9.33333 9.33333L6.66667 6.66667L4.66667 8.66667"
+                stroke="currentColor"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    ),
+
+    "fundamental-dashboard-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_284)">
+                <path
+                    d="M14 7.99995C14.368 7.99995 14.67 7.70061 14.6333 7.33461C14.4796 5.80406 13.8014 4.37375 12.7135 3.28616C11.6257 2.19857 10.1953 1.52064 8.66467 1.36728C8.298 1.33061 7.99933 1.63261 7.99933 2.00061V7.33395C7.99933 7.51076 8.06957 7.68033 8.19459 7.80535C8.31962 7.93038 8.48919 8.00061 8.666 8.00061L14 7.99995Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33333"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M14.14 10.5934C13.7159 11.5964 13.0525 12.4802 12.2079 13.1676C11.3633 13.855 10.3632 14.325 9.29496 14.5366C8.22673 14.7481 7.12295 14.6948 6.0801 14.3813C5.03724 14.0677 4.08708 13.5034 3.31268 12.7378C2.53827 11.9722 1.96321 11.0286 1.63776 9.98935C1.3123 8.95015 1.24637 7.84704 1.44573 6.77647C1.64509 5.70591 2.10366 4.70047 2.78136 3.84807C3.45906 2.99567 4.33525 2.32226 5.33333 1.88672"
+                    stroke="currentColor"
+                    strokeWidth="1.33333"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_284">
+                    <rect width="16" height="16" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "fx-analyzer-pro-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                d="M1.99883 1.99878V12.6592C1.99883 13.0126 2.13922 13.3515 2.38912 13.6014C2.63902 13.8513 2.97796 13.9917 3.33138 13.9917H13.9918"
+                stroke="currentColor"
+                strokeWidth="1.33255"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M11.993 11.3267V5.99646"
+                stroke="currentColor"
+                strokeWidth="1.33255"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M8.66158 11.3267V3.33142"
+                stroke="currentColor"
+                strokeWidth="1.33255"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M5.3302 11.3267V9.32788"
+                stroke="currentColor"
+                strokeWidth="1.33255"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    ),
+
+    "score-dashboard-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_306)">
+                <path
+                    d="M14.6581 7.99527H13.0057C12.7145 7.99465 12.4311 8.08942 12.1989 8.26509C11.9667 8.44076 11.7984 8.68766 11.7198 8.96803L10.154 14.5381C10.1439 14.5727 10.1229 14.6031 10.0941 14.6247C10.0652 14.6463 10.0302 14.658 9.99413 14.658C9.95809 14.658 9.92302 14.6463 9.89419 14.6247C9.86536 14.6031 9.84431 14.5727 9.83422 14.5381L6.15638 1.45245C6.14629 1.41785 6.12525 1.38746 6.09642 1.36583C6.06759 1.34421 6.03252 1.33252 5.99648 1.33252C5.96044 1.33252 5.92537 1.34421 5.89654 1.36583C5.8677 1.38746 5.84666 1.41785 5.83657 1.45245L4.27082 7.02251C4.19251 7.30178 4.02522 7.54788 3.79435 7.72344C3.56347 7.899 3.28162 7.99444 2.99158 7.99527H1.33255"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_306">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "edge-tools-alerts-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_315)">
+                <path
+                    d="M6.84132 13.9917C6.95828 14.1943 7.12649 14.3625 7.32906 14.4794C7.53163 14.5964 7.76141 14.6579 7.99531 14.6579C8.22921 14.6579 8.45898 14.5964 8.66155 14.4794C8.86412 14.3625 9.03233 14.1943 9.14929 13.9917"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M2.17339 10.2113C2.08635 10.3067 2.02891 10.4253 2.00806 10.5528C1.9872 10.6802 2.00384 10.811 2.05593 10.9291C2.10802 11.0473 2.19334 11.1478 2.30149 11.2184C2.40964 11.2889 2.53596 11.3266 2.6651 11.3266H13.3255C13.4546 11.3267 13.581 11.2892 13.6892 11.2188C13.7974 11.1483 13.8828 11.048 13.9351 10.9299C13.9873 10.8118 14.0041 10.6811 13.9834 10.5536C13.9627 10.4262 13.9054 10.3075 13.8185 10.212C12.9324 9.29851 11.993 8.32774 11.993 5.33017C11.993 4.26993 11.5718 3.25311 10.8221 2.5034C10.0724 1.7537 9.05555 1.33252 7.9953 1.33252C6.93506 1.33252 5.91824 1.7537 5.16854 2.5034C4.41883 3.25311 3.99765 4.26993 3.99765 5.33017C3.99765 8.32774 3.05754 9.29851 2.17339 10.2113Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_315">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "trading-terminal-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_315)">
+                <path
+                    d="M6.84132 13.9917C6.95828 14.1943 7.12649 14.3625 7.32906 14.4794C7.53163 14.5964 7.76141 14.6579 7.99531 14.6579C8.22921 14.6579 8.45898 14.5964 8.66155 14.4794C8.86412 14.3625 9.03233 14.1943 9.14929 13.9917"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M2.17339 10.2113C2.08635 10.3067 2.02891 10.4253 2.00806 10.5528C1.9872 10.6802 2.00384 10.811 2.05593 10.9291C2.10802 11.0473 2.19334 11.1478 2.30149 11.2184C2.40964 11.2889 2.53596 11.3266 2.6651 11.3266H13.3255C13.4546 11.3267 13.581 11.2892 13.6892 11.2188C13.7974 11.1483 13.8828 11.048 13.9351 10.9299C13.9873 10.8118 14.0041 10.6811 13.9834 10.5536C13.9627 10.4262 13.9054 10.3075 13.8185 10.212C12.9324 9.29851 11.993 8.32774 11.993 5.33017C11.993 4.26993 11.5718 3.25311 10.8221 2.5034C10.0724 1.7537 9.05555 1.33252 7.9953 1.33252C6.93506 1.33252 5.91824 1.7537 5.16854 2.5034C4.41883 3.25311 3.99765 4.26993 3.99765 5.33017C3.99765 8.32774 3.05754 9.29851 2.17339 10.2113Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_315">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "currency-fundamentals-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_336)">
+                <path
+                    d="M7.87752 1.31299V14.4422"
+                    stroke="currentColor"
+                    strokeWidth="1.31292"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M11.1598 3.28223H6.23637C5.62701 3.28223 5.0426 3.5243 4.61172 3.95518C4.18083 4.38607 3.93876 4.97047 3.93876 5.57984C3.93876 6.1892 4.18083 6.77361 4.61172 7.20449C5.0426 7.63538 5.62701 7.87745 6.23637 7.87745H9.51867C10.128 7.87745 10.7124 8.11952 11.1433 8.5504C11.5742 8.98129 11.8163 9.56569 11.8163 10.1751C11.8163 10.7844 11.5742 11.3688 11.1433 11.7997C10.7124 12.2306 10.128 12.4727 9.51867 12.4727H3.93876"
+                    stroke="currentColor"
+                    strokeWidth="1.31292"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_336">
+                    <rect width="15.755" height="15.755" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "cot-data-analysis-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_346)">
+                <path
+                    d="M7.9953 5.33017C11.3071 5.33017 13.9918 4.43527 13.9918 3.33135C13.9918 2.22742 11.3071 1.33252 7.9953 1.33252C4.68354 1.33252 1.99883 2.22742 1.99883 3.33135C1.99883 4.43527 4.68354 5.33017 7.9953 5.33017Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M1.99883 3.3313V12.6592C1.99883 13.1893 2.63059 13.6977 3.75515 14.0725C4.87971 14.4474 6.40494 14.658 7.9953 14.658C9.58567 14.658 11.1109 14.4474 12.2355 14.0725C13.36 13.6977 13.9918 13.1893 13.9918 12.6592V3.3313"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M1.99883 7.99536C1.99883 8.52548 2.63059 9.03389 3.75515 9.40874C4.87971 9.7836 6.40494 9.99419 7.9953 9.99419C9.58567 9.99419 11.1109 9.7836 12.2355 9.40874C13.36 9.03389 13.9918 8.52548 13.9918 7.99536"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_346">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "seasonal-trends-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_357)">
+                <path
+                    d="M5.3302 1.33252V3.99762"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M10.6604 1.33252V3.99762"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M12.6592 2.66504H3.33138C2.59543 2.66504 1.99883 3.26164 1.99883 3.99759V13.3254C1.99883 14.0614 2.59543 14.658 3.33138 14.658H12.6592C13.3952 14.658 13.9918 14.0614 13.9918 13.3254V3.99759C13.9918 3.26164 13.3952 2.66504 12.6592 2.66504Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M1.99883 6.66284H13.9918"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M5.3302 9.32788H5.33686"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M7.9953 9.32788H8.00197"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M10.6604 9.32788H10.6671"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M5.3302 11.9929H5.33686"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M7.9953 11.9929H8.00197"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M10.6604 11.9929H10.6671"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_357">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "retail-sentiment-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_375)">
+                <path
+                    d="M12.6592 9.32781C13.652 8.35505 14.6581 7.18906 14.6581 5.66329C14.6581 4.6914 14.272 3.75932 13.5847 3.07209C12.8975 2.38486 11.9654 1.99878 10.9935 1.99878C9.8209 1.99878 8.99472 2.33192 7.9953 3.33133C6.99589 2.33192 6.16971 1.99878 4.99706 1.99878C4.02517 1.99878 3.09309 2.38486 2.40586 3.07209C1.71863 3.75932 1.33255 4.6914 1.33255 5.66329C1.33255 7.19573 2.33196 8.36171 3.33138 9.32781L7.9953 13.9917L12.6592 9.32781Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_375">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "risk-mode-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_384)">
+                <path
+                    d="M13.3255 8.6616C13.3255 11.993 10.9935 13.6587 8.22184 14.6248C8.0767 14.674 7.91904 14.6716 7.77543 14.6181C4.99706 13.6587 2.6651 11.993 2.6651 8.6616V3.99768C2.6651 3.82097 2.7353 3.6515 2.86025 3.52655C2.9852 3.4016 3.15467 3.3314 3.33138 3.3314C4.66393 3.3314 6.32961 2.53187 7.48893 1.51913C7.63009 1.39854 7.80965 1.33228 7.9953 1.33228C8.18096 1.33228 8.36052 1.39854 8.50167 1.51913C9.66765 2.53853 11.3267 3.3314 12.6592 3.3314C12.8359 3.3314 13.0054 3.4016 13.1304 3.52655C13.2553 3.6515 13.3255 3.82097 13.3255 3.99768V8.6616Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_384">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "calendar-news-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_393)">
+                <path
+                    d="M9.99413 11.9929H6.66275"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M11.993 9.32788H6.66275"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M2.6651 14.658H13.3255C13.6789 14.658 14.0179 14.5176 14.2678 14.2677C14.5177 14.0178 14.6581 13.6789 14.6581 13.3255V2.66507C14.6581 2.31166 14.5177 1.97272 14.2678 1.72281C14.0179 1.47291 13.6789 1.33252 13.3255 1.33252H5.3302C4.97679 1.33252 4.63785 1.47291 4.38795 1.72281C4.13804 1.97272 3.99765 2.31166 3.99765 2.66507V13.3255C3.99765 13.6789 3.85726 14.0178 3.60736 14.2677C3.35745 14.5176 3.01851 14.658 2.6651 14.658ZM2.6651 14.658C2.31169 14.658 1.97275 14.5176 1.72284 14.2677C1.47294 14.0178 1.33255 13.6789 1.33255 13.3255V7.329C1.33255 6.97558 1.47294 6.63664 1.72284 6.38674C1.97275 6.13684 2.31169 5.99645 2.6651 5.99645H3.99765"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M11.3267 3.99756H7.32903C6.96106 3.99756 6.66275 4.29586 6.66275 4.66383V5.99638C6.66275 6.36436 6.96106 6.66266 7.32903 6.66266H11.3267C11.6947 6.66266 11.993 6.36436 11.993 5.99638V4.66383C11.993 4.29586 11.6947 3.99756 11.3267 3.99756Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_393">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "trading-journal-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_405)">
+                <path
+                    d="M7.9953 4.66382V13.9917"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M1.99883 11.9929C1.82212 11.9929 1.65265 11.9227 1.5277 11.7978C1.40275 11.6728 1.33255 11.5033 1.33255 11.3266V2.66505C1.33255 2.48835 1.40275 2.31888 1.5277 2.19393C1.65265 2.06898 1.82212 1.99878 1.99883 1.99878H5.3302C6.03703 1.99878 6.71491 2.27957 7.21471 2.77937C7.71452 3.27917 7.9953 3.95705 7.9953 4.66388C7.9953 3.95705 8.27609 3.27917 8.77589 2.77937C9.2757 2.27957 9.95357 1.99878 10.6604 1.99878H13.9918C14.1685 1.99878 14.338 2.06898 14.4629 2.19393C14.5879 2.31888 14.6581 2.48835 14.6581 2.66505V11.3266C14.6581 11.5033 14.5879 11.6728 14.4629 11.7978C14.338 11.9227 14.1685 11.9929 13.9918 11.9929H9.99413C9.46401 11.9929 8.9556 12.2035 8.58074 12.5784C8.20589 12.9532 7.9953 13.4616 7.9953 13.9917C7.9953 13.4616 7.78471 12.9532 7.40986 12.5784C7.03501 12.2035 6.5266 11.9929 5.99648 11.9929H1.99883Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_405">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "education-svg-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_415)">
+                <path
+                    d="M14.2716 7.27697C14.3909 7.22436 14.4921 7.1379 14.5627 7.02832C14.6334 6.91874 14.6703 6.79085 14.6689 6.6605C14.6676 6.53014 14.628 6.40304 14.5552 6.29494C14.4823 6.18684 14.3793 6.1025 14.259 6.05236L8.54831 3.45122C8.37471 3.37203 8.18612 3.33105 7.9953 3.33105C7.80449 3.33105 7.6159 3.37203 7.44229 3.45122L1.73232 6.0497C1.6137 6.10165 1.51279 6.18704 1.44193 6.29543C1.37107 6.40382 1.33334 6.53051 1.33334 6.66C1.33334 6.7895 1.37107 6.91619 1.44193 7.02458C1.51279 7.13297 1.6137 7.21836 1.73232 7.27031L7.44229 9.87412C7.6159 9.9533 7.80449 9.99428 7.9953 9.99428C8.18612 9.99428 8.37471 9.9533 8.54831 9.87412L14.2716 7.27697Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M14.6581 6.66284V10.6605"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M3.99765 8.32837V10.6603C3.99765 11.1905 4.41883 11.6989 5.16854 12.0737C5.91824 12.4486 6.93506 12.6592 7.9953 12.6592C9.05555 12.6592 10.0724 12.4486 10.8221 12.0737C11.5718 11.6989 11.993 11.1905 11.993 10.6603V8.32837"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_415">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
+
+    "forum-svg-icon": (
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <g clipPath="url(#clip0_642_415)">
+                <path
+                    d="M14.2716 7.27697C14.3909 7.22436 14.4921 7.1379 14.5627 7.02832C14.6334 6.91874 14.6703 6.79085 14.6689 6.6605C14.6676 6.53014 14.628 6.40304 14.5552 6.29494C14.4823 6.18684 14.3793 6.1025 14.259 6.05236L8.54831 3.45122C8.37471 3.37203 8.18612 3.33105 7.9953 3.33105C7.80449 3.33105 7.6159 3.37203 7.44229 3.45122L1.73232 6.0497C1.6137 6.10165 1.51279 6.18704 1.44193 6.29543C1.37107 6.40382 1.33334 6.53051 1.33334 6.66C1.33334 6.7895 1.37107 6.91619 1.44193 7.02458C1.51279 7.13297 1.6137 7.21836 1.73232 7.27031L7.44229 9.87412C7.6159 9.9533 7.80449 9.99428 7.9953 9.99428C8.18612 9.99428 8.37471 9.9533 8.54831 9.87412L14.2716 7.27697Z"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M14.6581 6.66284V10.6605"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M3.99765 8.32837V10.6603C3.99765 11.1905 4.41883 11.6989 5.16854 12.0737C5.91824 12.4486 6.93506 12.6592 7.9953 12.6592C9.05555 12.6592 10.0724 12.4486 10.8221 12.0737C11.5718 11.6989 11.993 11.1905 11.993 10.6603V8.32837"
+                    stroke="currentColor"
+                    strokeWidth="1.33255"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </g>
+            <defs>
+                <clipPath id="clip0_642_415">
+                    <rect width="15.9906" height="15.9906" fill="white" />
+                </clipPath>
+            </defs>
+        </svg>
+    ),
 };
 
 export default function SvgIcon({ icon }: { icon: IconName }) {
-    return icons[icon] ?? null;
+    return icons[icon as IconName] ?? null;
 };

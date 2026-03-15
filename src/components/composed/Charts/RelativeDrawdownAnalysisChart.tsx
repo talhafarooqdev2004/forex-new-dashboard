@@ -2,7 +2,7 @@ import { svgPaths } from "../svgPaths";
 
 export default function RelativeDrawdownAnalysisChart() {
     return (
-        <div className="bg-[#1a1d23] relative rounded-[12px] h-[398px] w-full max-w-[886px] horizontal-scroll">
+        <div className="bg-darkGrey relative rounded-[12px] h-[398px] w-full max-w-[886px] horizontal-scroll">
             <div className="relative min-w-[886px] h-full">
             {/* Grid lines - single SVG overlay */}
             <svg className="absolute left-[30px] top-[80px]" width="792" height="226" fill="none">
@@ -137,91 +137,91 @@ export default function RelativeDrawdownAnalysisChart() {
             </div>
 
             {/* Text labels */}
-            <p className="absolute font-['Inter:Bold',sans-serif] font-bold leading-[24px] left-[30px] not-italic text-[20px] text-white top-[24px]">Relative Drawdown Analysis</p>
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[785px] not-italic text-[16px] text-white top-[36px]">Peak</p>
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[32px] not-italic text-[16px] text-white top-[347px]">DEC 28, 2024</p>
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[424px] not-italic text-[16px] text-white top-[347px]">Balance</p>
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[329px] not-italic text-[16px] text-white top-[255px]">Relative Drawdown</p>
-            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[20px] left-[543px] not-italic text-[14px] text-white top-[263px]">Tough</p>
-            <div className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[20px] left-[648px] not-italic text-[14px] text-white top-[259px] whitespace-nowrap">
+            <p className="absolute font-['Inter:Bold',sans-serif] font-bold leading-[24px] left-[30px] not-italic text-[20px] text-foreground top-[24px]">Relative Drawdown Analysis</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[785px] not-italic text-[16px] text-foreground top-[36px]">Peak</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[32px] not-italic text-[16px] text-foreground top-[347px]">DEC 28, 2024</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[424px] not-italic text-[16px] text-foreground top-[347px]">Balance</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[24px] left-[329px] not-italic text-[16px] text-foreground top-[255px]">Relative Drawdown</p>
+            <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[20px] left-[543px] not-italic text-[14px] text-foreground top-[263px]">Tough</p>
+            <div className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[20px] left-[648px] not-italic text-[14px] text-foreground top-[259px] whitespace-nowrap">
                 <p className="mb-0">-0.920(-$550)</p>
                 <p>{`          10%`}</p>
             </div>
 
             {/* Y-axis labels */}
-            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-white top-[72px]">3500</p>
-            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-white top-[107px]">3500</p>
-            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-white top-[142px]">3500</p>
-            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-white top-[177px]">3500</p>
-            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-white top-[212px]">3500</p>
-            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-white top-[247px]">3500</p>
-            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-white top-[296px]">3500</p>
+            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-foreground top-[72px]">3500</p>
+            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-foreground top-[107px]">3500</p>
+            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-foreground top-[142px]">3500</p>
+            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-foreground top-[177px]">3500</p>
+            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-foreground top-[212px]">3500</p>
+            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-foreground top-[247px]">3500</p>
+            <p className="-translate-x-full absolute font-['Inter:Regular',sans-serif] font-normal leading-[normal] left-[862px] not-italic text-[12.568px] text-right text-foreground top-[296px]">3500</p>
 
             {/* X-axis month labels */}
             <div className="absolute flex h-[11.49px] items-center justify-center left-[49px] top-[179px] w-[16.886px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Jan</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Jan</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.49px] items-center justify-center left-[94px] top-[177px] w-[16.886px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Feb</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Feb</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.586px] items-center justify-center left-[132px] top-[174.9px] w-[17.882px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Mar</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Mar</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.49px] items-center justify-center left-[165px] top-[174px] w-[16.886px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Apr</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Apr</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.778px] items-center justify-center left-[205px] top-[171.71px] w-[19.872px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">May</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">May</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.49px] items-center justify-center left-[245px] top-[170.29px] w-[16.886px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Jun</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Jun</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.682px] items-center justify-center left-[282px] top-[168.81px] w-[18.877px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">July</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">July</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.682px] items-center justify-center left-[339px] top-[165px] w-[18.877px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Aug</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Aug</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.586px] items-center justify-center left-[387px] top-[162.1px] w-[17.882px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Sep</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Sep</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.49px] items-center justify-center left-[447px] top-[156.1px] w-[16.886px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Oct</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Oct</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.682px] items-center justify-center left-[511px] top-[147.81px] w-[18.877px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Nov</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Nov</p>
                 </div>
             </div>
             <div className="absolute flex h-[11.586px] items-center justify-center left-[572px] top-[136.1px] w-[17.882px]">
                 <div className="flex-none rotate-[-5.51deg]">
-                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-white">Dec</p>
+                    <p className="font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic relative text-[9px] text-foreground">Dec</p>
                 </div>
             </div>
 
             {/* X-axis "Dec 12" date labels */}
             {[147, 180, 213, 246, 279, 312, 345, 378, 411, 444, 477, 510, 543, 576, 609, 642, 675, 708, 741, 774].map((left) => (
-                <p key={left} className={`absolute font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic text-[9px] text-white top-[314px]`} style={{ left: `${left}px` }}>Dec 12</p>
+                <p key={left} className={`absolute font-['Inter:Medium',sans-serif] font-medium leading-[10px] not-italic text-[9px] text-foreground top-[314px]`} style={{ left: `${left}px` }}>Dec 12</p>
             ))}
             </div>
         </div>

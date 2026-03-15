@@ -29,7 +29,7 @@ const TabsTrigger = React.forwardRef<
   }
 >(({ className, variant = "default", ...props }, ref) => {
   const variants = {
-    forum: "text-[rgba(255,255,255,0.50)] data-[state=active]:border-b border-solid border-[#01C519] data-[state=active]:text-white px-2 py-2 font-semibold",
+    forum: "text-[rgb(var(--forum-tab-inactive))] dark:opacity-50 data-[state=active]:dark:opacity-100 data-[state=active]:border-b data-[state=active]:border-solid data-[state=active]:border-[rgb(var(--forum-tab-active-bar))] data-[state=active]:text-[rgb(var(--forum-tab-active))] px-2 py-2 font-semibold",
     default: "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
   }
   return (

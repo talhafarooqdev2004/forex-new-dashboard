@@ -133,7 +133,7 @@ function TotalRevenueSection() {
                 <span className="text-xl">Total Revenue</span>
                 <span className="text-xl">$54,970</span>
             </div>
-            <div className="rounded-xl bg-secondary h-[11px]">
+            <div className="rounded-xl bg-currencyStrengthIndexBackground h-[11px]">
                 <div className="w-1/2 h-full bg-greenDark rounded-xl"></div>
             </div>
             <div className="flex items-center justify-between">
@@ -142,7 +142,7 @@ function TotalRevenueSection() {
             </div>
         </div>
     );
-}
+};
 
 
 function TotalSubscriberSection() {

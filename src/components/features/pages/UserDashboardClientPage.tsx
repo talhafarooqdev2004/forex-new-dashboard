@@ -15,7 +15,7 @@ export default function UserDashboardClientPage() {
                 <div className="flex items-center gap-7">
                     <div className="flex items-center gap-4 border-r border-solid border-[#9CA3AF] pr-4">
                         <span className="text-[#62748E]">Plan:</span>
-                        <span className="text-white">Silver/Gold/Platinum</span>
+                        <span className="text-foreground">Silver/Gold/Platinum</span>
                     </div>
 
                     <div className="flex items-center gap-4 border-r border-solid border-[#9CA3AF] pr-4">
@@ -124,8 +124,8 @@ function MileStoneBadges() {
                     </svg>
 
                     <div className="flex flex-col items-center">
-                        <span className="text-[#F1F5F9]">1000 Pips</span>
-                        <span className="text-[#FFFFFF]/60">Corne Nigd</span>
+                        <span className="text-foreground">1000 Pips</span>
+                        <span className="text-foreground/60">Corne Nigd</span>
                     </div>
                 </div>
 
@@ -135,8 +135,8 @@ function MileStoneBadges() {
                     </svg>
 
                     <div className="flex flex-col items-center">
-                        <span className="text-[#F1F5F9]">Trade Ninja</span>
-                        <span className="text-[#FFFFFF]/60">Completed</span>
+                        <span className="text-foreground">Trade Ninja</span>
+                        <span className="text-foreground/60">Completed</span>
                     </div>
                 </div>
 
@@ -147,8 +147,8 @@ function MileStoneBadges() {
                     </svg>
 
                     <div className="flex flex-col items-center">
-                        <span className="text-[#F1F5F9]">Journal Ace</span>
-                        <span className="text-[#FFFFFF]/60">80% Complete</span>
+                        <span className="text-foreground">Journal Ace</span>
+                        <span className="text-foreground/60">80% Complete</span>
                     </div>
                 </div>
             </div>

@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply text-white;
+    color: rgb(var(--foreground));
     font-family: var(--font-inter);
   }
 
@@ -51,50 +51,82 @@
     @apply outline-none;
   }
   
-:root {
-  --primary: 229 231 235;
-  --secondary: 156 163 175;
+  /* Light theme (default)*/
+  :root {
+    --primary: 59 130 246;
+    --secondary: 22, 22, 22, 1;
 
-  --charcoal: 18 20 23;
-  --dark-grey: 26 29 35;
-  --stroke: 106 114 130;
+    --background: 245 245 250;
+    --foreground: 18 18 24;
 
-  --green: 0 255 127;
-  --green-ii: 0 227 113;
-  --green-dark: 0 198 99;
-  --bullish: 124 255 0;
+    --charcoal: 246 247 249;
+    --dark-grey: 255 255 255;
+    --stroke: 226 232 240;
 
-  --lemon-glacier: 253 255 0;
-  --bright-yellow: 253 255 0;
-  --mandarine: 255 168 0;
+    --green: 0 255 127;
+    --green-ii: 0 227 113;
+    --green-dark: 0 198 99;
+    --bullish: 124 255 0;
 
-  --royal-blue: 48 92 222;
-  --electric-blue: 59 130 246;
+    --lemon-glacier: 253 255 0;
+    --bright-yellow: 253 255 0;
+    --mandarine: 255 168 0;
 
-  --sell: 250 0 63;
+    --royal-blue: 48 92 222;
+    --electric-blue: 59 130 246;
 
-  --sidebar-active: 59 130 246;
-  --pressed: 34 41 52;
+    --sell: 250 0 63;
 
-  --background: 255 255 255;
-  --foreground: 0 0 0;
+    --sidebar-active: 59 130 246;
+    --pressed: 241 245 249;
+
+    --sidebar-text: 34, 41, 52, 1;
+
+    --currency-strength-index-background: 238 241 246;
+
+    --switch-track: 148 163 184;
+
+    --chart-inner-bg: 246 247 249;
+
+    --input-bg: 246 247 249;
+
+    --education-sidebar-text: 85 78 78;
+
+    --forum-tab-inactive: 156 163 175;
+    --forum-tab-active-bar: 1 197 25;
+    --forum-tab-active: 34 41 52;
+  }
+  html.dark {
+    --primary: 59 130 246;
+    --secondary: 156 163 175;
+
+    --background: 18 18 24;
+    --foreground: 255 255 255;
+
+    --charcoal: 18 20 23;
+    --dark-grey: 30 30 40;
+    --stroke: 60 60 75;
+
+    /* Sidebar item hover – slightly lighter than dark-grey */
+    --pressed: 48 52 64;
+
+    --sidebar-text: 255, 255, 255, 1;
+
+    --currency-strength-index-background: 16 24 40;
+
+    --switch-track: 51 65 85;
+
+    --chart-inner-bg: 0 0 0;
+
+    --input-bg: 31 34 39;
+
+    --education-sidebar-text: 182 182 182;
+
+    --forum-tab-inactive: 255 255 255;
+    --forum-tab-active-bar: 1 197 25;
+    --forum-tab-active: 255 255 255;
+  }
 }
-
-.dark {
-  /* Dark Theme Overrides */
-  --background: 18 18 24;
-  --foreground: 255 255 255;
-
-  --primary: 18 18 24;
-  --secondary: 120 120 130;
-
-  --charcoal: 22 22 32;
-  --dark-grey: 30 30 40;
-  --stroke: 60 60 75;
-}
-}
-
-/* classes that are used across the whole project */
 
 /* Ticker */
 .ticker {

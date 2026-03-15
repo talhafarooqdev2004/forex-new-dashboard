@@ -28,7 +28,7 @@ function BarRow({
     <div className="relative h-[32px] w-full flex items-center">
       {/* Currency pair label */}
       <div className="w-[80px] shrink-0 flex items-center">
-        <p className="font-['Inter',sans-serif] font-normal text-[12px] text-white tracking-[-0.12px] leading-[16px]">
+        <p className="font-['Inter',sans-serif] font-normal text-[12px] text-foreground tracking-[-0.12px] leading-[16px]">
           {pair}
         </p>
       </div>
@@ -71,9 +71,9 @@ function BarRow({
 
 export default function RetailSentimentChart() {
   return (
-    <div className="rounded-[12px] w-[748px] h-[615px] relative overflow-hidden">
+    <div className="bg-darkGrey rounded-[12px] w-[748px] h-[615px] relative overflow-hidden">
       {/* Title */}
-      <p className="absolute top-[34px] left-1/2 -translate-x-1/2 font-['Inter',sans-serif] font-bold text-[20px] text-white leading-[24px] whitespace-nowrap">
+      <p className="absolute top-[34px] left-1/2 -translate-x-1/2 font-['Inter',sans-serif] font-bold text-[20px] text-foreground leading-[24px] whitespace-nowrap">
         Retail Sentiment Long %&nbsp;&nbsp;VS Short %
       </p>
 
@@ -82,14 +82,14 @@ export default function RetailSentimentChart() {
         {/* Long % legend */}
         <div className="flex items-center gap-[8px]">
           <div className="w-[12px] h-[8px] rounded-[4px] bg-[#155dfc]" />
-          <p className="font-['Inter',sans-serif] font-bold text-[12px] text-white leading-[16px] tracking-[-0.12px]">
+          <p className="font-['Inter',sans-serif] font-bold text-[12px] text-foreground leading-[16px] tracking-[-0.12px]">
             Long %
           </p>
         </div>
         {/* Short % legend */}
         <div className="flex items-center gap-[8px]">
           <div className="w-[12px] h-[8px] rounded-[4px] bg-[#e7000b]" />
-          <p className="font-['Inter',sans-serif] font-bold text-[12px] text-white leading-[16px] tracking-[-0.12px]">
+          <p className="font-['Inter',sans-serif] font-bold text-[12px] text-foreground leading-[16px] tracking-[-0.12px]">
             Short %
           </p>
         </div>
