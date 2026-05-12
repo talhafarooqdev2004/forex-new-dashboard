@@ -1,49 +1,200 @@
 .container {
     width: 100%;
-    height: calc(100vh - 150px);
-    min-height: 600px;
+    min-width: 0;
+    min-height: calc(100vh - 150px);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 20px;
     padding: 20px;
     background-color: rgb(var(--dark-grey));
     color: rgb(var(--foreground));
     @apply rounded-xl;
+}
 
-    .widgetWrapper {
-        flex: 1;
-        width: 100%;
-        background-color: rgb(var(--input-bg));
-        border-radius: 8px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+.section {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    flex: 1 1 0;
+    min-width: 0;
+}
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    color: rgb(var(--foreground));
+}
+
+/* Horizontal scroll when calendar iframe is wider than the column (e.g. 50% layout). */
+.calendarScroll {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-radius: 8px;
+    scrollbar-gutter: stable;
+    scrollbar-color: rgb(var(--secondary) / 0.45) rgb(var(--input-bg));
+
+    &::-webkit-scrollbar {
+        height: 10px;
     }
 
-    .footer {
-        margin-top: 15px;
-        text-align: center;
+    &::-webkit-scrollbar-track {
+        background: rgb(var(--input-bg));
+        border-radius: 8px;
+    }
 
-        .myfxbookLink {
-            color: rgb(var(--foreground));
-            opacity: 0.85;
-            text-decoration: none;
-            font-size: 13px;
-            font-family: roboto, sans-serif;
+    &::-webkit-scrollbar-thumb {
+        background: rgb(var(--secondary) / 0.45);
+        border-radius: 8px;
 
-            b {
-                color: rgb(var(--foreground));
-            }
-
-            &:hover {
-                text-decoration: underline;
-            }
+        &:hover {
+            background: rgb(var(--secondary) / 0.65);
         }
+    }
+}
+
+/* Wrapper sizes to the iframe; parent `.calendarScroll` scrolls horizontally when needed. */
+.widgetWrapper {
+    display: inline-block;
+    width: max-content;
+    vertical-align: top;
+    /* Keep in sync with CALENDAR_IFRAME_HEIGHT_PX in CalendarNewsClientPage.tsx */
+    min-height: 620px;
+    background-color: rgb(var(--input-bg));
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.calendarIframe {
+    display: block;
+    height: 620px;
+    min-height: 620px;
+    border: 0;
+}
+
+.newsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.newsCount {
+    color: rgb(var(--secondary));
+    font-size: 13px;
+}
+
+.newsCard {
+    border: 1px solid rgb(var(--stroke));
+    border-radius: 12px;
+    background-color: rgb(var(--input-bg));
+    overflow: hidden;
+}
+
+.section:last-child .newsCard {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.stateMessage,
+.errorMessage {
+    padding: 24px;
+    text-align: center;
+    font-size: 14px;
+    color: rgb(var(--secondary));
+}
+
+.errorMessage {
+    color: rgb(var(--destructive, 239 68 68));
+}
+
+.newsList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.newsItem {
+    border-bottom: 1px solid rgb(var(--stroke));
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    a {
+        display: block;
+        padding: 14px 18px;
+        color: rgb(var(--foreground));
+        font-size: 14px;
+        line-height: 1.45;
+        text-decoration: none;
+        transition: background-color 0.15s ease, color 0.15s ease;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: rgb(var(--electric-blue));
+        }
+    }
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    border-top: 1px solid rgb(var(--stroke));
+    color: rgb(var(--secondary));
+    font-size: 13px;
+
+    button {
+        border: 1px solid rgb(var(--stroke));
+        border-radius: 8px;
+        padding: 7px 12px;
+        color: rgb(var(--foreground));
+        background-color: rgb(var(--dark-grey));
+        transition: opacity 0.15s ease, background-color 0.15s ease;
+
+        &:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+    }
+}
+
+@media (max-width: 960px) {
+    .container {
+        flex-direction: column;
+        padding: 14px;
+    }
+
+    .section {
+        width: 100%;
+        flex: 1 1 auto;
+    }
+
+    .section:last-child .newsCard {
+        max-height: none;
+    }
+}
+
+@media (max-width: 720px) {
+    .newsHeader {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
     }
 }

@@ -1,10 +1,8 @@
-import type { Metadata } from "next";
 import { Arimo, Arima, Inter } from "next/font/google";
 import "@/styles/tailwind/globals.css";
 import "@/styles/scss/main.scss";
-import { Header } from "@/components/layout";
-import SideBar from "@/components/layout/SideBar";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { AppProviders } from "@/components/providers/AppProviders";
+import { defaultRootMetadata } from "@/lib/seo";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,10 +22,7 @@ const arima = Arima({
   weight: ["400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  title: "Forex Fundamentals Edge",
-  description: "This is a Forex Fundamentals Edge project.",
-};
+export const metadata = defaultRootMetadata;
 
 export default function RootLayout({
   children,
@@ -47,21 +42,8 @@ export default function RootLayout({
         className={`${inter.variable} ${arimo.variable} ${arima.variable} antialiased overflow-x-auto bg-background text-foreground`}
         suppressHydrationWarning
       >
-        <ThemeProvider>
-          <div className="flex min-w-[1024px] w-full">
-            <div className="w-[19%]">
-              <SideBar />
-            </div>
-            <div className="w-[81%] min-w-0 flex flex-col">
-              <Header />
-
-              <main className="bg-charcoal p-8 min-w-0 flex-1">
-                {children}
-              </main>
-            </div>
-          </div>
-        </ThemeProvider>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );
-};
+}

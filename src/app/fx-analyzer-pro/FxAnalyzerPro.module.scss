@@ -1,3 +1,118 @@
+/** FX Analyzer data tables: full bleed, internal grid only (no outer left/right column borders). */
+.fxAnalyzerDataTable {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+
+    th,
+    td {
+        border-top: none;
+        border-left: none;
+        border-bottom: 2px solid rgb(var(--stroke));
+        border-right: 2px solid rgb(var(--stroke));
+    }
+
+    th:last-child,
+    td:last-child {
+        border-right: none;
+    }
+
+    thead tr:first-child th {
+        border-top: 2px solid rgb(var(--stroke));
+    }
+
+    /* Scores table has no thead — top rule of grid */
+    tbody:first-child > tr:first-child > td {
+        border-top: 2px solid rgb(var(--stroke));
+    }
+
+    /* When thead exists, avoid double line under header */
+    thead + tbody > tr:first-child > td {
+        border-top: none;
+    }
+}
+
+/* Dark mode: match Table Editor / `BaseTable` default cell borders (`--table-cell-border` → charcoal). */
+:global(html.dark) {
+    .fxAnalyzerDataTable {
+        th,
+        td {
+            border-bottom-color: rgb(var(--charcoal));
+            border-right-color: rgb(var(--charcoal));
+        }
+
+        thead tr:first-child th {
+            border-top-color: rgb(var(--charcoal));
+        }
+
+        tbody:first-child > tr:first-child > td {
+            border-top-color: rgb(var(--charcoal));
+        }
+    }
+
+    .fxAnalyzerPro__dynamicTables {
+        :global(table td),
+        :global(table th) {
+            border-color: rgb(var(--charcoal)) !important;
+            border-width: 2px !important;
+        }
+    }
+
+    .fxAnalyzerPro__stanceCard {
+        border-color: rgb(var(--charcoal));
+    }
+}
+
+/** Score table: kill default table box spacing so the grid is flush with the card (no DevTools “padding” halo). */
+.fxAnalyzerPro__scoreTableWrap {
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    line-height: normal;
+    overflow: hidden;
+}
+
+.fxAnalyzerPro__scoreTable {
+    display: table;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+    box-sizing: border-box;
+
+    tbody,
+    tr,
+    td,
+    th {
+        margin: 0;
+        box-sizing: border-box;
+    }
+}
+
+/** USD/CAD (etc.) stance tiles under scores — 2px border; light = stroke, dark = charcoal (matches `.fxAnalyzerDataTable`). */
+.fxAnalyzerPro__stanceCard {
+    border-style: solid;
+    border-width: 2px;
+    border-color: rgb(var(--stroke));
+}
+
+/** Bottom `DynamicTableDisplay` tables — same stroke/charcoal as preview tables, 2px. */
+.fxAnalyzerPro__dynamicTables {
+    :global(table td),
+    :global(table th) {
+        border-color: rgb(var(--stroke)) !important;
+        border-width: 2px !important;
+    }
+}
+
 .fxAnalyzerPro__pageContainer {
     display: flex;
     gap: 12px;
@@ -18,19 +133,22 @@
         align-items: stretch;
         gap: 25px;
         border-radius: 16px;
-        // darkGrey
 
         .fxAnalyzerPro__sentimentPanel {
-            width: 45%;
+            flex: 1;
+            min-width: 0;
+            width: 50%;
             border-right: 1px solid rgb(var(--stroke));
             background-color: rgb(var(--dark-grey));
         }
 
         .fxAnalyzerPro__fundamentalsPanel {
-            width: 55%;
+            flex: 1;
+            min-width: 0;
+            width: 50%;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 30px;
         }
     }
 }

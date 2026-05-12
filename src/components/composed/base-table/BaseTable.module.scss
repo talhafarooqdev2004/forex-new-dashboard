@@ -1,0 +1,216 @@
+.tableContainer {
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--secondary)) rgb(var(--background));
+    --table-cell-bg: rgb(var(--dark-grey));
+    --table-cell-text: #ffffff;
+    --table-cell-border: rgb(var(--charcoal));
+}
+
+.tableContainer--hasOverflow {
+    padding-bottom: 18px;
+    margin-bottom: 8px;
+}
+
+/** Narrow tables that barely exceed width (rounding): avoid a large gap under the last row. */
+.tableContainer--hasOverflow.tableContainer--overflowPadTight {
+    padding-bottom: 2px;
+    margin-bottom: 0;
+}
+
+:global(html:not(.dark)) .tableContainer {
+    --table-cell-bg: #ffffff;
+    --table-cell-text: rgb(var(--secondary));
+    --table-cell-border: #3B82F61A;
+}
+
+.tableContainer::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+    background: rgb(var(--background));
+    border-radius: 4px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+    background: rgb(var(--secondary));
+    border-radius: 4px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--foreground));
+}
+
+.tableContainer::-webkit-scrollbar-button {
+    display: none;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    border: unset !important;
+    border-radius: 12px;
+    overflow: hidden;
+    outline: unset !important;
+    vertical-align: unset !important;
+    caption-side: unset !important;
+    empty-cells: unset !important;
+    table-layout: auto !important;
+    border-spacing: 0;
+}
+
+/** Currency fundamentals compact tables: square corners so last-row bottom border spans full width (no corner gaps). */
+.table--currencyFundamentalsFlush {
+    border-radius: 0;
+    overflow: visible;
+}
+
+.table--cellPaddingLarge {
+    td {
+        padding: 13px 40px;
+    }
+}
+
+.table--bordered {
+    border: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+
+    td,
+    th {
+        border: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+    }
+}
+
+.table--rounded-top {
+    border-collapse: separate;
+    border-radius: 12px;
+}
+
+.table--border-spacing {
+    background-color: #C0B7B7;
+    border-collapse: separate;
+    /* Horizontal 0: no inset/gutter on first/last columns; vertical keeps row gaps */
+    border-spacing: 0 3.5px;
+    margin: 0 !important;
+    clip-path: inset(0);
+}
+
+.table--border-small-spacing {
+    clip-path: inset(0) !important;
+}
+
+.thead {
+    border: unset !important;
+    width: 100% !important;
+    margin: unset !important;
+    padding: unset !important;
+    outline: unset !important;
+    vertical-align: unset !important;
+}
+
+.tbody {
+    border: unset !important;
+    margin: unset !important;
+    padding: unset !important;
+    outline: unset !important;
+    vertical-align: unset !important;
+    background: unset !important;
+    background-color: unset !important;
+    background-image: unset !important;
+    background-repeat: unset !important;
+    background-attachment: unset !important;
+    background-position: unset !important;
+}
+
+.tbody-full-borders {
+    td {
+        border: none !important;
+        border-top: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+        border-bottom: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+        border-right: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+    }
+
+    td:last-child {
+        border-right: none !important;
+    }
+}
+
+.equalWidth {
+    display: flex;
+}
+
+.equalWidth td {
+    flex-grow: 1;
+}
+
+.th {
+    white-space: nowrap;
+    color: var(--table-cell-text, #ffffff);
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 400;
+    text-align: center;
+    vertical-align: middle;
+    background-color: var(--table-cell-bg, rgb(var(--dark-grey)));
+    border: none !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+}
+
+.th--underline {
+    text-decoration: underline;
+}
+
+.td {
+    color: var(--table-cell-text, #ffffff);
+    padding: 12px 18px;
+    font-size: 16px;
+    font-weight: 400;
+    text-align: center;
+    background-color: var(--table-cell-bg, rgb(var(--dark-grey)));
+    /* No outer left/right borders so thead and tbody align flush with the container */
+    border: none;
+    border-top: 3px solid var(--table-cell-border, rgb(var(--charcoal)));
+    border-bottom: 3px solid var(--table-cell-border, rgb(var(--charcoal)));
+    border-right: 3px solid var(--table-cell-border, rgb(var(--charcoal)));
+    vertical-align: middle;
+    outline: unset !important;
+    background-image: unset !important;
+    background-repeat: unset !important;
+    background-attachment: unset !important;
+    background-position: unset !important;
+    white-space: nowrap;
+}
+
+.td:last-child {
+    border-right: none;
+}
+
+.tbody tr:last-child .td {
+    border-bottom: 3px solid var(--table-cell-border, rgb(var(--charcoal)));
+}
+
+.td--small-text {
+    font-size: 14px;
+}
+
+.td--bold {
+    font-weight: 600;
+}
+
+.td--underline {
+    text-decoration: underline;
+}

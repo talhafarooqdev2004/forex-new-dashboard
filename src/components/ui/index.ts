@@ -4,3 +4,6 @@ export * from "./textarea";
 export * from "./select";
 export * from "./form";
 export * from "./tabs";
+export * from "./dialog";
+export * from "./accordion";
+export * from "./switch";

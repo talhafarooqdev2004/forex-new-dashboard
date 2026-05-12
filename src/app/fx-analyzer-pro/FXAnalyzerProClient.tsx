@@ -1,31 +1,193 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import styles from './FxAnalyzerPro.module.scss';
-import { Row, Col } from '@/components/layout';
-import Dropdown from '@/components/ui/Dropdown';
-import GuageChart from '@/components/chart/GuageChart';
-import FxAnalyzerGauge from '@/components/chart/FxAnalyzerGauge';
-import Container from '@/components/ui/layout/Container';
-import { PrimaryCard, PrimaryCards } from '@/components/composed';
-import { cn } from '@/lib/utils';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from "react";
+import { io } from "socket.io-client";
 
-const txt = (s: React.CSSProperties) => s;
+import styles from "./FxAnalyzerPro.module.scss";
+import { Row, Col } from "@/components/layout";
+import Dropdown from "@/components/ui/Dropdown";
+import GuageChart from "@/components/chart/GuageChart";
+import SeasonalGaugeNeedle from "@/components/chart/SeasonalGaugeNeedle";
+import AdminTableEditor from "@/components/composed/dynamic-table/AdminTableEditor";
+import DynamicTableDisplay from "@/components/composed/dynamic-table/DynamicTableDisplay";
+import BiasIcon from "@/components/composed/BiasIcon";
+import Container from "@/components/ui/layout/Container";
+import PrimaryCard from "@/components/composed/PrimaryCard";
+import { apiConfig } from "@/services/api.config";
+import { dynamicTableService, DynamicTable, TableColumn, TableRow } from "@/services/dynamicTable.service";
+import { useTheme } from "@/components/providers/ThemeProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useFxAnalyzerGaugeScales } from "@/hooks/useFxAnalyzerGaugeScales";
+import { useDashboardBackendPoll } from "@/hooks/useDashboardBackendPoll";
+import {
+    buildCentralBankStanceByCurrency,
+    centralBankStanceLabelColor,
+    defaultCentralBankDisplayCodeForCurrency,
+    FX_ANALYZER_TABLE_NEUTRAL_TEXT_LIGHT,
+} from "@/lib/fundamentalDashboardData";
+import {
+    FX_TMV_GAUGE_ZONES_DARK,
+    FX_TMV_GAUGE_ZONES_LIGHT,
+    type FxTmvGaugeZoneList,
+} from "@/lib/fxTmvGaugeZones";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
+import { FX_ANALYZER_DYNAMIC_TABLE_IDS } from "@/lib/fxAnalyzerTableIds";
+import type { FxGaugeZone } from "@/lib/gaugeZonesFromConfigurations";
+import { fxAnalyzerDiscreteNeedleRotationDeg, zoneColorForConfiguredScore } from "@/lib/needleAngleForConfiguredZones";
 
-const CURRENCIES = ['USD', 'GBP', 'EUR', 'AUD', 'CAD', 'NZD', 'CHF'];
-const shortDarkBgColor = 'rgb(255, 119, 130)';
-const longDarkBgColor = 'rgba(137, 243, 54, 0.843)';
+const CURRENCIES = ["USD", "GBP", "EUR", "AUD", "CAD", "NZD", "CHF"];
+const shortDarkBgColor = GAUGE_SIGNAL_COLORS.sell;
+const longDarkBgColor = GAUGE_SIGNAL_COLORS.buy;
 
-// Default gauge zones for demo (no API)
-const DEFAULT_GAUGE_ZONES = [
-    { name: 'Strong Sell', minValue: -100, maxValue: -60, color: 'rgb(255, 119, 130)', rotation: -166 },
-    { name: 'Sell', minValue: -60, maxValue: -20, color: 'rgba(255, 119, 130, 0.575)', rotation: -144 },
-    { name: 'Weak Sell', minValue: -20, maxValue: -5, color: 'rgba(255, 119, 130, 0.365)', rotation: -120 },
-    { name: 'Neutral', minValue: -5, maxValue: 5, color: '#FFFF00', rotation: -88 },
-    { name: 'Weak Buy', minValue: 5, maxValue: 20, color: 'rgba(137, 243, 54, 0.365)', rotation: -55 },
-    { name: 'Buy', minValue: 20, maxValue: 60, color: 'rgba(137, 243, 54, 0.575)', rotation: -27.5 },
-    { name: 'Strong Buy', minValue: 60, maxValue: 100, color: 'rgba(137, 243, 54, 0.843)', rotation: -3.5 },
-];
+const FX_ANALYZER_TABLES = [
+    {
+        identifier: "fx_technical_trends",
+        name: "Technical Trends",
+        displayName: "Technical Trends",
+    },
+    {
+        identifier: "fx_technical_levels",
+        name: "Technical Levels",
+        displayName: "Technical Levels",
+    },
+] as const;
+
+const SCORE_DASHBOARD_TABLE_ID = "score_dashboard_sheet76";
+const COT_RAW_DATA_TABLE_ID = "cot_raw_data";
+const RETAIL_SENTIMENT_TABLE_IDS = ["retail_sentiment_currency_pairs", "retail_sentiment"] as const;
+const CURRENCY_STRENGTH_TABLE_ID = "edge_currency_strength_index";
+const CENTRAL_BANK_POLICIES_TABLE_ID = "central_bank_policies";
+
+const FALLBACK_PAIR_NAMES: Record<string, string[]> = {
+    USD: ["USDCAD", "USDCHF", "USDJPY"],
+    GBP: ["GBPUSD", "GBPJPY", "GBPAUD", "GBPCAD", "GBPCHF"],
+    EUR: ["EURUSD", "EURGBP", "EURJPY", "EURCHF", "EURAUD"],
+    AUD: ["AUDUSD", "AUDJPY", "AUDNZD", "AUDCAD", "AUDCHF"],
+    CAD: ["USDCAD", "CADJPY", "CADCHF", "AUDCAD", "GBPCAD"],
+    NZD: ["NZDUSD", "NZDJPY", "AUDNZD", "NZDCAD", "NZDCHF"],
+    CHF: ["USDCHF", "EURCHF", "GBPCHF", "CHFJPY", "AUDCHF"],
+};
+
+/** Same palette as Edge Tools / Technical Dashboard TMV gauges. */
+const DARK_GAUGE_ZONES = FX_TMV_GAUGE_ZONES_DARK.map((zone) => ({ ...zone }));
+const LIGHT_GAUGE_ZONES = FX_TMV_GAUGE_ZONES_LIGHT.map((zone) => ({ ...zone }));
+
+type GaugeZoneList = FxTmvGaugeZoneList;
+
+function gaugeZones(isDark: boolean): GaugeZoneList {
+    return isDark ? DARK_GAUGE_ZONES : LIGHT_GAUGE_ZONES;
+}
+
+function contrastingForeground(backgroundCss: string): string {
+    const hex = backgroundCss.trim();
+    const m = /^#([0-9a-f]{6})$/i.exec(hex);
+    if (m) {
+        const v = m[1]!;
+        const r = Number.parseInt(v.slice(0, 2), 16);
+        const g = Number.parseInt(v.slice(2, 4), 16);
+        const b = Number.parseInt(v.slice(4, 6), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance > 0.62 ? "#000000" : "#FFFFFF";
+    }
+    if (/rgba?\(/i.test(backgroundCss)) {
+        return "#000000";
+    }
+    return "#FFFFFF";
+}
+
+function netBiasBannerStyles(
+    netBias: string | null | undefined,
+    netScore: number | null,
+    gaugeZonesConfigured: FxGaugeZone[],
+    isDark: boolean,
+): CSSProperties {
+    const fromText = fxAnalyzerBannerLabelZoneColor(netBias, isDark);
+    if (fromText) {
+        return { backgroundColor: fromText, color: contrastingForeground(fromText) };
+    }
+    const fromScore = zoneColorForConfiguredScore(netScore, gaugeZonesConfigured);
+    if (fromScore) {
+        return { backgroundColor: fromScore, color: contrastingForeground(fromScore) };
+    }
+    const fallback = isDark ? "#374151" : "#e5e7eb";
+    return { backgroundColor: fallback, color: contrastingForeground(fallback) };
+}
+
+/**
+ * Map Net Bias label string to gauge arc colors (including **#FFFF00** neutral in light) — for the pair / bias banner only.
+ */
+function fxAnalyzerBannerLabelZoneColor(raw: string | null | undefined, isDark: boolean): string | undefined {
+    const t = String(raw || "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    if (!t || t === "n/a") return undefined;
+
+    const zones = gaugeZones(isDark);
+    const byName = (name: string) => zones.find((z) => z.name.toLowerCase() === name.toLowerCase())?.color;
+
+    if (t.includes("strong") && (t.includes("bull") || t.includes("buy"))) return byName("Strong Buy");
+    if (t.includes("strong") && (t.includes("bear") || t.includes("sell"))) return byName("Strong Sell");
+
+    if (t.includes("weak") && (t.includes("bull") || t.includes("buy"))) return byName("Weak Buy");
+    if (t.includes("weak") && (t.includes("bear") || t.includes("sell"))) return byName("Weak Sell");
+
+    if (t.includes("bull") || t.includes("buy") || /\buptrend\b/.test(t)) return byName("Buy");
+    if (t.includes("bear") || t.includes("sell") || /\bdowntrend\b/.test(t) || /\bdown trend\b/.test(t)) return byName("Sell");
+
+    if (
+        t.includes("neutral") ||
+        t.includes("moderate") ||
+        t.includes("non volatile") ||
+        t.includes("sideways") ||
+        t.includes("flat") ||
+        t.includes("ranging")
+    ) {
+        return byName("Neutral");
+    }
+
+    return undefined;
+}
+
+/**
+ * Map technical trend / score-column labels to gauge hues; light-mode neutral-like labels use readable amber (not gauge yellow).
+ */
+function fxAnalyzerLabelZoneColor(raw: string | null | undefined, isDark: boolean): string | undefined {
+    const t = String(raw || "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    if (!t || t === "n/a") return undefined;
+
+    const zones = gaugeZones(isDark);
+    const byName = (name: string) => zones.find((z) => z.name.toLowerCase() === name.toLowerCase())?.color;
+
+    if (t.includes("strong") && (t.includes("bull") || t.includes("buy"))) return byName("Strong Buy");
+    if (t.includes("strong") && (t.includes("bear") || t.includes("sell"))) return byName("Strong Sell");
+
+    if (t.includes("weak") && (t.includes("bull") || t.includes("buy"))) return byName("Weak Buy");
+    if (t.includes("weak") && (t.includes("bear") || t.includes("sell"))) return byName("Weak Sell");
+
+    if (t.includes("bull") || t.includes("buy") || /\buptrend\b/.test(t)) return byName("Buy");
+    if (t.includes("bear") || t.includes("sell") || /\bdowntrend\b/.test(t) || /\bdown trend\b/.test(t)) return byName("Sell");
+
+    if (
+        t.includes("neutral") ||
+        t.includes("moderate") ||
+        t.includes("non volatile") ||
+        t.includes("sideways") ||
+        t.includes("flat") ||
+        t.includes("ranging")
+    ) {
+        return isDark ? byName("Neutral") : FX_ANALYZER_TABLE_NEUTRAL_TEXT_LIGHT;
+    }
+
+    return undefined;
+}
+
+type FxAnalyzerTableIdentifier = (typeof FX_ANALYZER_TABLES)[number]["identifier"];
+type TableMap = Record<string, DynamicTable | null>;
+type Bias = "Bullish" | "Bearish" | "Neutral";
 
 interface TechnicalTrendData {
     timeFrame: string;
@@ -45,11 +207,6 @@ interface RetailPositionData {
     short: number | null;
 }
 
-interface CurrencyStrengthData {
-    currency: string;
-    score: number | null;
-}
-
 interface TechnicalLevelsData {
     currentPrice: string | null;
     pivot: string | null;
@@ -67,7 +224,6 @@ interface PairData {
     netBias: string | null;
     trendScore: number | null;
     momentumScore: number | null;
-    volatilityScore: number | null;
     fundamentalScore: number | null;
     seasonalScore: number | null;
     cotScore: number | null;
@@ -78,566 +234,965 @@ interface PairData {
     quoteCurrencyCotPositions: COTPositionData | null;
     retailPositions: RetailPositionData | null;
     technicalLevels: TechnicalLevelsData | null;
+    currencyStrengths: Record<string, number | null>;
+    /** Central bank policy stance per pair leg — same sheet as Fundamental “Central Bank Policies”. */
+    currencyLegStances: { currency: string; centralBank: string; stance: string }[];
 }
 
-// Static demo data - same for all pairs (for client demonstration)
-const DEMO_PAIR_DATA: PairData = {
-    pair: 'EURUSD',
-    netScore: 35,
-    netBias: 'Buy',
-    trendScore: 42,
-    momentumScore: 28,
-    volatilityScore: -15,
-    fundamentalScore: 55,
-    seasonalScore: 20,
-    cotScore: -10,
-    sentimentScore: 38,
-    riskMeter: 25,
-    technicalTrends: [
-        { timeFrame: '1Hr', trend: 'Bullish', momentum: 'Moderate', volatility: 'Low' },
-        { timeFrame: '4Hr', trend: 'Strong Bullish', momentum: 'High', volatility: 'Moderate' },
-        { timeFrame: 'Daily', trend: 'Bullish', momentum: 'Moderate', volatility: 'Low' },
-    ],
-    cotPositions: {
-        currency: 'EUR',
-        nonCommercial: { long: 65, short: 35 },
-        commercial: { long: 45, short: 55 },
-    },
-    quoteCurrencyCotPositions: {
-        currency: 'USD',
-        nonCommercial: { long: 40, short: 60 },
-        commercial: { long: 55, short: 45 },
-    },
-    retailPositions: { long: 72, short: 28 },
-    technicalLevels: {
-        currentPrice: '1.0845',
-        pivot: '1.0820',
-        s1: '1.0785',
-        s2: '1.0740',
-        s3: '1.0695',
-        r1: '1.0865',
-        r2: '1.0910',
-        r3: '1.0955',
-    },
-};
+function getSortedColumns(table: DynamicTable | null): TableColumn[] {
+    return [...(table?.columns ?? [])].sort((a, b) => a.column_index - b.column_index);
+}
 
-// Build currency pairs map - all pairs show same demo data
-const PAIR_NAMES: Record<string, string[]> = {
-    USD: ['USDCAD', 'USDCHF', 'USDJPY', 'USDMXN', 'USDAUD'],
-    GBP: ['GBPUSD', 'GBPJPY', 'GBPAUD', 'GBPCAD', 'GBPCHF'],
-    EUR: ['EURUSD', 'EURGBP', 'EURJPY', 'EURCHF', 'EURAUD'],
-    AUD: ['AUDUSD', 'AUDJPY', 'AUDNZD', 'AUDCAD', 'AUDCHF'],
-    CAD: ['USDCAD', 'CADJPY', 'CADCHF', 'AUDCAD', 'GBPCAD'],
-    NZD: ['NZDUSD', 'NZDJPY', 'AUDNZD', 'NZDCAD', 'NZDCHF'],
-    CHF: ['USDCHF', 'EURCHF', 'GBPCHF', 'CHFJPY', 'AUDCHF'],
-};
+function getSortedRows(table: DynamicTable | null): TableRow[] {
+    return [...(table?.rows ?? [])].sort((a, b) => a.row_index - b.row_index);
+}
 
-const parseAndClampNetBias = (value: string | number | null): number => {
-    if (value === null || value === undefined) return 0;
-    const numValue = typeof value === 'string' ? parseFloat(value) : Number(value);
-    return isNaN(numValue) ? 0 : Math.max(-100, Math.min(100, numValue));
-};
+function getCellValue(row: TableRow | null | undefined, column: TableColumn | null | undefined): string | null {
+    if (!row || !column) return null;
+    const cell = row.cells?.find((item) => item.table_column_id === column.id);
+    return cell?.value?.toString().trim() ?? null;
+}
 
-const getRotationForValue = (value: number): number => {
-    const clampedValue = Math.max(-100, Math.min(100, value));
-    if (clampedValue <= -60) return -166;
-    if (clampedValue <= -20) return -144;
-    if (clampedValue <= -5) return -120;
-    if (clampedValue < 5) return -88;
-    if (clampedValue < 20) return -55;
-    if (clampedValue < 60) return -27.5;
-    return -3.5;
-};
+function getCellByColumnIndex(table: DynamicTable | null, row: TableRow | null | undefined, zeroBasedColumnIndex: number): string | null {
+    const column = getSortedColumns(table)[zeroBasedColumnIndex];
+    return getCellValue(row, column);
+}
 
-type GaugeIndicatorStyle = React.CSSProperties & {
-    wrapperTransform?: string;
-    needleTransform?: string;
-    rotation?: number;
-};
+function parseNumericValue(value: string | number | null | undefined): number | null {
+    if (value === null || value === undefined || value === "") return null;
+    const numeric = Number.parseFloat(String(value).replace(/[,%]/g, "").replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(numeric) ? numeric : null;
+}
 
-const getGaugeIndicatorStyle = (
-    value: string | number | null,
-    size: string = "80px"
-): GaugeIndicatorStyle => {
-    const rotation = getRotationForValue(parseAndClampNetBias(value));
+function normalizePair(value: string | null | undefined): string {
+    return String(value || "").toUpperCase().replace(/[^A-Z]/g, "");
+}
+
+function extractBaseCurrency(pair: string): string {
+    return pair.length >= 3 ? pair.substring(0, 3) : pair;
+}
+
+function extractQuoteCurrency(pair: string): string | null {
+    return pair.length >= 6 ? pair.substring(3, 6) : null;
+}
+
+function findRowByFirstColumn(table: DynamicTable | null, target: string): TableRow | null {
+    const columns = getSortedColumns(table);
+    const firstColumn = columns[0];
+    if (!firstColumn) return null;
+    const normalizedTarget = normalizePair(target);
+
+    return getSortedRows(table).find((row) => normalizePair(getCellValue(row, firstColumn)) === normalizedTarget) ?? null;
+}
+
+function collectPairsFromTable(table: DynamicTable | null): string[] {
+    const firstColumn = getSortedColumns(table)[0];
+    if (!firstColumn) return [];
+
+    return getSortedRows(table)
+        .map((row) => normalizePair(getCellValue(row, firstColumn)))
+        .filter((pair) => pair.length >= 6);
+}
+
+function biasFromScore(score: number | null): Bias {
+    if (score === null || score === 0) return "Neutral";
+    return score > 0 ? "Bullish" : "Bearish";
+}
+
+function biasColor(bias: Bias, isDark: boolean): string {
+    if (!isDark && bias === "Neutral") return FX_ANALYZER_TABLE_NEUTRAL_TEXT_LIGHT;
+    const z = gaugeZones(isDark);
+    const pick = (name: string) => z.find((x) => x.name === name)?.color;
+    if (bias === "Bullish") return pick("Buy") ?? GAUGE_SIGNAL_COLORS.buy;
+    if (bias === "Bearish") return pick("Sell") ?? GAUGE_SIGNAL_COLORS.sell;
+    return pick("Neutral") ?? GAUGE_SIGNAL_COLORS.neutral;
+}
+
+function clampPercent(value: number | null | undefined): number {
+    if (value === null || value === undefined || Number.isNaN(value)) return 0;
+    return Math.max(0, Math.min(100, value));
+}
+
+function formatScore(score: number | null): string {
+    return score === null ? "N/A" : Number.isInteger(score) ? String(score) : score.toFixed(2).replace(/\.?0+$/, "");
+}
+
+function buildCotPosition(table: DynamicTable | null, currency: string | null): COTPositionData | null {
+    if (!currency) return null;
+    const row = findRowByFirstColumn(table, currency);
+    if (!row) return null;
+
     return {
-        wrapperTransform: `translate(0%, 20%)`,
-        needleTransform: `rotate(${rotation}deg)`,
-        transformOrigin: `8.4% 93.4%`,
-        transition: '0.8s ease-out',
-        rotation,
-        width: size,
-        height: size,
+        currency,
+        nonCommercial: {
+            long: parseNumericValue(getCellByColumnIndex(table, row, 6)),
+            short: parseNumericValue(getCellByColumnIndex(table, row, 7)),
+        },
+        commercial: {
+            long: parseNumericValue(getCellByColumnIndex(table, row, 13)),
+            short: parseNumericValue(getCellByColumnIndex(table, row, 14)),
+        },
     };
-};
+}
 
-const getNetBiasGaugeIndicatorStyle = (
-    value: string | number | null,
-    gaugeWidth: string = "280px"
-): GaugeIndicatorStyle => {
-    const rotation = getRotationForValue(parseAndClampNetBias(value));
+function buildRetailPosition(table: DynamicTable | null, pair: string): RetailPositionData | null {
+    const row = findRowByFirstColumn(table, pair);
+    if (!row) return null;
     return {
-        wrapperTransform: `translate(0%, 30%)`,
-        needleTransform: `rotate(${rotation}deg)`,
-        transformOrigin: `8.4% 93.4%`,
-        transition: '0.8s ease-out',
-        rotation,
-        width: '80px',
-        height: '80px',
+        long: parseNumericValue(getCellByColumnIndex(table, row, 1)),
+        short: parseNumericValue(getCellByColumnIndex(table, row, 2)),
     };
-};
+}
 
-const getBiasText = (value: string | number | null): string => {
-    const netBias = parseAndClampNetBias(value);
-    if (netBias <= -60) return 'Strong sell';
-    if (netBias <= -20) return 'Sell';
-    if (netBias <= -5) return 'Weak sell';
-    if (netBias < 5) return 'Neutral';
-    if (netBias < 20) return 'Weak buy';
-    if (netBias < 60) return 'Buy';
-    return 'Strong buy';
-};
+function buildCurrencyStrengths(table: DynamicTable | null, pair: string): Record<string, number | null> {
+    const columns = getSortedColumns(table);
+    const firstColumn = columns[0];
+    const lastColumn = columns[columns.length - 1];
+    const currencies = [extractBaseCurrency(pair), extractQuoteCurrency(pair)].filter(Boolean) as string[];
+    const values: Record<string, number | null> = {};
 
-const getBiasColor = (value: string | number | null): string => {
-    const netBias = parseAndClampNetBias(value);
-    if (netBias <= -60) return 'rgb(255, 119, 130)';
-    if (netBias <= -20) return 'rgba(255, 119, 130, 0.575)';
-    if (netBias <= -5) return 'rgba(255, 119, 130, 0)';
-    if (netBias < 5) return '#FFFF00';
-    if (netBias < 20) return 'rgba(137, 243, 54, 0.843)';
-    if (netBias < 60) return 'rgba(137, 243, 54, 0.575)';
-    return 'rgba(137, 243, 54, 0.843)';
-};
-
-const getSentimentalBias = (score1: string | number | null, score2: string | number | null): string => {
-    const value1 = parseAndClampNetBias(score1);
-    const value2 = parseAndClampNetBias(score2);
-    if (value1 > 0 && value2 > 0) return 'Bullish';
-    if (value1 < 0 && value2 < 0) return 'Bearish';
-    return 'Neutral';
-};
-
-const getSentimentalBiasColor = (bias: string): string => {
-    switch (bias) {
-        case 'Bullish': return longDarkBgColor;
-        case 'Bearish': return shortDarkBgColor;
-        case 'Neutral': return '#FFFF00';
-        default: return '#EAEAEA';
+    for (const currency of currencies) {
+        const row = getSortedRows(table).find((item) => String(getCellValue(item, firstColumn) || "").toUpperCase().includes(currency));
+        values[currency] = parseNumericValue(getCellValue(row, lastColumn));
     }
-};
 
-// Default currency strength zones (from forex-admin useCurrencyStrengthConfigurations)
-const CURRENCY_STRENGTH_ZONES = [
-    { name: 'Light Red', minValue: -10, maxValue: -5, color: '#F67280' },
-    { name: 'Dark Red', minValue: -5, maxValue: 0, color: '#E53935' },
-    { name: 'Light Green', minValue: 0, maxValue: 5, color: '#AEF803' },
-    { name: 'Dark Green', minValue: 5, maxValue: 10, color: '#2ecc71' },
-];
+    return values;
+}
 
-const getCurrencyStrengthColor = (value: number): string => {
-    const clamped = Math.max(-10, Math.min(10, value));
-    const zone = CURRENCY_STRENGTH_ZONES.find(z => clamped >= z.minValue && clamped <= z.maxValue);
-    return zone?.color ?? '#e0e0e0';
-};
+function buildTechnicalLevels(table: DynamicTable | null, pair: string): TechnicalLevelsData | null {
+    const row = findRowByFirstColumn(table, pair);
+    if (!row) return null;
 
-// Get fill percentage, color, and cursor position for Currency Strength Index (from forex-admin)
-// Scores range from -10 to +10
-const getCurrencyStrengthStyle = (score: number | null): { fillPercent: number; color: string; cursorPercent: number } => {
-    if (score === null || score === undefined || isNaN(score)) {
-        return { fillPercent: 0, color: '#e0e0e0', cursorPercent: 50 };
+    return {
+        currentPrice: getCellByColumnIndex(table, row, 1),
+        pivot: getCellByColumnIndex(table, row, 2),
+        s1: getCellByColumnIndex(table, row, 3),
+        s2: getCellByColumnIndex(table, row, 4),
+        s3: getCellByColumnIndex(table, row, 5),
+        r1: getCellByColumnIndex(table, row, 6),
+        r2: getCellByColumnIndex(table, row, 7),
+        r3: getCellByColumnIndex(table, row, 8),
+    };
+}
+
+function buildTechnicalTrends(table: DynamicTable | null, pair: string): TechnicalTrendData[] {
+    const row = findRowByFirstColumn(table, pair);
+    if (!row) return [];
+
+    return [
+        {
+            timeFrame: "1H",
+            trend: getCellByColumnIndex(table, row, 1) || "N/A",
+            momentum: getCellByColumnIndex(table, row, 2) || "N/A",
+            volatility: getCellByColumnIndex(table, row, 3) || "N/A",
+        },
+        {
+            timeFrame: "4H",
+            trend: getCellByColumnIndex(table, row, 4) || "N/A",
+            momentum: getCellByColumnIndex(table, row, 5) || "N/A",
+            volatility: getCellByColumnIndex(table, row, 6) || "N/A",
+        },
+        {
+            timeFrame: "Daily",
+            trend: getCellByColumnIndex(table, row, 7) || "N/A",
+            momentum: getCellByColumnIndex(table, row, 8) || "N/A",
+            volatility: getCellByColumnIndex(table, row, 9) || "N/A",
+        },
+    ];
+}
+
+function buildCurrencyLegCentralBankStances(
+    pair: string,
+    centralBankTable: DynamicTable | null,
+): { currency: string; centralBank: string; stance: string }[] {
+    const byCurrency = buildCentralBankStanceByCurrency(centralBankTable);
+    const base = extractBaseCurrency(pair);
+    const quote = extractQuoteCurrency(pair);
+    const legs: { currency: string; centralBank: string; stance: string }[] = [];
+
+    const pushLeg = (currency: string | null) => {
+        if (!currency) return;
+        const u = currency.toUpperCase();
+        const row = byCurrency[u];
+        legs.push({
+            currency: u,
+            centralBank: row?.centralBank ?? defaultCentralBankDisplayCodeForCurrency(u),
+            stance: row?.stance ?? "N/A",
+        });
+    };
+
+    pushLeg(base);
+    pushLeg(quote);
+    return legs;
+}
+
+function buildPairData(pair: string, tables: TableMap): PairData {
+    const scoreTable = tables[SCORE_DASHBOARD_TABLE_ID];
+    const scoreRow = findRowByFirstColumn(scoreTable, pair);
+    const baseCurrency = extractBaseCurrency(pair);
+    const quoteCurrency = extractQuoteCurrency(pair);
+    const retailTable = RETAIL_SENTIMENT_TABLE_IDS.map((id) => tables[id]).find(Boolean) ?? null;
+
+    return {
+        pair,
+        netScore: parseNumericValue(getCellByColumnIndex(scoreTable, scoreRow, 1)),
+        netBias: getCellByColumnIndex(scoreTable, scoreRow, 2),
+        trendScore: parseNumericValue(getCellByColumnIndex(scoreTable, scoreRow, 3)),
+        momentumScore: parseNumericValue(getCellByColumnIndex(scoreTable, scoreRow, 4)),
+        sentimentScore: parseNumericValue(getCellByColumnIndex(scoreTable, scoreRow, 5)),
+        fundamentalScore: parseNumericValue(getCellByColumnIndex(scoreTable, scoreRow, 6)),
+        cotScore: parseNumericValue(getCellByColumnIndex(scoreTable, scoreRow, 7)),
+        seasonalScore: parseNumericValue(getCellByColumnIndex(scoreTable, scoreRow, 8)),
+        riskMeter: parseNumericValue(getCellByColumnIndex(scoreTable, scoreRow, 9)),
+        technicalTrends: buildTechnicalTrends(tables.fx_technical_trends, pair),
+        cotPositions: buildCotPosition(tables[COT_RAW_DATA_TABLE_ID], baseCurrency),
+        quoteCurrencyCotPositions: buildCotPosition(tables[COT_RAW_DATA_TABLE_ID], quoteCurrency),
+        retailPositions: buildRetailPosition(retailTable, pair),
+        technicalLevels: buildTechnicalLevels(tables.fx_technical_levels, pair),
+        currencyStrengths: buildCurrencyStrengths(tables[CURRENCY_STRENGTH_TABLE_ID], pair),
+        currencyLegStances: buildCurrencyLegCentralBankStances(pair, tables[CENTRAL_BANK_POLICIES_TABLE_ID]),
+    };
+}
+
+function buildPairGroups(tables: TableMap): Record<string, PairData[]> {
+    const pairs = new Set<string>();
+    [
+        ...collectPairsFromTable(tables[SCORE_DASHBOARD_TABLE_ID]),
+        ...collectPairsFromTable(tables.fx_technical_trends),
+        ...collectPairsFromTable(tables.fx_technical_levels),
+        ...RETAIL_SENTIMENT_TABLE_IDS.flatMap((id) => collectPairsFromTable(tables[id])),
+    ].forEach((pair) => pairs.add(pair));
+
+    if (pairs.size === 0) {
+        Object.values(FALLBACK_PAIR_NAMES).flat().forEach((pair) => pairs.add(pair));
     }
+
+    return CURRENCIES.reduce<Record<string, PairData[]>>((acc, currency) => {
+        acc[currency] = [...pairs]
+            .filter((pair) => pair.startsWith(currency))
+            .sort()
+            .map((pair) => buildPairData(pair, tables));
+        return acc;
+    }, {});
+}
+
+function getCurrencyStrengthStyle(score: number | null): { fillPercent: number; color: string; cursorPercent: number } {
+    if (score === null || score === undefined || Number.isNaN(score)) {
+        return { fillPercent: 0, color: "#e0e0e0", cursorPercent: 50 };
+    }
+
     let normalizedScore: number;
     if (score >= -10 && score <= 10) {
         normalizedScore = score;
     } else if (score >= 0 && score <= 100) {
-        normalizedScore = ((score - 50) / 50) * 10;
+        // Values like 10.7 or 11.9 are almost always already on the ±strength scale from the sheet,
+        // not 0–100 centered at 50 (which would map 11.9 → negative and paint the bar red).
+        const looksLikeFineGrainedStrength = score % 1 !== 0 || (score > 10 && score <= 15);
+        if (looksLikeFineGrainedStrength) {
+            normalizedScore = Math.max(-10, Math.min(10, score));
+        } else {
+            normalizedScore = ((score - 50) / 50) * 10;
+        }
     } else {
         normalizedScore = Math.max(-10, Math.min(10, score));
     }
-    const absValue = Math.abs(normalizedScore);
-    const fillPercent = (absValue / 10) * 100;
-    const cursorPercent = fillPercent;
-    const color = getCurrencyStrengthColor(normalizedScore);
-    return { fillPercent, color, cursorPercent };
-};
 
-const cell = (text: React.ReactNode, style?: React.CSSProperties, isLastColumn?: boolean) => (
-    <td className="py-3 px-4 border-b border-stroke text-foreground" style={{
-        textAlign: 'center' as const,
-        ...style,
-    }}>{text}</td>
+    const fillPercent = (Math.abs(normalizedScore) / 10) * 100;
+    const color = normalizedScore > 0 ? longDarkBgColor : normalizedScore < 0 ? shortDarkBgColor : "#e0e0e0";
+    return { fillPercent, color, cursorPercent: fillPercent };
+}
+
+function NetScoreSignal({ netBias, netScore, isDark }: { netBias: string | null; netScore: number | null; isDark: boolean }) {
+    const hasBiasText = Boolean(netBias?.trim());
+    const label =
+        netScore === null && !hasBiasText ? "N/A" : netBias?.trim() || String(biasFromScore(netScore));
+
+    let iconBias: Bias = biasFromScore(netScore);
+    if (hasBiasText) {
+        const t = netBias!.toLowerCase();
+        if (t.includes("bull") || t.includes("buy")) iconBias = "Bullish";
+        else if (t.includes("bear") || t.includes("sell")) iconBias = "Bearish";
+        else if (t.includes("neutral")) iconBias = "Neutral";
+    }
+
+    const fromText = fxAnalyzerLabelZoneColor(netBias, isDark);
+    const color =
+        fromText ??
+        (netScore !== null && Number.isFinite(netScore) ? biasColor(biasFromScore(netScore), isDark) : "rgb(var(--secondary))");
+
+    return (
+        <div className="flex flex-nowrap items-center justify-center gap-3 whitespace-nowrap">
+            <span className="font-medium" style={{ color }}>
+                {label}
+            </span>
+            {netScore !== null || hasBiasText ? <BiasIcon sentiment={iconBias} /> : null}
+        </div>
+    );
+}
+
+const scoreCell = (text: React.ReactNode, style?: React.CSSProperties) => (
+    <td
+        className="box-border px-4 py-3 text-[14px] leading-none text-foreground"
+        style={{
+            textAlign: "center",
+            ...style,
+        }}
+    >
+        {text}
+    </td>
 );
 
-const extractBaseCurrency = (pair: string): string => pair.length >= 3 ? pair.substring(0, 3) : pair;
+/** Currency + central bank stance (Fundamental “Central Bank Policies” sheet). */
+function FxCurrencyStanceBlock({ legs, isDark }: { legs: { currency: string; centralBank: string; stance: string }[]; isDark: boolean }) {
+    if (!legs.length) {
+        return null;
+    }
 
-export default function FXAnalyzerProClient() {
-    const [selectedPair, setSelectedPair] = useState<PairData | null>(null);
+    return (
+        <div className="w-full">
+            <div className={`grid w-full gap-2 ${legs.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                {legs.map(({ currency, centralBank, stance }) => {
+                    const stanceColor = stance === "N/A" ? undefined : centralBankStanceLabelColor(stance, isDark);
+                    return (
+                        <div
+                            key={currency}
+                            className={`flex min-h-[72px] flex-col justify-center rounded-lg bg-darkGrey px-3 py-2.5 text-center sm:px-4 ${styles.fxAnalyzerPro__stanceCard}`}
+                        >
+                            <span className="text-[15px] font-bold tracking-wide text-foreground">{currency}</span>
 
-    // Build pairs with demo data - all pairs use same DEMO_PAIR_DATA
-    const currencyPairs: Record<string, PairData[]> = {};
-    CURRENCIES.forEach((currency) => {
-        const pairNames = PAIR_NAMES[currency] || [];
-        currencyPairs[currency] = pairNames.map((pairName) => ({
-            ...DEMO_PAIR_DATA,
-            pair: pairName,
-        }));
-    });
+                            <span
+                                className={`text-[13px] font-semibold leading-snug ${centralBank.trim().toUpperCase() !== currency ? "mt-1.5" : "mt-1"} ${stance === "N/A" ? "text-[rgb(var(--secondary))]" : ""}`}
+                                style={stanceColor ? { color: stanceColor } : undefined}
+                            >
+                                {stance}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
 
-    const handlePairClick = (pair: PairData) => {
-        setSelectedPair({ ...DEMO_PAIR_DATA, pair: pair.pair });
-    };
+function ScoreSignal({ score, riskMode = false, isDark }: { score: number | null; riskMode?: boolean; isDark: boolean }) {
+    const bias = biasFromScore(score);
+    const label = riskMode && score !== null ? (score > 0 ? "Risk On" : score < 0 ? "Risk Off" : "Neutral") : bias;
 
-    // Auto-select first pair on mount
-    useEffect(() => {
-        if (!selectedPair) {
-            const firstCurrency = CURRENCIES.find((c) => PAIR_NAMES[c]?.length > 0);
-            const firstPairName = firstCurrency && PAIR_NAMES[firstCurrency]?.[0];
-            if (firstPairName) {
-                setSelectedPair({ ...DEMO_PAIR_DATA, pair: firstPairName });
-            }
+    return (
+        <div className="flex flex-nowrap items-center justify-center gap-3 whitespace-nowrap">
+            <span className="font-medium" style={{ color: biasColor(bias, isDark) }}>
+                {score === null ? "N/A" : label}
+            </span>
+            {score !== null ? <BiasIcon sentiment={bias} /> : null}
+        </div>
+    );
+}
+
+function FxEdgeGauge({
+    title,
+    score,
+    gaugeZonesConfigured,
+    rangeMin,
+    rangeMax,
+    width,
+    isDark,
+    big = false,
+}: {
+    title: string;
+    score: number | null;
+    /** Admin score-configuration bands (raw score units); when 7 zones, needle segment follows these spans. */
+    gaugeZonesConfigured: readonly FxGaugeZone[];
+    rangeMin: number;
+    rangeMax: number;
+    width: string;
+    isDark: boolean;
+    big?: boolean;
+}) {
+    const rotation = fxAnalyzerDiscreteNeedleRotationDeg(
+        score,
+        [...gaugeZonesConfigured],
+        rangeMin,
+        rangeMax,
+        big ? "netBias" : "standard",
+    );
+    const arcZones = gaugeZones(isDark);
+
+    return (
+        <div className="text-center">
+            <GuageChart
+                style={{ width, height: big ? "180px" : "100px" }}
+                indicatorStyle={{
+                    rotation,
+                    transition: "0.8s ease-out",
+                }}
+                labelType={big ? "netBias" : "other"}
+                gaugeZones={arcZones}
+                customLeftLabel="Sell"
+                customRightLabel="Buy"
+                renderIndicator={({ rotation: rot, transition }) => (
+                    <SeasonalGaugeNeedle
+                        rotationDeg={rot}
+                        isDark={isDark}
+                        transition={transition}
+                        width={big ? "75px" : "35px"}
+                        height={big ? "50px" : "22px"}
+                        style={{ left: big ? "28%" : "29.2%", top: big ? "55%" : "54%" }}
+                    />
+                )}
+            />
+            <h1 className={`${big ? "mt-2.5 text-[25px]" : "mt-2.5 text-[12px]"} font-semibold text-foreground`}>
+                {title}
+            </h1>
+        </div>
+    );
+}
+
+function initialFxAnalyzerTableMap(seed: Partial<Record<string, DynamicTable | null>>): TableMap {
+    const acc: Record<string, DynamicTable | null> = {};
+    for (const id of FX_ANALYZER_DYNAMIC_TABLE_IDS) {
+        acc[id] = seed[id] ?? null;
+    }
+    return acc;
+}
+
+export default function FXAnalyzerProClient({
+    initialTables = {},
+}: {
+    initialTables?: Partial<Record<string, DynamicTable | null>>;
+}) {
+    const { theme } = useTheme();
+    const { token, isAdmin } = useAuth();
+    const { scales: gaugeScales, zonesByType } = useFxAnalyzerGaugeScales(token);
+    const [selectedTable, setSelectedTable] = useState<FxAnalyzerTableIdentifier>("fx_technical_trends");
+    const [showEditor, setShowEditor] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [tables, setTables] = useState<TableMap>(() => initialFxAnalyzerTableMap(initialTables));
+    const [selectedPairName, setSelectedPairName] = useState<string | null>(null);
+    const [htmlHasDarkClass, setHtmlHasDarkClass] = useState(false);
+
+    useLayoutEffect(() => {
+        const sync = () => setHtmlHasDarkClass(document.documentElement.classList.contains("dark"));
+        sync();
+        const observer = new MutationObserver(sync);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+        return () => observer.disconnect();
+    }, []);
+
+    const gaugePaletteDark = theme === "dark" || htmlHasDarkClass;
+
+    const trackedTableIds = useMemo(() => [...FX_ANALYZER_DYNAMIC_TABLE_IDS] as string[], []);
+
+    const loadTables = useCallback(async () => {
+        const ids = [...FX_ANALYZER_DYNAMIC_TABLE_IDS];
+
+        try {
+            const responses = await Promise.all(
+                ids.map(async (identifier) => ({
+                    identifier,
+                    response: await dynamicTableService.getTableByIdentifier(identifier),
+                }))
+            );
+
+            setTables(
+                responses.reduce<TableMap>((acc, item) => {
+                    acc[item.identifier] = item.response?.data ?? null;
+                    return acc;
+                }, {})
+            );
+        } catch (error) {
+            console.error("Failed to load FX analyzer tables:", error);
         }
     }, []);
 
-    const displayPair = selectedPair;
+    useEffect(() => {
+        void loadTables();
+    }, [loadTables, refreshTrigger]);
+
+    useDashboardBackendPoll(loadTables);
+
+    useEffect(() => {
+        const socket = io(apiConfig.baseURL, {
+            transports: ["websocket", "polling"],
+            withCredentials: true,
+        });
+
+        const reload = () => void loadTables();
+        const reloadForTrackedTable = (payload?: { data?: { identifier?: string; tableId?: string; table?: DynamicTable }; table?: DynamicTable }) => {
+            const identifier = payload?.data?.identifier ?? payload?.data?.tableId ?? payload?.data?.table?.identifier ?? payload?.table?.identifier;
+            if (!identifier || trackedTableIds.includes(identifier)) {
+                void loadTables();
+            }
+        };
+
+        socket.on("tableUpdate", reloadForTrackedTable);
+        socket.on("tableEditorUpdate", reloadForTrackedTable);
+        socket.on("tableEditorSync", reloadForTrackedTable);
+        socket.on("scoreDashboardSnapshot", reload);
+        socket.on("retailSentimentSnapshot", reload);
+
+        return () => {
+            socket.off("tableUpdate", reloadForTrackedTable);
+            socket.off("tableEditorUpdate", reloadForTrackedTable);
+            socket.off("tableEditorSync", reloadForTrackedTable);
+            socket.off("scoreDashboardSnapshot", reload);
+            socket.off("retailSentimentSnapshot", reload);
+            socket.disconnect();
+        };
+    }, [loadTables, trackedTableIds]);
+
+    const currencyPairs = useMemo(() => buildPairGroups(tables), [tables]);
+
+    useEffect(() => {
+        if (selectedPairName) return;
+        for (const currency of CURRENCIES) {
+            const firstPair = currencyPairs[currency]?.[0]?.pair;
+            if (firstPair) {
+                setSelectedPairName(firstPair);
+                break;
+            }
+        }
+    }, [currencyPairs, selectedPairName]);
+
+    const displayPair = useMemo(
+        () => (selectedPairName ? buildPairData(selectedPairName, tables) : null),
+        [selectedPairName, tables],
+    );
+
+    const selectedTableConfig = FX_ANALYZER_TABLES.find((table) => table.identifier === selectedTable) ?? FX_ANALYZER_TABLES[0];
+
+    const handleTableSave = async () => {
+        setRefreshTrigger((value) => value + 1);
+        await loadTables();
+        setShowEditor(false);
+    };
+
+    const scoreRows = displayPair
+        ? [
+            ["Fundamental Score", displayPair.fundamentalScore, false] as const,
+            ["Seasonality", displayPair.seasonalScore, false] as const,
+            ["COT Score", displayPair.cotScore, false] as const,
+            ["Trend Score", displayPair.trendScore, false] as const,
+            ["Sentiment Score", displayPair.sentimentScore, false] as const,
+            ["Risk Meter", displayPair.riskMeter, true] as const,
+        ]
+        : [];
 
     return (
         <Container>
+            {isAdmin ? (
+                <section className="mb-6 space-y-4 rounded-xl bg-darkGrey p-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <p className="text-sm uppercase tracking-[0.18em] text-[rgb(var(--secondary))]">FX analyzer editor panel</p>
+                        <button
+                            type="button"
+                            onClick={() => setShowEditor((current) => !current)}
+                            className="rounded-lg bg-[rgb(var(--electric-blue))] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+                        >
+                            {showEditor ? "Hide editor" : "Open editor"}
+                        </button>
+                    </div>
+
+                    {showEditor ? (
+                        <AdminTableEditor
+                            tableIdentifier={selectedTable}
+                            tableName={selectedTableConfig.name}
+                            onSave={handleTableSave}
+                            showTableSelector={true}
+                            availableTables={[...FX_ANALYZER_TABLES]}
+                            onTableSelect={(identifier) => setSelectedTable(identifier as FxAnalyzerTableIdentifier)}
+                        />
+                    ) : null}
+                </section>
+            ) : null}
+
             <div className={styles.fxAnalyzerPro__pageContainer}>
                 <div className={styles.fxAnalyzerPro__dropdownSection}>
                     {CURRENCIES.map((currency) => {
                         const pairs = currencyPairs[currency] || [];
-                        const pairNames = pairs.map((p) => p.pair);
                         return (
                             <Dropdown
                                 key={currency}
                                 btnLabel={currency}
-                                menus={pairNames}
-                                onMenuItemClick={(pairName) => {
-                                    const pair = pairs.find((p) => p.pair === pairName);
-                                    if (pair) handlePairClick(pair);
-                                }}
+                                menus={pairs.map((p) => p.pair)}
+                                onMenuItemClick={(pairName) => setSelectedPairName(pairName)}
                             />
                         );
                     })}
                 </div>
+
                 <div className={styles.fxAnalyzerPro__contentSection}>
                     {displayPair ? (
                         <>
-                            <div className={styles.fxAnalyzerPro__sentimentPanel} style={{ borderRight: "none", borderRadius: "16px" }}>
+                            <div className={`${styles.fxAnalyzerPro__sentimentPanel} flex min-h-0 flex-col`} style={{ borderRight: "none", borderRadius: "16px" }}>
                                 <Row className="text-[20px] font-bold text-foreground" style={{ border: "none", borderTopLeftRadius: "16px", borderTopRightRadius: "16px" }}>
                                     <Col>
                                         <span className="text-xl">{displayPair.pair}</span>
                                     </Col>
                                 </Row>
-                                <Row className="text-[20px] font-bold text-black" style={{ backgroundColor: "#FFFF00", border: "none" }}>
-                                    <Col>{displayPair.netBias || getBiasText(displayPair.netScore)}</Col>
+                                <Row
+                                    className="text-[20px] font-bold"
+                                    style={{
+                                        ...netBiasBannerStyles(
+                                            displayPair.netBias,
+                                            displayPair.netScore,
+                                            zonesByType.gauge,
+                                            gaugePaletteDark,
+                                        ),
+                                        border: "none",
+                                    }}
+                                >
+                                    <Col>{displayPair.netBias || String(biasFromScore(displayPair.netScore))}</Col>
                                 </Row>
 
-                                <div className="flex flex-col gap-5 p-5 items-center">
-                                    <div className="text-center">
-                                        <GuageChart
-                                            style={{ width: "280px" }}
-                                            indicatorStyle={getNetBiasGaugeIndicatorStyle(displayPair.netScore, "280px")}
-                                            labelType="netBias"
-                                            gaugeZones={DEFAULT_GAUGE_ZONES}
-                                        />
-                                        <h1 className="mt-2.5 text-[15px] font-semibold text-foreground">Net Bias</h1>
-                                    </div>
+                                <div className="flex flex-col items-center gap-5 px-5 pb-2 pt-10">
+                                    <FxEdgeGauge
+                                        title="Net Bias"
+                                        score={displayPair.netScore}
+                                        gaugeZonesConfigured={zonesByType.gauge}
+                                        rangeMin={gaugeScales.gauge.min}
+                                        rangeMax={gaugeScales.gauge.max}
+                                        width="280px"
+                                        isDark={gaugePaletteDark}
+                                        big
+                                    />
 
-                                    <div className="grid grid-cols-2 gap-5 w-full">
-                                        <FxAnalyzerGauge score={displayPair.fundamentalScore} label="Fundamental" gaugeZones={DEFAULT_GAUGE_ZONES} getGaugeIndicatorStyleDynamic={getGaugeIndicatorStyle} GuageChart={GuageChart} />
-                                        <FxAnalyzerGauge score={displayPair.trendScore} label="Trend" gaugeZones={DEFAULT_GAUGE_ZONES} getGaugeIndicatorStyleDynamic={getGaugeIndicatorStyle} GuageChart={GuageChart} />
-                                        <FxAnalyzerGauge score={displayPair.momentumScore} label="Momentum" gaugeZones={DEFAULT_GAUGE_ZONES} getGaugeIndicatorStyleDynamic={getGaugeIndicatorStyle} GuageChart={GuageChart} />
-                                        <FxAnalyzerGauge score={displayPair.sentimentScore} label="Sentiment" gaugeZones={DEFAULT_GAUGE_ZONES} getGaugeIndicatorStyleDynamic={getGaugeIndicatorStyle} GuageChart={GuageChart} />
+                                    <div className="grid w-full grid-cols-2 gap-5">
+                                        <FxEdgeGauge
+                                            title="Fundamental"
+                                            score={displayPair.fundamentalScore}
+                                            gaugeZonesConfigured={zonesByType.fundamental}
+                                            rangeMin={gaugeScales.fundamental.min}
+                                            rangeMax={gaugeScales.fundamental.max}
+                                            width="130px"
+                                            isDark={gaugePaletteDark}
+                                        />
+                                        <FxEdgeGauge
+                                            title="Trend"
+                                            score={displayPair.trendScore}
+                                            gaugeZonesConfigured={zonesByType.trend}
+                                            rangeMin={gaugeScales.trend.min}
+                                            rangeMax={gaugeScales.trend.max}
+                                            width="130px"
+                                            isDark={gaugePaletteDark}
+                                        />
+                                        <FxEdgeGauge
+                                            title="Momentum"
+                                            score={displayPair.momentumScore}
+                                            gaugeZonesConfigured={zonesByType.momentum}
+                                            rangeMin={gaugeScales.momentum.min}
+                                            rangeMax={gaugeScales.momentum.max}
+                                            width="130px"
+                                            isDark={gaugePaletteDark}
+                                        />
+                                        <FxEdgeGauge
+                                            title="Sentiment"
+                                            score={displayPair.sentimentScore}
+                                            gaugeZonesConfigured={zonesByType.sentiment}
+                                            rangeMin={gaugeScales.sentiment.min}
+                                            rangeMax={gaugeScales.sentiment.max}
+                                            width="130px"
+                                            isDark={gaugePaletteDark}
+                                        />
                                     </div>
                                 </div>
 
-                                <div className="mt-2.5 overflow-x-auto w-full">
-                                    <table className="w-full border-collapse overflow-x-auto" style={{ fontSize: 16 }}>
-                                        <tbody>
-                                            <tr className="border-b border-stroke bg-darkGrey">
-                                                {cell("Fundamental score", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.fundamentalScore != null ? displayPair.fundamentalScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
-                                                {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getBiasText(displayPair.fundamentalScore)) }}>{displayPair.fundamentalScore != null ? getBiasText(displayPair.fundamentalScore) : "N/A"}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
-                                            </tr>
-                                            <tr className="border-b border-stroke bg-darkGrey">
-                                                {cell("Seasonality", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.seasonalScore != null ? displayPair.seasonalScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
-                                                {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getSentimentalBias(displayPair.seasonalScore, displayPair.momentumScore)) }}>{getSentimentalBias(displayPair.seasonalScore, displayPair.momentumScore)}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
-                                            </tr>
-                                            <tr className="border-b border-stroke bg-darkGrey">
-                                                {cell("Cot score", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.cotScore != null ? displayPair.cotScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
-                                                {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getSentimentalBias(displayPair.cotScore, displayPair.momentumScore)) }}>{getSentimentalBias(displayPair.cotScore, displayPair.momentumScore)}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
-                                            </tr>
-                                            <tr className="border-b border-stroke bg-darkGrey">
-                                                {cell("Trend score", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.trendScore != null ? displayPair.trendScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
-                                                {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getBiasText(displayPair.trendScore)) }}>{displayPair.trendScore != null ? getBiasText(displayPair.trendScore) : "N/A"}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
-                                            </tr>
-                                            <tr className="border-b border-stroke bg-darkGrey">
-                                                {cell("Sentiment score", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap" })}
-                                                {cell(displayPair.sentimentScore != null ? displayPair.sentimentScore.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px" })}
-                                                {cell(<span className="font-medium" style={{ color: getSentimentalBiasColor(getBiasText(displayPair.sentimentScore)) }}>{displayPair.sentimentScore != null ? getBiasText(displayPair.sentimentScore) : "N/A"}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px" }, true)}
-                                            </tr>
-                                            <tr className="bg-darkGrey rounded-b-2xl">
-                                                {cell("Risk mode", { width: 350, fontSize: "14px", fontWeight: 500, textAlign: "left", paddingLeft: "24px", whiteSpace: "nowrap", borderBottom: "none" })}
-                                                {cell(displayPair.riskMeter != null ? displayPair.riskMeter.toString() : "N/A", { width: 200, textAlign: "center", fontWeight: 500, fontSize: "14px", borderBottom: "none" })}
-                                                {cell(<span className="font-medium" style={{ color: displayPair.riskMeter != null ? (displayPair.riskMeter > 0 ? "#25b73c" : displayPair.riskMeter < 0 ? shortDarkBgColor : "#FFFF00") : undefined }}>{displayPair.riskMeter != null ? (displayPair.riskMeter > 0 ? "Risk On" : displayPair.riskMeter < 0 ? "Risk Off" : "Neutral") : "N/A"}</span>, { width: 250, background: "transparent", textAlign: "right" as const, paddingRight: "24px", fontSize: "14px", borderBottom: "none" }, true)}
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                <div className="flex w-full min-h-0 flex-1 flex-col">
+                                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-2xl bg-darkGrey pb-1.5 pt-0">
+                                        <div className="w-full shrink-0 pt-[10px]">
+                                            <table
+                                                className={`shrink-0 ${styles.fxAnalyzerPro__scoreTable} ${styles.fxAnalyzerDataTable}`}
+                                                cellPadding={0}
+                                                cellSpacing={0}
+                                                style={{
+                                                    display: "table",
+                                                    width: "100%",
+                                                    tableLayout: "fixed",
+                                                    borderCollapse: "collapse",
+                                                    borderSpacing: 0,
+                                                    margin: 0,
+                                                    padding: 0,
+                                                    flexShrink: 0,
+                                                }}
+                                            >
+                                                <tbody>
+                                                {scoreRows.map(([label, score, isRisk]) => (
+                                                    <tr key={label} className="bg-darkGrey">
+                                                        {scoreCell(label, {
+                                                            width: "38%",
+                                                            fontWeight: 500,
+                                                            textAlign: "left",
+                                                        })}
+                                                        {scoreCell(formatScore(score), { width: "24%", fontWeight: 500 })}
+                                                        {scoreCell(<ScoreSignal score={score} riskMode={isRisk} isDark={gaugePaletteDark} />, {
+                                                            width: "38%",
+                                                            minWidth: 0,
+                                                            fontWeight: 500,
+                                                            whiteSpace: "nowrap",
+                                                        })}
+                                                    </tr>
+                                                ))}
+                                                <tr className="bg-darkGrey">
+                                                    {scoreCell("Net Score", {
+                                                        width: "38%",
+                                                        fontWeight: 500,
+                                                        textAlign: "left",
+                                                    })}
+                                                    {scoreCell(formatScore(displayPair.netScore), { width: "24%", fontWeight: 500 })}
+                                                    {scoreCell(
+                                                        <NetScoreSignal
+                                                            netBias={displayPair.netBias}
+                                                            netScore={displayPair.netScore}
+                                                            isDark={gaugePaletteDark}
+                                                        />,
+                                                        {
+                                                            width: "38%",
+                                                            minWidth: 0,
+                                                            fontWeight: 500,
+                                                            whiteSpace: "nowrap",
+                                                        },
+                                                    )}
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center px-4 py-2">
+                                            <FxCurrencyStanceBlock legs={displayPair.currencyLegStances} isDark={gaugePaletteDark} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className={cn(styles.fxAnalyzerPro__fundamentalsPanel)}>
+                            <div className={styles.fxAnalyzerPro__fundamentalsPanel}>
                                 <PrimaryCard>
                                     <div className="grid grid-cols-2 gap-4 pb-2">
-                                        <div className="bg-darkGrey rounded-xl overflow-hidden">
-                                            <div className="text-center font-semibold mb-3 text-[15px] text-foreground">Non comm Positions</div>
-                                            <div className="grid gap-4">
-                                                {displayPair.cotPositions && (
-                                                    <>
-                                                        <div className="flex gap-2 items-center">
-                                                            <div className="w-[34px] font-semibold text-[15px] text-foreground">{extractBaseCurrency(displayPair.pair)}</div>
-                                                            <div className="flex-1">
-                                                                <div className="flex justify-between mb-1.5 text-[11px] font-semibold text-foreground">
-                                                                    <span>{displayPair.cotPositions.nonCommercial.short}%</span>
-                                                                    <span>{displayPair.cotPositions.nonCommercial.long}%</span>
-                                                                </div>
-                                                                <div className="w-full h-[8px] rounded-full overflow-hidden bg-inputBg flex">
-                                                                    <div style={{ width: `${displayPair.cotPositions.nonCommercial.short}%`, height: '100%', background: shortDarkBgColor }} />
-                                                                    <div style={{ width: `${displayPair.cotPositions.nonCommercial.long}%`, height: '100%', background: longDarkBgColor }} />
-                                                                </div>
-                                                                <div className="flex justify-between mt-1 text-[12px] font-semibold">
-                                                                    <span style={{ color: shortDarkBgColor }}>Short</span>
-                                                                    <span style={{ color: longDarkBgColor }}>Long</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        {displayPair.quoteCurrencyCotPositions && (
-                                                            <div className="flex gap-2 items-center mt-2">
-                                                                <div className="w-[34px] font-semibold text-[15px] text-foreground">{displayPair.pair.length >= 6 ? displayPair.pair.substring(3, 6) : ''}</div>
-                                                                <div className="flex-1">
-                                                                    <div className="flex justify-between mb-1.5 text-[11px] font-semibold text-foreground">
-                                                                        <span>{displayPair.quoteCurrencyCotPositions.nonCommercial.short}%</span>
-                                                                        <span>{displayPair.quoteCurrencyCotPositions.nonCommercial.long}%</span>
-                                                                    </div>
-                                                                    <div className="w-full h-[8px] rounded-full overflow-hidden bg-inputBg flex">
-                                                                        <div style={{ width: `${displayPair.quoteCurrencyCotPositions.nonCommercial.short}%`, height: '100%', background: shortDarkBgColor }} />
-                                                                        <div style={{ width: `${displayPair.quoteCurrencyCotPositions.nonCommercial.long}%`, height: '100%', background: longDarkBgColor }} />
-                                                                    </div>
-                                                                    <div className="flex justify-between mt-1 text-[12px] font-semibold">
-                                                                        <span style={{ color: shortDarkBgColor }}>Short</span>
-                                                                        <span style={{ color: longDarkBgColor }}>Long</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="bg-darkGrey rounded-xl overflow-hidden">
-                                            <div className="text-center font-semibold mb-3 text-[15px] text-foreground">Comm Positions</div>
-                                            <div className="grid gap-4">
-                                                {displayPair.cotPositions && (
-                                                    <>
-                                                        <div className="flex gap-2 items-center">
-                                                            <div className="w-[34px] font-semibold text-[15px] text-foreground">{extractBaseCurrency(displayPair.pair)}</div>
-                                                            <div className="flex-1">
-                                                                <div className="flex justify-between mb-1.5 text-[11px] font-semibold text-foreground">
-                                                                    <span>{displayPair.cotPositions.commercial.short}%</span>
-                                                                    <span>{displayPair.cotPositions.commercial.long}%</span>
-                                                                </div>
-                                                                <div className="w-full h-[8px] rounded-full overflow-hidden bg-inputBg flex">
-                                                                    <div style={{ width: `${displayPair.cotPositions.commercial.short}%`, height: '100%', background: shortDarkBgColor }} />
-                                                                    <div style={{ width: `${displayPair.cotPositions.commercial.long}%`, height: '100%', background: longDarkBgColor }} />
-                                                                </div>
-                                                                <div className="flex justify-between mt-1 text-[12px] font-semibold">
-                                                                    <span style={{ color: shortDarkBgColor }}>Short</span>
-                                                                    <span style={{ color: longDarkBgColor }}>Long</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        {displayPair.quoteCurrencyCotPositions && (
-                                                            <div className="flex gap-2 items-center mt-2">
-                                                                <div className="w-[34px] font-semibold text-[15px] text-foreground">{displayPair.pair.length >= 6 ? displayPair.pair.substring(3, 6) : ''}</div>
-                                                                <div className="flex-1">
-                                                                    <div className="flex justify-between mb-1.5 text-[11px] font-semibold text-foreground">
-                                                                        <span>{displayPair.quoteCurrencyCotPositions.commercial.short}%</span>
-                                                                        <span>{displayPair.quoteCurrencyCotPositions.commercial.long}%</span>
-                                                                    </div>
-                                                                    <div className="w-full h-[8px] rounded-full overflow-hidden bg-inputBg flex">
-                                                                        <div style={{ width: `${displayPair.quoteCurrencyCotPositions.commercial.short}%`, height: '100%', background: shortDarkBgColor }} />
-                                                                        <div style={{ width: `${displayPair.quoteCurrencyCotPositions.commercial.long}%`, height: '100%', background: longDarkBgColor }} />
-                                                                    </div>
-                                                                    <div className="flex justify-between mt-1 text-[12px] font-semibold">
-                                                                        <span style={{ color: shortDarkBgColor }}>Short</span>
-                                                                        <span style={{ color: longDarkBgColor }}>Long</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <PositionCard title="Non comm Positions" pair={displayPair.pair} dataKey="nonCommercial" base={displayPair.cotPositions} quote={displayPair.quoteCurrencyCotPositions} />
+                                        <PositionCard title="Comm Positions" pair={displayPair.pair} dataKey="commercial" base={displayPair.cotPositions} quote={displayPair.quoteCurrencyCotPositions} />
                                     </div>
 
-                                    <div className="mt-2">
-                                        <div className="relative flex items-center justify-center mb-2.5 text-[12px] font-medium text-foreground/70">
-                                            {displayPair.retailPositions && (
+                                    <div className="mt-5">
+                                        <div className="relative mb-2.5 flex items-center justify-center text-[16px] font-medium text-foreground/85">
+                                            {displayPair.retailPositions ? (
                                                 <>
-                                                    <span className="absolute left-0.5 text-foreground text-[10px] font-semibold">{displayPair.retailPositions.long}%</span>
+                                                    <span className="absolute left-0.5 text-[14px] font-medium text-foreground">{displayPair.retailPositions.short ?? "N/A"}%</span>
                                                     <span className="text-foreground">Retail Positions</span>
-                                                    <span className="absolute right-0.5 text-foreground text-[10px] font-semibold">{displayPair.retailPositions.short}%</span>
+                                                    <span className="absolute right-0.5 text-[14px] font-medium text-foreground">{displayPair.retailPositions.long ?? "N/A"}%</span>
                                                 </>
+                                            ) : (
+                                                <span className="text-foreground">Retail Positions</span>
                                             )}
                                         </div>
                                         <div className="w-full">
-                                            <div className="relative w-full h-3 rounded-full overflow-visible flex">
-                                                <div className="relative w-full h-full rounded-full overflow-hidden flex bg-stroke">
-                                                    {displayPair.retailPositions?.long != null && (
-                                                        <div style={{ width: `${displayPair.retailPositions.long}%`, height: '100%', background: shortDarkBgColor }} />
-                                                    )}
-                                                    {displayPair.retailPositions?.short != null && (
-                                                        <div style={{ width: `${displayPair.retailPositions.short}%`, height: '100%', background: longDarkBgColor }} />
-                                                    )}
+                                            <div className="relative flex h-[8px] w-full overflow-visible rounded-full">
+                                                <div className="relative flex h-full w-full overflow-hidden rounded-full bg-stroke">
+                                                    <div style={{ width: `${clampPercent(displayPair.retailPositions?.short)}%`, height: "100%", background: shortDarkBgColor }} />
+                                                    <div style={{ width: `${clampPercent(displayPair.retailPositions?.long)}%`, height: "100%", background: longDarkBgColor }} />
                                                 </div>
-                                                {displayPair.retailPositions?.long != null && (
-                                                    <div className="absolute top-1/2 -translate-y-1/2 w-[13px] h-[13px] rounded-full bg-foreground border-2 border-darkGrey z-10" style={{ left: `calc(${displayPair.retailPositions.long}% - 6px)` }} />
-                                                )}
+                                                {displayPair.retailPositions?.short != null ? (
+                                                    <div className="absolute top-1/2 z-10 h-[13px] w-[13px] -translate-y-1/2 rounded-full border-2 border-darkGrey bg-foreground" style={{ left: `calc(${clampPercent(displayPair.retailPositions.short)}% - 6px)` }} />
+                                                ) : null}
+                                            </div>
+                                            <div className="mt-4 flex justify-between text-[16px] font-medium">
+                                                <span style={{ color: shortDarkBgColor }}>Short</span>
+                                                <span style={{ color: longDarkBgColor }}>Long</span>
                                             </div>
                                         </div>
                                     </div>
                                 </PrimaryCard>
 
-                                <PrimaryCard className="mt-3.5">
-                                    <div className="text-center font-semibold mb-3 text-[18px] text-foreground">Currency strength index</div>
-                                    {(() => {
-                                        const baseCurrency = extractBaseCurrency(displayPair.pair);
-                                        const quoteCurrency = displayPair.pair.length >= 6 ? displayPair.pair.substring(3, 6) : null;
-                                        const currenciesToShow = quoteCurrency ? [baseCurrency, quoteCurrency] : [baseCurrency];
-                                        // Static demo: base +1.0, quote -1.0 (same for all pairs)
-                                        const demoStrength: Record<string, number> = { [baseCurrency]: 1.0, ...(quoteCurrency ? { [quoteCurrency]: -1.0 } : {}) };
+                                <PrimaryCard>
+                                    <div className="mb-5 text-left text-[28px] font-bold leading-tight text-foreground">Currency Strength Index</div>
+                                    {[extractBaseCurrency(displayPair.pair), extractQuoteCurrency(displayPair.pair)].filter(Boolean).map((currency, i) => {
+                                        const rawScore = displayPair.currencyStrengths[currency as string] ?? null;
+                                        const { fillPercent, color } = getCurrencyStrengthStyle(rawScore);
                                         return (
-                                            <>
-                                                {currenciesToShow.map((currency, i) => {
-                                                    const rawScore = demoStrength[currency] ?? null;
-                                                    const { fillPercent, color, cursorPercent } = getCurrencyStrengthStyle(rawScore);
-                                                    const displayValue = rawScore !== null ? rawScore : 'N/A';
-                                                    return (
-                                                        <div key={`${currency}-${i}`} className="flex items-center gap-4" style={{ marginBottom: i === 0 ? "18px" : "0" }}>
-                                                            <div className="w-[34px] font-semibold text-[15px] text-foreground">{currency}</div>
-                                                            <div className="relative flex-1 h-5 flex items-center">
-                                                                <div className="relative w-full h-3 rounded-full overflow-hidden bg-inputBg">
-                                                                    {fillPercent > 0 && (
-                                                                        <div
-                                                                            className="absolute left-0 top-0 h-full rounded-full transition-[width] duration-300"
-                                                                            style={{ width: `${fillPercent}%`, background: color }}
-                                                                        />
-                                                                    )}
-                                                                </div>
-                                                                {typeof cursorPercent === 'number' && !isNaN(cursorPercent) && (
-                                                                    <>
-                                                                        <div
-                                                                            className="absolute top-1/2 -translate-y-1/2 w-[13px] h-[13px] rounded-full border-2 border-stroke bg-foreground z-10 transition-[left] duration-300"
-                                                                            style={{ left: `${cursorPercent}%`, transform: 'translate(-50%, -50%)' }}
-                                                                        />
-                                                                        <div
-                                                                            className="absolute left-0 top-0 -translate-y-full text-foreground font-semibold text-[11px] whitespace-nowrap pointer-events-none z-[1000]"
-                                                                            style={{ left: `${cursorPercent}%`, transform: `translate(${rawScore !== null && rawScore > 0 ? '-50%' : '-80%'}, -100%)` }}
-                                                                        >
-                                                                            {displayValue}
-                                                                        </div>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </>
+                                            <div key={`${currency}-${i}`} className={i === 0 ? "mb-5" : ""}>
+                                                <div className="mb-2 flex items-center justify-between text-[16px] font-medium">
+                                                    <span className="text-foreground">{currency}</span>
+                                                    <span
+                                                        className={
+                                                            rawScore === null || Number.isNaN(rawScore) || rawScore === 0
+                                                                ? "text-foreground"
+                                                                : undefined
+                                                        }
+                                                        style={
+                                                            rawScore !== null && Number.isFinite(rawScore) && rawScore < 0
+                                                                ? { color: shortDarkBgColor }
+                                                                : rawScore !== null && Number.isFinite(rawScore) && rawScore > 0
+                                                                  ? { color: longDarkBgColor }
+                                                                  : undefined
+                                                        }
+                                                    >
+                                                        {rawScore ?? "N/A"}
+                                                    </span>
+                                                </div>
+                                                <div className="relative h-[8px] w-full overflow-hidden rounded-full bg-currencyStrengthIndexBackground">
+                                                    {fillPercent > 0 ? <div className="absolute left-0 top-0 h-full rounded-full transition-[width] duration-300" style={{ width: `${fillPercent}%`, background: color }} /> : null}
+                                                </div>
+                                            </div>
                                         );
-                                    })()}
+                                    })}
                                 </PrimaryCard>
 
-                                <div className="mt-3.5">
-                                    <div className="text-center font-semibold bg-darkGrey py-2.5 text-[15px] text-foreground rounded-t-xl mb-1">Technical Trends</div>
-                                    <table className="w-full border-collapse text-[14px] text-foreground">
-                                        <thead>
-                                            <tr className="border-b border-stroke bg-darkGrey">
-                                                {['Trade Frame', 'Trend', 'Momentum', '0.873684'].map((h, i) => (
-                                                    <th key={i} className="py-3 px-3 text-center font-medium">{h}</th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {(displayPair.technicalTrends?.length ? displayPair.technicalTrends : [
-                                                { timeFrame: '1H', trend: 'N/A', momentum: 'N/A', volatility: 'N/A' },
-                                                { timeFrame: '2H', trend: 'N/A', momentum: 'N/A', volatility: 'N/A' },
-                                                { timeFrame: 'Daily', trend: 'N/A', momentum: 'N/A', volatility: 'N/A' },
-                                            ]).map((r: TechnicalTrendData, i: number) => {
-                                                const rowData = [r.timeFrame, r.trend, r.momentum, r.volatility];
-                                                return (
-                                                    <tr key={i} className="border-b border-stroke bg-darkGrey">
-                                                        {rowData.map((c: string, j: number) => {
-                                                            let textColor: string | undefined;
-                                                            const cellValue = c?.toString().toLowerCase().trim();
-                                                            if (j > 0) {
-                                                                if (cellValue === "neutral" || cellValue === "non volatile" || cellValue === "moderate") { textColor = "#FFFF00"; }
-                                                            }
-                                                            return (
-                                                                <td key={j} className="text-center py-3 px-3" style={{ color: textColor, fontWeight: j === 0 ? 500 : "normal", fontSize: j > 2 ? "13px" : "inherit" }}>{c}</td>
-                                                            );
-                                                        })}
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div className="mt-[18px]">
-                                    <div className="text-center font-semibold bg-darkGrey py-2.5 text-[15px] text-foreground rounded-t-xl mb-1">Technical Levels</div>
-                                    <table className="w-full border-collapse text-[14px] text-foreground">
-                                        <tbody>
-                                            {(() => {
-                                                const levels = displayPair.technicalLevels;
-                                                const rows = levels ? [
-                                                    ['Current Price', levels.currentPrice || 'N/A', 'Pivot Level', levels.pivot || 'N/A'],
-                                                    ['S1', levels.s1 || 'N/A', 'R1', levels.r1 || 'N/A'],
-                                                    ['S2', levels.s2 || 'N/A', 'R2', levels.r2 || 'N/A'],
-                                                    ['S3', levels.s3 || 'N/A', 'R3', levels.r3 || 'N/A'],
-                                                ] : [
-                                                    ['Current Price', 'N/A', 'Pivot Level', 'N/A'],
-                                                    ['S1', 'N/A', 'R1', 'N/A'],
-                                                    ['S2', 'N/A', 'R2', 'N/A'],
-                                                    ['S3', 'N/A', 'R3', 'N/A'],
-                                                ];
-                                                return rows.map((r, i) => (
-                                                    <tr key={i} className="border-b border-stroke bg-darkGrey">
-                                                        <td className="py-3 px-4 w-[140px] text-left font-medium">{r[0]}</td>
-                                                        <td className="py-3 px-4 text-center">{r[1]}</td>
-                                                        <td className="py-3 px-4 w-[120px] text-center font-medium">{r[2]}</td>
-                                                        <td className="py-3 px-4 text-center">{r[3]}</td>
-                                                    </tr>
-                                                ));
-                                            })()}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <TechnicalLevelsPreview levels={displayPair.technicalLevels} />
+                                <TechnicalTrendsPreview rows={displayPair.technicalTrends} isDark={gaugePaletteDark} />
                             </div>
                         </>
                     ) : (
                         <div className={styles.fxAnalyzerPro__sentimentPanel}>
-                            <div className="p-12 text-center text-foreground/70 text-[15px]">
-                                Select a currency pair to view analysis
-                            </div>
+                            <div className="p-12 text-center text-[15px] text-foreground/70">Select a currency pair to view analysis</div>
                         </div>
                     )}
                 </div>
             </div>
+
+            {isAdmin ? (
+                <section className={`mt-6 space-y-6 ${styles.fxAnalyzerPro__dynamicTables}`}>
+                    {FX_ANALYZER_TABLES.map((tableConfig) => (
+                        <section key={tableConfig.identifier} className="overflow-hidden rounded-xl bg-darkGrey">
+                            <DynamicTableDisplay
+                                tableIdentifier={tableConfig.identifier}
+                                refreshTrigger={refreshTrigger}
+                                initialTable={tables[tableConfig.identifier]}
+                            />
+                        </section>
+                    ))}
+                </section>
+            ) : null}
         </Container>
     );
-};
+}
+
+function PositionCard({
+    title,
+    pair,
+    dataKey,
+    base,
+    quote,
+}: {
+    title: string;
+    pair: string;
+    dataKey: "nonCommercial" | "commercial";
+    base: COTPositionData | null;
+    quote: COTPositionData | null;
+}) {
+    const quoteCurrency = extractQuoteCurrency(pair);
+    return (
+        <div className="overflow-visible rounded-xl bg-darkGrey px-1">
+            <div className="mb-3 text-center text-[15px] font-semibold text-foreground">{title}</div>
+            <div className="grid gap-4">
+                <PositionBar currency={extractBaseCurrency(pair)} data={base?.[dataKey] ?? null} />
+                {quoteCurrency ? <PositionBar currency={quoteCurrency} data={quote?.[dataKey] ?? null} /> : null}
+            </div>
+        </div>
+    );
+}
+
+function PositionBar({ currency, data }: { currency: string; data: { long: number | null; short: number | null } | null }) {
+    const shortValue = clampPercent(data?.short);
+    const longValue = clampPercent(data?.long);
+    return (
+        <div className="flex items-center gap-2 pr-1">
+            <div className="w-[34px] shrink-0 text-[15px] font-semibold text-foreground">{currency}</div>
+            <div className="min-w-0 flex-1">
+                <div className="mb-1.5 flex justify-between text-[11px] font-semibold text-foreground">
+                    <span>{data?.short ?? "N/A"}%</span>
+                    <span>{data?.long ?? "N/A"}%</span>
+                </div>
+                <div className="flex h-[8px] w-full overflow-hidden rounded-full bg-inputBg">
+                    <div style={{ width: `${shortValue}%`, height: "100%", background: shortDarkBgColor }} />
+                    <div style={{ width: `${longValue}%`, height: "100%", background: longDarkBgColor }} />
+                </div>
+                <div className="mt-1 flex justify-between text-[12px] font-semibold">
+                    <span className="min-w-[44px]" style={{ color: shortDarkBgColor }}>Short</span>
+                    <span className="min-w-[44px] text-right" style={{ color: longDarkBgColor }}>Long</span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function TechnicalTrendsPreview({ rows, isDark }: { rows: TechnicalTrendData[]; isDark: boolean }) {
+    const fallback = [
+        { timeFrame: "1H", trend: "N/A", momentum: "N/A", volatility: "N/A" },
+        { timeFrame: "4H", trend: "N/A", momentum: "N/A", volatility: "N/A" },
+        { timeFrame: "Daily", trend: "N/A", momentum: "N/A", volatility: "N/A" },
+    ];
+
+    return (
+        <div className="overflow-hidden rounded-xl bg-darkGrey pb-0 pt-4">
+            <div className="px-3 pb-3 text-center text-[18px] font-bold leading-none text-foreground">Technical Trends</div>
+            <table
+                className={`m-0 w-full table-fixed border-collapse border-spacing-0 p-0 text-[14px] text-foreground [&_tbody]:m-0 [&_tbody]:p-0 [&_thead]:m-0 [&_thead]:p-0 [&_tr]:m-0 [&_tr]:p-0 ${styles.fxAnalyzerDataTable}`}
+                style={{ borderCollapse: "collapse", borderSpacing: 0 }}
+            >
+                <thead>
+                    <tr className="m-0 bg-darkGrey p-0">
+                        {["Trade Frame", "Trend", "Momentum", "Volatility"].map((h) => (
+                            <th key={h} className="m-0 px-3 py-3 text-center text-[14px] font-semibold text-foreground">
+                                {h}
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {(rows.length ? rows : fallback).map((r) => (
+                        <tr key={r.timeFrame} className="m-0 bg-darkGrey p-0">
+                            {[r.timeFrame, r.trend, r.momentum, r.volatility].map((value, index) => {
+                                const zoneColor = index > 0 ? fxAnalyzerLabelZoneColor(value, isDark) : undefined;
+                                return (
+                                    <td
+                                        key={`${r.timeFrame}-${index}`}
+                                        className="m-0 px-3 py-3 text-center text-[14px] text-foreground"
+                                        style={{
+                                            color: zoneColor,
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        {value}
+                                    </td>
+                                );
+                            })}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
+function TechnicalLevelsPreview({ levels }: { levels: TechnicalLevelsData | null }) {
+    const rows = levels
+        ? [
+            ["Current Price", levels.currentPrice || "N/A", "Pivot Level", levels.pivot || "N/A"],
+            ["S1", levels.s1 || "N/A", "R1", levels.r1 || "N/A"],
+            ["S2", levels.s2 || "N/A", "R2", levels.r2 || "N/A"],
+            ["S3", levels.s3 || "N/A", "R3", levels.r3 || "N/A"],
+        ]
+        : [
+            ["Current Price", "N/A", "Pivot Level", "N/A"],
+            ["S1", "N/A", "R1", "N/A"],
+            ["S2", "N/A", "R2", "N/A"],
+            ["S3", "N/A", "R3", "N/A"],
+        ];
+
+    return (
+        <div className="overflow-hidden rounded-xl bg-darkGrey pb-0 pt-4">
+            <div className="px-3 pb-3 text-center text-[18px] font-bold leading-none text-foreground">Technical Levels</div>
+            <table
+                className={`m-0 w-full table-fixed border-collapse border-spacing-0 p-0 text-[14px] text-foreground [&_tbody]:m-0 [&_tbody]:p-0 [&_tr]:m-0 [&_tr]:p-0 ${styles.fxAnalyzerDataTable}`}
+                style={{ borderCollapse: "collapse", borderSpacing: 0 }}
+            >
+                <tbody>
+                    {rows.map((row) => (
+                        <tr key={`${row[0]}-${row[2]}`} className="m-0 bg-darkGrey p-0">
+                            <td className="m-0 w-1/4 px-4 py-3 text-center font-semibold text-foreground">{row[0]}</td>
+                            <td className="m-0 w-1/4 px-4 py-3 text-center font-semibold text-foreground">{row[1]}</td>
+                            <td className="m-0 w-1/4 px-4 py-3 text-center font-semibold text-foreground">{row[2]}</td>
+                            <td className="m-0 w-1/4 px-4 py-3 text-center font-semibold text-foreground">{row[3]}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}

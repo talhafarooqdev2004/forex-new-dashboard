@@ -1,201 +1,277 @@
 "use client";
 
-import { Section } from "@/components/ui/layout";
+import { useEffect, useState } from "react";
 
-// Exact pixel positions from Figma design converted to percentages
-// Base Container: 1124 x 519
-// Inner frame (Frame52): centered, top 15, width 1105, height 467
+import Section from "@/components/ui/layout/Section";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
+import {
+  dynamicTableService,
+  DynamicTable,
+} from "@/services/dynamicTable.service";
 
-const yAxisLabels = [
-    { text: "15", left: "1.41%", top: "15.75%", fontSize: "min(1.4vw, 16px)" },
-    { text: "10", left: "1.41%", top: "26.29%", fontSize: "min(1.4vw, 16px)" },
-    { text: "05", left: "1.23%", top: "36.83%", fontSize: "min(1.4vw, 16px)" },
-    { text: "0", left: "2.12%", top: "47.38%", fontSize: "min(1.4vw, 16px)" },
-    { text: "-5", left: "0.78%", top: "57.93%", fontSize: "min(1.4vw, 16px)" },
-    { text: "-10", left: "0.96%", top: "68.47%", fontSize: "min(1.2vw, 14px)" },
+const CURRENCY_PAIR_SENTIMENT_ID = "currency_pair_sentiment";
+const FIXED_RANGE = 15;
+
+const MAX_BAR_COUNT = 16;
+
+// Drawable area boundaries (% of container width)
+const CHART_LEFT = 4.71; // where the y-axis / grid starts
+const CHART_RIGHT = 96.52; // where the grid ends
+
+const Y_AXIS_LABELS = ["15", "10", "05", "0", "-5", "-10", "-15"];
+const Y_AXIS_TOPS = [
+  "15.75%",
+  "24.20%",
+  "32.65%",
+  "41.10%",
+  "49.55%",
+  "58.00%",
+  "66.45%",
+];
+const GRID_LINE_TOPS = [
+  "18.07%",
+  "26.52%",
+  "34.97%",
+  "43.42%",
+  "51.87%",
+  "60.32%",
+  "68.77%",
 ];
 
-const gridLines = [
-    { top: "18.07%", opacity: 0.35 },
-    { top: "28.61%", opacity: 0.35 },
-    { top: "39.16%", opacity: 0.35 },
-    { top: "49.71%", opacity: 0.35 },
-    { top: "60.25%", opacity: 0.35 },
-    { top: "70.80%", opacity: 1 },
-];
+const BASELINE_TOP = 43.42;
+const POSITIVE_MAX_HEIGHT = 25.35;
+const NEGATIVE_MAX_HEIGHT = 25.35;
 
-const greenBars = [
-    { left: "6.61%", top: "33.83%", height: "15.85%" },
-    { left: "18.55%", top: "39.83%", height: "9.85%" },
-    { left: "30.50%", top: "19.91%", height: "29.76%" },
-    { left: "42.44%", top: "33.83%", height: "15.85%" },
-    { left: "54.30%", top: "39.83%", height: "9.85%" },
-    { left: "66.24%", top: "19.91%", height: "29.76%" },
-    { left: "78.10%", top: "40.69%", height: "8.99%" },
-    { left: "89.95%", top: "28.48%", height: "21.20%" },
-];
+// Bar width as % of container — kept narrow so bars don't overlap at 16 items
+const BAR_WIDTH_PCT = 1.45;
 
-const redBars = [
-    { left: "10.68%", top: "49.89%", height: "10.28%" },
-    { left: "35.11%", top: "49.89%", height: "4.93%" },
-    { left: "45.52%", top: "49.89%", height: "7.07%" },
-    { left: "49.77%", top: "49.89%", height: "13.49%" },
-    { left: "58.73%", top: "49.89%", height: "13.49%" },
-    { left: "71.58%", top: "49.89%", height: "13.49%" },
-    { left: "84.43%", top: "49.89%", height: "10.28%" },
-    { left: "95.93%", top: "49.89%", height: "10.28%" },
-];
+interface ChartPoint {
+  label: string;
+  value: number;
+  valueLabel: string;
+}
 
-const percentMarkers = [
-    { left: "7.34%", top: "28.99%" },
-    { left: "11.41%", top: "61.54%" },
-    { left: "19.28%", top: "34.98%" },
-    { left: "31.23%", top: "15.28%" },
-    { left: "35.84%", top: "55.75%" },
-    { left: "43.17%", top: "29.20%" },
-    { left: "46.25%", top: "58.54%" },
-    { left: "50.50%", top: "64.53%" },
-    { left: "55.03%", top: "33.91%" },
-    { left: "59.46%", top: "64.53%" },
-    { left: "66.97%", top: "14.43%" },
-    { left: "72.31%", top: "64.53%" },
-    { left: "78.83%", top: "34.98%" },
-    { left: "85.16%", top: "60.89%" },
-    { left: "90.68%", top: "23.21%" },
-    { left: "96.66%", top: "60.89%" },
-];
+function parsePercentCell(raw: string | null | undefined): number | null {
+  if (raw == null || raw.trim() === "") return null;
+  const n = Number.parseFloat(raw.trim().replace(/,/g, "").replace(/%/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
 
-const xLabels = [
-    { text: " USD", left: "9.54%", top: "74.01%", w: "2.92%", h: "6.70%" },
-    { text: "EUR", left: "14.62%", top: "74.09%", w: "2.58%", h: "5.98%" },
-    { text: "GBP", left: "20.61%", top: "73.95%", w: "2.65%", h: "6.12%" },
-    { text: "CAD", left: "27.00%", top: "73.90%", w: "2.72%", h: "6.27%" },
-    { text: "JPY", left: "32.67%", top: "73.97%", w: "2.45%", h: "5.70%" },
-    { text: "CHF", left: "37.72%", top: "73.97%", w: "2.65%", h: "6.12%" },
-    { text: "AUD", left: "42.78%", top: "74.02%", w: "2.72%", h: "6.27%" },
-    { text: "NEW DEALAND DOLLAR", left: "47.98%", top: "73.94%", w: "10.20%", h: "22.14%" },
-    { text: "GOLD", left: "53.82%", top: "74.03%", w: "3.26%", h: "7.41%" },
-    { text: "CRUDE OIL", left: "59.68%", top: "73.96%", w: "5.28%", h: "11.70%" },
-    { text: "SILVER", left: "65.63%", top: "74.02%", w: "3.66%", h: "8.27%" },
-    { text: "NASDAQ 100", left: "70.96%", top: "73.94%", w: "5.89%", h: "12.99%" },
-    { text: "WHEAT SRW", left: "76.78%", top: "73.94%", w: "5.82%", h: "12.84%" },
-    { text: "CORN", left: "82.02%", top: "73.67%", w: "3.32%", h: "7.55%" },
-    { text: "COTTON", left: "87.61%", top: "73.99%", w: "4.40%", h: "9.84%" },
-    { text: "SUGAR", left: "93.99%", top: "74.01%", w: "3.73%", h: "8.41%" },
-];
+function formatBarValueLabel(raw: string, value: number): string {
+  const t = raw.trim();
+  if (t.includes("%")) return t;
+  const dec = Number.isInteger(value) ? 0 : 2;
+  return `${value.toFixed(dec).replace(/\.?0+$/, "")}%`;
+}
 
-export default function COTWeeklyChangeNetPositions() {
-    return (
-        <Section padding={false} className="w-full">
-            <div className="w-full horizontal-scroll bg-darkGrey rounded-[12px]">
-                <div
-                    className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/519] overflow-hidden text-foreground"
-                >
-                {/* Title */}
+function tableToWeeklyPoints(table: DynamicTable): ChartPoint[] {
+  const columns = [...(table.columns ?? [])].sort(
+    (a, b) => a.column_index - b.column_index,
+  );
+  if (columns.length < 3) return [];
+
+  const valueCol = columns[0];
+  const labelCol = columns[columns.length - 2];
+  const rows = [...(table.rows ?? [])].sort(
+    (a, b) => a.row_index - b.row_index,
+  );
+
+  const out: ChartPoint[] = [];
+  for (const row of rows) {
+    const cells = row.cells ?? [];
+    const vCell = cells.find((c) => c.table_column_id === valueCol.id);
+    const lCell = cells.find((c) => c.table_column_id === labelCol.id);
+    const label = lCell?.value?.trim() ?? "";
+    const rawVal = (vCell?.value ?? "").trim();
+    const value = parsePercentCell(vCell?.value);
+    if (!label || value === null) continue;
+    out.push({ label, value, valueLabel: formatBarValueLabel(rawVal, value) });
+  }
+  return out;
+}
+
+interface COTWeeklyChangeNetPositionsProps {
+  refreshTrigger?: number;
+}
+
+export default function COTWeeklyChangeNetPositions({
+  refreshTrigger = 0,
+}: COTWeeklyChangeNetPositionsProps) {
+  const [points, setPoints] = useState<ChartPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const visiblePoints = points.slice(0, MAX_BAR_COUNT);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await dynamicTableService.getTableByIdentifier(
+          CURRENCY_PAIR_SENTIMENT_ID,
+        );
+        if (cancelled) return;
+        if (res?.data) {
+          const raw = tableToWeeklyPoints(res.data);
+          /** Strongest positive → weakest positive → weakest negative → strongest negative */
+          raw.sort((a, b) => b.value - a.value);
+          setPoints(raw);
+        } else setPoints([]);
+      } catch {
+        if (!cancelled) setPoints([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshTrigger]);
+
+  return (
+    <Section padding={false} className="w-full">
+      <div className="w-full horizontal-scroll bg-darkGrey rounded-[12px]">
+        <div className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/380] overflow-hidden text-foreground">
+          <p
+            className="absolute top-[5.20%] font-['Inter',sans-serif] font-bold leading-6 text-[min(1.8vw,20px)] text-foreground whitespace-nowrap"
+            style={{ left: "calc(50% - min(19.6vw, 220.5px))" }}
+          >
+            Weekly Change Net Non Commercial Positions
+          </p>
+
+          {loading ? (
+            <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm text-secondary">
+              Loading chart data...
+            </p>
+          ) : points.length === 0 ? (
+            <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm text-secondary text-center px-6">
+              No chart data. Use Currency Pair Sentiment: column 1 = weekly %
+              change, second-to-last column = currency label.
+            </p>
+          ) : (
+            <>
+              {Y_AXIS_LABELS.map((label, i) => (
                 <p
-                    className="absolute top-[5.20%] font-['Inter',sans-serif] font-bold leading-6 text-[min(1.8vw,20px)] text-foreground whitespace-nowrap"
-                    style={{ left: "calc(50% - min(19.6vw, 220.5px))" }}
+                  key={`y-${label}`}
+                  className="absolute font-['Inter',sans-serif] font-normal leading-[22px] text-foreground tracking-[-0.18px] whitespace-nowrap"
+                  style={{
+                    left: i < 4 ? "1.41%" : "0.96%",
+                    top: Y_AXIS_TOPS[i],
+                    fontSize: i < 5 ? "min(1.4vw,16px)" : "min(1.2vw,14px)",
+                  }}
                 >
-                    Weekly Change Net Non Commercial Positions
+                  {label}
                 </p>
+              ))}
 
-                {/* Y-axis labels */}
-                {yAxisLabels.map((label, i) => (
-                    <p
-                        key={`y-${i}`}
-                        className="absolute font-['Inter',sans-serif] font-normal leading-[22px] text-foreground tracking-[-0.18px] whitespace-nowrap"
-                        style={{
-                            left: label.left,
-                            top: label.top,
-                            fontSize: label.fontSize,
-                        }}
-                    >
-                        {label.text}
-                    </p>
-                ))}
-
-                {/* Grid lines */}
-                {gridLines.map((line, i) => (
-                    <div
-                        key={`grid-${i}`}
-                        className="absolute left-[4.71%] h-px"
-                        style={{ top: line.top, width: "91.81%" }}
-                    >
-                        <svg
-                            width="100%"
-                            height="1"
-                            fill="none"
-                            preserveAspectRatio="none"
-                            viewBox="0 0 1013.61 1"
-                            className="block"
-                        >
-                            <path
-                                d="M1013.61 0.5H0"
-                                stroke="currentColor"
-                                strokeOpacity={line.opacity}
-                            />
-                        </svg>
-                    </div>
-                ))}
-
-                {/* Green bars */}
-                {greenBars.map((bar, i) => (
-                    <div
-                        key={`gbar-${i}`}
-                        className="absolute w-[1.45%] bg-[#34a853]"
-                        style={{
-                            left: bar.left,
-                            top: bar.top,
-                            height: bar.height,
-                        }}
+              {GRID_LINE_TOPS.map((top, i) => (
+                <div
+                  key={`grid-${i}`}
+                  className="absolute left-[4.71%] h-px"
+                  style={{ top, width: "91.81%" }}
+                >
+                  <svg
+                    width="100%"
+                    height="1"
+                    fill="none"
+                    preserveAspectRatio="none"
+                    viewBox="0 0 1013.61 1"
+                    className="block"
+                  >
+                    <path
+                      d="M1013.61 0.5H0"
+                      stroke="currentColor"
+                      strokeOpacity={i === 3 ? 0.95 : 0.35}
                     />
-                ))}
+                  </svg>
+                </div>
+              ))}
 
-                {/* Red bars */}
-                {redBars.map((bar, i) => (
+              {visiblePoints.map((p, i) => {
+                const total = visiblePoints.length;
+                const clamped = Math.max(
+                  -FIXED_RANGE,
+                  Math.min(FIXED_RANGE, p.value),
+                );
+                const absPct = Math.abs(clamped) / FIXED_RANGE;
+
+                /**
+                 * Slot-based layout:
+                 * Divide the drawable width into `total` equal slots.
+                 * Each bar is centred inside its slot.
+                 *
+                 *  slot width  = (CHART_RIGHT - CHART_LEFT) / total
+                 *  slot centre = CHART_LEFT + (i + 0.5) * slotWidth
+                 *
+                 * The bar's `left` CSS prop is the left edge of the bar,
+                 * so subtract half the bar width.
+                 */
+                const slotWidth = (CHART_RIGHT - CHART_LEFT) / total;
+                const barCentre = CHART_LEFT + (i + 0.5) * slotWidth;
+                const barLeft = barCentre - BAR_WIDTH_PCT / 2;
+
+                const positiveHeight = absPct * POSITIVE_MAX_HEIGHT;
+                const negativeHeight = absPct * NEGATIVE_MAX_HEIGHT;
+                const top =
+                  clamped >= 0 ? BASELINE_TOP - positiveHeight : BASELINE_TOP;
+                const height = clamped >= 0 ? positiveHeight : negativeHeight;
+
+                return (
+                  <div key={`${p.label}-${i}`}>
+                    {/* Bar */}
                     <div
-                        key={`rbar-${i}`}
-                        className="absolute w-[1.45%] bg-red-500"
-                        style={{
-                            left: bar.left,
-                            top: bar.top,
-                            height: bar.height,
-                        }}
+                      className={`absolute ${BAR_WIDTH_PCT <= 1.6 ? "w-[1.45%]" : "w-[1.45%]"}`}
+                      style={{
+                        left: `${barLeft}%`,
+                        top: `${top}%`,
+                        height: `${Math.max(height, 0.3)}%`,
+                        width: `${BAR_WIDTH_PCT}%`,
+                        backgroundColor: clamped >= 0 ? "#2563eb" : GAUGE_SIGNAL_COLORS.sell,
+                      }}
                     />
-                ))}
 
-                {/* % markers */}
-                {percentMarkers.map((m, i) => (
+                    {/* Value label above/below bar */}
                     <span
-                        key={`pct-${i}`}
-                        className="absolute -translate-x-1/2 font-['Poppins',sans-serif] font-medium leading-[1.4] text-[min(1.1vw,12px)] text-foreground text-center"
-                        style={{ left: m.left, top: m.top, width: "1.45%" }}
+                      className="absolute -translate-x-1/2 font-['Poppins',sans-serif] font-medium leading-[1.4] text-[min(1.0vw,11px)] text-foreground text-center whitespace-nowrap"
+                      style={{
+                        left: `${barCentre}%`,
+                        top:
+                          clamped >= 0
+                            ? `${Math.max(top - 4, 10)}%`
+                            : `${Math.min(top + height + 1.4, 71)}%`,
+                      }}
                     >
-                        %
+                      {p.valueLabel}
                     </span>
-                ))}
 
-                {/* X-axis labels (rotated) */}
-                {xLabels.map((label, i) => (
+                    {/* Rotated x-axis label */}
                     <div
-                        key={`xlabel-${i}`}
-                        className="absolute -translate-x-full flex items-center justify-center"
-                        style={{
-                            left: label.left,
-                            top: label.top,
-                            width: label.w,
-                            height: label.h,
-                        }}
+                      className="absolute -translate-x-full flex items-end justify-center pb-0"
+                      style={{
+                        left: `${barCentre + 2.2}%`,
+                        top: "80.00%",
+                        width: "4.8%",
+                        height: "11%",
+                      }}
                     >
-                        <div className="shrink-0" style={{ transform: "rotate(-41.88deg)" }}>
-                            <p className="font-['Inter',sans-serif] font-normal leading-4 text-[min(1.1vw,12px)] text-foreground text-right tracking-[-0.12px] whitespace-nowrap">
-                                {label.text}
-                            </p>
-                        </div>
+                      <div
+                        className="shrink-0"
+                        style={{ transform: "rotate(-41.88deg)" }}
+                      >
+                        <p
+                          className="font-['Inter',sans-serif] font-normal leading-4 text-[min(1.1vw,12px)] text-foreground text-right tracking-[-0.12px] whitespace-nowrap"
+                          title={p.label}
+                        >
+                          {p.label}
+                        </p>
+                      </div>
                     </div>
-                ))}
-            </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
+      </div>
     </Section>
-    );
+  );
 }

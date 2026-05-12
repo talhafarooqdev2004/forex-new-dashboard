@@ -1,10 +1,13 @@
 "use client";
 
-import { Icon } from "@/components/composed";
-import { MonthlyGainsChart, RelativeDrawdownAnalysisChart } from "@/components/composed/Charts";
-import { DrawdownGuage, TradeResultGuage } from "@/components/composed/Guages";
-import { Section } from "@/components/ui/layout";
+import Icon from "@/components/composed/Icon";
+import MonthlyGainsChart from "@/components/composed/Charts/MonthlyGainsChart";
+import RelativeDrawdownAnalysisChart from "@/components/composed/Charts/RelativeDrawdownAnalysisChart";
+import DrawdownGuage from "@/components/composed/Guages/DrawdownGuage";
+import TradeResultGuage from "@/components/composed/Guages/TradeResultGuage";
+import Section from "@/components/ui/layout/Section";
 import Container from "@/components/ui/layout/Container";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 import { cn } from "@/lib/utils";
 
 export default function TradingAnalysisClientPage() {
@@ -56,16 +59,16 @@ export default function TradingAnalysisClientPage() {
                 <AnalyticCard className="px-7 col-span-3 3xl:col-span-2">
                     <div className="flex items-center gap-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="17" viewBox="0 0 15 17" fill="none">
-                            <path d="M7.05272 0C7.93677 0 8.78462 0.35119 9.40974 0.976311C10.0349 1.60143 10.3861 2.44928 10.3861 3.33333H12.0819C12.5137 3.33328 12.9287 3.50082 13.2394 3.80068C13.5502 4.10053 13.7324 4.50929 13.7477 4.94083L14.1044 14.9408C14.1123 15.1645 14.0751 15.3875 13.9951 15.5964C13.915 15.8054 13.7936 15.9961 13.6382 16.1572C13.4828 16.3182 13.2966 16.4464 13.0906 16.5339C12.8847 16.6214 12.6632 16.6666 12.4394 16.6667H1.66605C1.44225 16.6666 1.22076 16.6214 1.01479 16.5339C0.808822 16.4464 0.622591 16.3182 0.467205 16.1572C0.31182 15.9961 0.190464 15.8054 0.110375 15.5964C0.0302864 15.3875 -0.00689425 15.1645 0.00105061 14.9408L0.357717 4.94083C0.373047 4.50929 0.555272 4.10053 0.866008 3.80068C1.17674 3.50082 1.59173 3.33328 2.02355 3.33333H3.71938C3.71938 2.44928 4.07057 1.60143 4.69569 0.976311C5.32082 0.35119 6.16866 0 7.05272 0ZM5.38605 5H3.71938V5.83333C3.71962 6.04573 3.80095 6.25003 3.94676 6.40447C4.09256 6.55892 4.29184 6.65186 4.50388 6.66431C4.71591 6.67676 4.9247 6.60777 5.08758 6.47145C5.25045 6.33512 5.35513 6.14175 5.38022 5.93083L5.38605 5.83333V5ZM10.3861 5H8.71938V5.83333C8.71938 6.05435 8.80718 6.26631 8.96346 6.42259C9.11974 6.57887 9.3317 6.66667 9.55272 6.66667C9.77373 6.66667 9.98569 6.57887 10.142 6.42259C10.2983 6.26631 10.3861 6.05435 10.3861 5.83333V5ZM7.05272 1.66667C6.63224 1.66653 6.22724 1.82534 5.91893 2.11125C5.61061 2.39716 5.42175 2.78904 5.39022 3.20833L5.38605 3.33333H8.71938C8.71938 2.89131 8.54379 2.46738 8.23123 2.15482C7.91867 1.84226 7.49474 1.66667 7.05272 1.66667Z" fill="#05DF72" />
+                            <path d="M7.05272 0C7.93677 0 8.78462 0.35119 9.40974 0.976311C10.0349 1.60143 10.3861 2.44928 10.3861 3.33333H12.0819C12.5137 3.33328 12.9287 3.50082 13.2394 3.80068C13.5502 4.10053 13.7324 4.50929 13.7477 4.94083L14.1044 14.9408C14.1123 15.1645 14.0751 15.3875 13.9951 15.5964C13.915 15.8054 13.7936 15.9961 13.6382 16.1572C13.4828 16.3182 13.2966 16.4464 13.0906 16.5339C12.8847 16.6214 12.6632 16.6666 12.4394 16.6667H1.66605C1.44225 16.6666 1.22076 16.6214 1.01479 16.5339C0.808822 16.4464 0.622591 16.3182 0.467205 16.1572C0.31182 15.9961 0.190464 15.8054 0.110375 15.5964C0.0302864 15.3875 -0.00689425 15.1645 0.00105061 14.9408L0.357717 4.94083C0.373047 4.50929 0.555272 4.10053 0.866008 3.80068C1.17674 3.50082 1.59173 3.33328 2.02355 3.33333H3.71938C3.71938 2.44928 4.07057 1.60143 4.69569 0.976311C5.32082 0.35119 6.16866 0 7.05272 0ZM5.38605 5H3.71938V5.83333C3.71962 6.04573 3.80095 6.25003 3.94676 6.40447C4.09256 6.55892 4.29184 6.65186 4.50388 6.66431C4.71591 6.67676 4.9247 6.60777 5.08758 6.47145C5.25045 6.33512 5.35513 6.14175 5.38022 5.93083L5.38605 5.83333V5ZM10.3861 5H8.71938V5.83333C8.71938 6.05435 8.80718 6.26631 8.96346 6.42259C9.11974 6.57887 9.3317 6.66667 9.55272 6.66667C9.77373 6.66667 9.98569 6.57887 10.142 6.42259C10.2983 6.26631 10.3861 6.05435 10.3861 5.83333V5ZM7.05272 1.66667C6.63224 1.66653 6.22724 1.82534 5.91893 2.11125C5.61061 2.39716 5.42175 2.78904 5.39022 3.20833L5.38605 3.33333H8.71938C8.71938 2.89131 8.54379 2.46738 8.23123 2.15482C7.91867 1.84226 7.49474 1.66667 7.05272 1.66667Z" fill={GAUGE_SIGNAL_COLORS.buy} />
                         </svg>
                         <span className="text-[15px]">Total Profit/Loss</span>
 
                         <svg xmlns="http://www.w3.org/2000/svg" width="8" height="7" viewBox="0 0 8 7" fill="none">
-                            <path d="M3.89648 0L7.7936 6.75H-0.000629902L3.89648 0Z" fill="#05DF72" />
+                            <path d="M3.89648 0L7.7936 6.75H-0.000629902L3.89648 0Z" fill={GAUGE_SIGNAL_COLORS.buy} />
                         </svg>
                     </div>
 
-                    <span className="font-semibold text-lg text-[#05DF72]">$10,000</span>
+                    <span className="font-semibold text-lg" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>$10,000</span>
                 </AnalyticCard>
 
                 <AnalyticCard className="px-[60px] col-span-3 3xl:col-span-2">
@@ -86,7 +89,7 @@ export default function TradingAnalysisClientPage() {
                         </button>
                     </div>
 
-                    <span className="font-semibold text-lg text-[#05DF72]">$10,000</span>
+                    <span className="font-semibold text-lg" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>$10,000</span>
                 </AnalyticCard>
 
                 <AnalyticCard className="px-[40px] col-span-3 3xl:col-span-2">
@@ -111,7 +114,7 @@ export default function TradingAnalysisClientPage() {
 
                     <div className="flex items-center gap-1 justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
-                            <path d="M8.49935 1.41699C4.58935 1.41699 1.41602 4.59033 1.41602 8.50033C1.41602 12.4103 4.58935 15.5837 8.49935 15.5837C12.4093 15.5837 15.5827 12.4103 15.5827 8.50033C15.5827 4.59033 12.4093 1.41699 8.49935 1.41699ZM7.08268 12.042L3.54102 8.50033L4.53977 7.50158L7.08268 10.0374L12.4589 4.66116L13.4577 5.66699L7.08268 12.042Z" fill="#00C950" />
+                            <path d="M8.49935 1.41699C4.58935 1.41699 1.41602 4.59033 1.41602 8.50033C1.41602 12.4103 4.58935 15.5837 8.49935 15.5837C12.4093 15.5837 15.5827 12.4103 15.5827 8.50033C15.5827 4.59033 12.4093 1.41699 8.49935 1.41699ZM7.08268 12.042L3.54102 8.50033L4.53977 7.50158L7.08268 10.0374L12.4589 4.66116L13.4577 5.66699L7.08268 12.042Z" fill={GAUGE_SIGNAL_COLORS.buy} />
                         </svg>
                         <span className="font-semibold text-lg">08</span>
                     </div>
@@ -120,8 +123,8 @@ export default function TradingAnalysisClientPage() {
                 <AnalyticCard className="px-7 col-span-3 3xl:col-span-2">
                     <div className="flex items-center justify-center gap-4">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M7.73437 2.5H14.4531C15.0664 2.5 15.5703 2.875 15.7891 3.41406L18.0195 8.70312C18.0859 8.875 18.1211 9.05469 18.1211 9.25V10.7578C18.1211 11.582 17.457 12.5 16.6445 12.5H11.9883L12.6914 15.6836L12.7148 15.918C12.7148 16.2266 12.5898 16.5078 12.3906 16.7109L11.6016 17.5L6.67969 12.5273C6.41406 12.2578 6.25 11.8828 6.25 11.4688V3.96875C6.25 3.14453 6.92187 2.5 7.73437 2.5Z" fill="#FF0000" />
-                            <path d="M1.875 11.25H4.375V2.5H1.875V11.25Z" fill="#FF0000" />
+                            <path d="M7.73437 2.5H14.4531C15.0664 2.5 15.5703 2.875 15.7891 3.41406L18.0195 8.70312C18.0859 8.875 18.1211 9.05469 18.1211 9.25V10.7578C18.1211 11.582 17.457 12.5 16.6445 12.5H11.9883L12.6914 15.6836L12.7148 15.918C12.7148 16.2266 12.5898 16.5078 12.3906 16.7109L11.6016 17.5L6.67969 12.5273C6.41406 12.2578 6.25 11.8828 6.25 11.4688V3.96875C6.25 3.14453 6.92187 2.5 7.73437 2.5Z" fill={GAUGE_SIGNAL_COLORS.sell} />
+                            <path d="M1.875 11.25H4.375V2.5H1.875V11.25Z" fill={GAUGE_SIGNAL_COLORS.sell} />
                         </svg>
                         <span className="text-[15px]">Losing Trades</span>
                     </div>
@@ -175,7 +178,7 @@ export default function TradingAnalysisClientPage() {
                             <span className="text-[15px]">Max Daily Loss</span>
                         </div>
 
-                        <div className="bg-[#E7000B] rounded-[6px] px-3 h-[30px] flex items-center justify-center"><span className="text-sm">-$500(50%)</span></div>
+                        <div className="rounded-[6px] px-3 h-[30px] flex items-center justify-center" style={{ backgroundColor: GAUGE_SIGNAL_COLORS.sell }}><span className="text-sm">-$500(50%)</span></div>
                     </div>
 
                     <span className="font-semibold text-lg">Buffer Remaining: $380</span>
@@ -190,7 +193,7 @@ export default function TradingAnalysisClientPage() {
                             <span className="text-[15px]">Max Allowed Loss</span>
                         </div>
 
-                        <div className="bg-[#E7000B] rounded-[6px] px-3 h-[30px] flex items-center justify-center"><span className="text-sm">-$500(50%)</span></div>
+                        <div className="rounded-[6px] px-3 h-[30px] flex items-center justify-center" style={{ backgroundColor: GAUGE_SIGNAL_COLORS.sell }}><span className="text-sm">-$500(50%)</span></div>
                     </div>
 
                     <span className="font-semibold text-lg">Buffer Remaining: $380</span>
@@ -207,9 +210,9 @@ export default function TradingAnalysisClientPage() {
 
                         <div className="flex items-center gap-1.5">
                             <svg className="mt-0.5" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 15 15" fill="none">
-                                <path d="M7.08333 0C3.17333 0 0 3.17333 0 7.08333C0 10.9933 3.17333 14.1667 7.08333 14.1667C10.9933 14.1667 14.1667 10.9933 14.1667 7.08333C14.1667 3.17333 10.9933 0 7.08333 0ZM5.66667 10.625L2.125 7.08333L3.12375 6.08458L5.66667 8.62042L11.0429 3.24417L12.0417 4.25L5.66667 10.625Z" fill="#00C950" />
+                                <path d="M7.08333 0C3.17333 0 0 3.17333 0 7.08333C0 10.9933 3.17333 14.1667 7.08333 14.1667C10.9933 14.1667 14.1667 10.9933 14.1667 7.08333C14.1667 3.17333 10.9933 0 7.08333 0ZM5.66667 10.625L2.125 7.08333L3.12375 6.08458L5.66667 8.62042L11.0429 3.24417L12.0417 4.25L5.66667 10.625Z" fill={GAUGE_SIGNAL_COLORS.buy} />
                             </svg>
-                            <span className="text-greenDark font-semibold text-lg">SAFE</span>
+                            <span className="font-semibold text-lg" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>SAFE</span>
                         </div>
                     </div>
                 </AnalyticCard>
@@ -243,7 +246,7 @@ export default function TradingAnalysisClientPage() {
             </div>
         </Container >
     );
-};
+}
 
 type AnalyticCardsProps = React.PropsWithChildren<{
     className?: string;
@@ -255,7 +258,7 @@ function AnalyticCards({ className, children }: AnalyticCardsProps) {
             {children}
         </div>
     );
-};
+}
 
 function AnalyticCard({ className, children }: React.PropsWithChildren<{ className?: string }>) {
     return (
@@ -263,4 +266,4 @@ function AnalyticCard({ className, children }: React.PropsWithChildren<{ classNa
             {children}
         </div>
     );
-};
+}

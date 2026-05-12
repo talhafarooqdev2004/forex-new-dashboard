@@ -1,11 +1,12 @@
-import Container from "@/components/ui/layout/Container";
+import { pageSeo } from "@/lib/seo";
+import { redirect } from "next/navigation";
 
-export default function DashboardPage() {
-  return (
-    <>
-      <Container className="gap-6">
-        Dashboard
-      </Container>
-    </>
-  );
-};
+export const metadata = pageSeo(
+    "Home",
+    "Forex Fundamentals Edge — technical and fundamental dashboards, tools, and education for currency traders.",
+    "/",
+);
+
+export default function HomePage() {
+    redirect("/technical-dashboard");
+}

@@ -1,12 +1,18 @@
 "use client";
 
-import { headerLabelsMap } from "@/constants/sidebarItems";
+import { sidebarItems } from "@/constants/sidebarItems";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { Switch } from "@/components/ui/switch";
 import { ChevronRight, Moon, Sun } from "lucide-react";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+/** First matching label wins when multiple items share the same path (same rules as `sidebarItems`). */
+const headerLabelsMap = sidebarItems.reduce<Record<string, string>>((acc, item) => {
+    if (!(item.href in acc)) acc[item.href] = item.label;
+    return acc;
+}, {});
 
 export default function Header() {
     const pathname = usePathname();
@@ -41,45 +47,74 @@ export default function Header() {
             </div>
         </header>
     );
-};
+}
 
 function QuickProfile() {
-    const profile = {
-        name: "Mustiq",
-        role: "Admin",
-        image: "/images/temporary/profile.png",
-    };
+    const { user, logout, ready } = useAuth();
+    const router = useRouter();
+    const [open, setOpen] = useState(false);
+
+    if (!ready) {
+        return <span className="text-sm text-secondary">…</span>;
+    }
+
+    const displayName =
+        user && [user.firstName, user.lastName].filter(Boolean).join(" ").trim()
+            ? [user.firstName, user.lastName].filter(Boolean).join(" ")
+            : user?.email ?? "Signed in";
+    const initial = profileInitial(user);
 
     return (
-        <button
-            className="flex items-center gap-3"
-            onClick={() => {
-                console.log("Profile clicked");
-            }}
-        >
-            <ProfileImage name={profile.image} />
+        <div className="relative flex items-center gap-2">
+            <button
+                type="button"
+                className="flex items-center gap-3"
+                onClick={() => setOpen((o) => !o)}
+                aria-label={`Account menu for ${displayName}`}
+            >
+                <ProfileAvatarInitial letter={initial} />
 
-            <div className="flex items-center gap-2">
-                <div className="flex flex-col items-start">
-                    <span className="font-semibold text-foreground">{profile.name}</span>
-                    <span className="text-[12px] text-secondary">{profile.role}</span>
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold text-foreground">{displayName}</span>
+
+                    <ChevronRight className="w-4 h-4 stroke-[2.5px] text-secondary" />
                 </div>
-
-                <ChevronRight className="w-4 h-4 stroke-[2.5px] text-secondary" />
-            </div>
-        </button>
-    );
-};
-
-function ProfileImage({ name }: { name: string }) {
-    return (
-        <div className="relative w-12 h-12">
-            <Image
-                src={name}
-                alt="Profile"
-                fill
-                className="rounded-xl object-cover"
-            />
+            </button>
+            {open ? (
+                <div className="absolute right-0 top-full z-50 mt-2 min-w-[10rem] rounded-lg border border-stroke bg-darkGrey py-1 shadow-lg">
+                    <button
+                        type="button"
+                        className="block w-full px-4 py-2 text-left text-sm text-foreground hover:bg-charcoal"
+                        onClick={() => {
+                            setOpen(false);
+                            logout();
+                            router.push("/login");
+                        }}
+                    >
+                        Sign out
+                    </button>
+                </div>
+            ) : null}
         </div>
     );
-};
+}
+
+function profileInitial(user: { firstName?: string; email?: string } | null): string {
+    if (!user) return "?";
+    const first = user.firstName?.trim();
+    if (first) return first.charAt(0).toUpperCase();
+    const email = user.email?.trim();
+    if (email) return email.charAt(0).toUpperCase();
+    return "?";
+}
+
+function ProfileAvatarInitial({ letter }: { letter: string }) {
+    return (
+        <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgb(var(--electric-blue))] text-base font-semibold text-white"
+            aria-hidden
+        >
+            {letter}
+        </span>
+    );
+}

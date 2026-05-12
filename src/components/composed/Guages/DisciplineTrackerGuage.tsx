@@ -1,13 +1,10 @@
 "use client";
 
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
+
 export default function DisciplineTrackerGuage() {
   const percentage = 78;
-  const radius = 80;
   const strokeWidth = 15;
-  const normalizedRadius = radius - strokeWidth / 2;
-  const circumference = normalizedRadius * 2 * Math.PI;
-  // We only want a semi-circle (half circumference)
-  const strokeDashoffset = circumference - (percentage / 100) * (circumference / 2);
 
   return (
     <div className="rounded-[12px] w-full border-b-[0.8px] border-[rgba(255,255,255,0.05)] overflow-hidden flex flex-col h-full">
@@ -27,7 +24,7 @@ export default function DisciplineTrackerGuage() {
             <path
               d="M 20 100 A 80 80 0 0 1 180 100"
               fill="none"
-              stroke="#00D492"
+              stroke={GAUGE_SIGNAL_COLORS.buy}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={`${(percentage / 100) * (Math.PI * 80)} ${Math.PI * 80}`}
@@ -36,13 +33,13 @@ export default function DisciplineTrackerGuage() {
 
           {/* Center Text */}
           <div className="absolute inset-0 flex flex-col items-center justify-end pb-2">
-            <span className="text-[#00D492] text-[36px] font-bold leading-none">
+            <span className="text-[36px] font-bold leading-none" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>
               {percentage}%
             </span>
           </div>
         </div>
 
-        <div className="text-[#00D492] text-[24px] font-medium mt-2">
+        <div className="text-[24px] font-medium mt-2" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>
           9 Days
         </div>
       </div>

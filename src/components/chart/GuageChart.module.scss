@@ -1,12 +1,26 @@
-.guageChartContainer {
-    position: relative;
+/** Outer box: full width only when the chart uses fluid width (e.g. Risk Mode). */
+.guageChartOuter {
     overflow: visible;
-    display: flex;
-    justify-content: center;
+    max-width: 100%;
+}
 
-    .guageChartImg {
-        height: 100%;
-        width: auto;
-        display: block;
-    }
+.guageChartOuterFluid {
+    width: 100%;
+}
+
+/**
+ * Sizing shell for the SVG + absolutely positioned needle.
+ * Needle `left`/`top` percentages must use this box — not a wider parent — or the needle and arc misalign.
+ */
+.guageChartInner {
+    position: relative;
+    margin-inline: auto;
+    max-width: 100%;
+}
+
+.guageChartImg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
 }

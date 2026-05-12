@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
 
 type Theme = "light" | "dark";
 
@@ -21,7 +21,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
+  // Sync from DOM before paint so children that embed third-party iframes (TradingView, etc.)
+  // do not run an extra mount→remount cycle (light → dark) on first load.
+  useLayoutEffect(() => {
     setThemeState(getInitialTheme());
     setMounted(true);
   }, []);

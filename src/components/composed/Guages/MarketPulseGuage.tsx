@@ -18,4 +18,4 @@ export default function MarketPulseGuage() {
             </div>
         </div>
     );
-};
+}

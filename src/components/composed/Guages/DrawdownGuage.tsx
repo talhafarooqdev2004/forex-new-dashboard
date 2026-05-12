@@ -1,4 +1,5 @@
 import { svgPaths } from "../svgPaths";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 
 export interface DrawdownGuageProps {
     type?: "daily" | "total";
@@ -8,7 +9,7 @@ export default function DrawdownGuage({ type = "daily" }: DrawdownGuageProps) {
     if (type === "daily") {
         return (
             <div className="relative rounded-[12px] h-[199px] w-[214px]">
-                <p className="absolute font-['Arimo:Bold',sans-serif] font-bold leading-[22.427px] left-[calc(50%-13.25px)] text-[#00c950] text-[18.689px] top-[96.66px]">100$</p>
+                <p className="absolute font-['Arimo:Bold',sans-serif] font-bold leading-[22.427px] left-[calc(50%-13.25px)] text-[18.689px] top-[96.66px]" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>100$</p>
 
                 <div className="absolute left-[52.1px] size-[116.495px] top-[67.38px]">
                     <div className="absolute bottom-1/2 left-0 right-0 top-0">
@@ -17,7 +18,7 @@ export default function DrawdownGuage({ type = "daily" }: DrawdownGuageProps) {
                                 <mask fill="white" id="path-1-inside-1_daily">
                                     <path d={svgPaths.p29773000} />
                                 </mask>
-                                <path d={svgPaths.p29773000} mask="url(#path-1-inside-1_daily)" stroke="#05871A" strokeWidth="32.3943" />
+                                <path d={svgPaths.p29773000} mask="url(#path-1-inside-1_daily)" stroke={GAUGE_SIGNAL_COLORS.strongBuy} strokeWidth="32.3943" />
                             </g>
                         </svg>
                     </div>
@@ -32,7 +33,7 @@ export default function DrawdownGuage({ type = "daily" }: DrawdownGuageProps) {
                                         <mask fill="white" id="path-2-inside-2_daily">
                                             <path d={svgPaths.p23c15900} />
                                         </mask>
-                                        <path d={svgPaths.p23c15900} mask="url(#path-2-inside-2_daily)" stroke="#FF0000" strokeWidth="32.3943" />
+                                        <path d={svgPaths.p23c15900} mask="url(#path-2-inside-2_daily)" stroke={GAUGE_SIGNAL_COLORS.sell} strokeWidth="32.3943" />
                                     </g>
                                 </svg>
                             </div>
@@ -49,7 +50,7 @@ export default function DrawdownGuage({ type = "daily" }: DrawdownGuageProps) {
 
     return (
         <div className="relative rounded-[12px] h-[199px] w-[214px]">
-            <p className="absolute font-['Arimo:Bold',sans-serif] font-bold leading-[22.427px] left-[calc(50%-13.25px)] text-[#00c950] text-[18.689px] top-[96.66px]">100$</p>
+            <p className="absolute font-['Arimo:Bold',sans-serif] font-bold leading-[22.427px] left-[calc(50%-13.25px)] text-[18.689px] top-[96.66px]" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>100$</p>
 
             <div className="absolute left-[52.1px] size-[116.495px] top-[67.38px]">
                 <div className="absolute bottom-1/2 left-0 right-0 top-0">
@@ -58,7 +59,7 @@ export default function DrawdownGuage({ type = "daily" }: DrawdownGuageProps) {
                             <mask fill="white" id="path-1-inside-1_total">
                                 <path d={svgPaths.p17db5280} />
                             </mask>
-                            <path d={svgPaths.p17db5280} mask="url(#path-1-inside-1_total)" stroke="#05871A" strokeWidth="32.3943" />
+                            <path d={svgPaths.p17db5280} mask="url(#path-1-inside-1_total)" stroke={GAUGE_SIGNAL_COLORS.strongBuy} strokeWidth="32.3943" />
                         </g>
                     </svg>
                 </div>
@@ -73,7 +74,7 @@ export default function DrawdownGuage({ type = "daily" }: DrawdownGuageProps) {
                                     <mask fill="white" id="path-2-inside-2_total">
                                         <path d={svgPaths.p1490e80} />
                                     </mask>
-                                    <path d={svgPaths.p1490e80} mask="url(#path-2-inside-2_total)" stroke="#FF0000" strokeWidth="32.3943" />
+                                    <path d={svgPaths.p1490e80} mask="url(#path-2-inside-2_total)" stroke={GAUGE_SIGNAL_COLORS.sell} strokeWidth="32.3943" />
                                 </g>
                             </svg>
                         </div>

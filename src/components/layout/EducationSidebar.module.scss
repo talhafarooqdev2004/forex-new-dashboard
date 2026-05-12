@@ -1,5 +1,5 @@
 .educationSidebarItem {
-    @apply flex items-center justify-between cursor-pointer transition-all duration-300 px-4 py-[18px] rounded-xl;
+    @apply flex w-full items-center justify-between cursor-pointer transition-all duration-300 px-4 py-[18px] rounded-xl border-0 bg-transparent text-left;
 
     &:hover {
         @apply bg-[#121417];
@@ -17,6 +17,11 @@
 
     &.active {
         @apply bg-[#121417] text-[#F9FBFF];
+
+        /* Span uses explicit --education-sidebar-text; override for dark active chip (light mode). */
+        .educationSidebarItemText {
+            @apply text-[#F9FBFF] font-semibold;
+        }
 
         svg {
             path {

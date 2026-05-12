@@ -1,7 +1,9 @@
 "use client";
 
-import DriveIndexChart from "./DriveIndexChart";
+import DriveIndexChart, { type DriveIndexBar } from "./DriveIndexChart";
 
-export default function DirectionDriveIndex() {
-    return <DriveIndexChart title="Direction Drive Index" />;
+export default function DirectionDriveIndex({ bars }: { bars?: DriveIndexBar[] | null }) {
+    return (
+        <DriveIndexChart title="Direction Drive Index" bars={bars} pairLabelTone="direction" scaleMax={75} />
+    );
 }

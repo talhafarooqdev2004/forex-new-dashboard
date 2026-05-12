@@ -1,6 +1,8 @@
-import { cn } from "@/lib/utils";
+"use client";
 
-export default function PairTicker({
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
+
+function PairTicker({
     pair,
     price,
     change
@@ -16,12 +18,12 @@ export default function PairTicker({
             <span className="text-secondary">{pair}</span>
             <span className="text-foreground">{price}</span>
             <span
-                className={cn(
-                    isPositive ? "text-green" : "text-sell",
-                )}
+                style={{ color: isPositive ? GAUGE_SIGNAL_COLORS.buy : GAUGE_SIGNAL_COLORS.sell }}
             >
                 {isPositive ? "+" : ""}{change}%
             </span>
         </div>
     );
-};
+}
+
+export default PairTicker;

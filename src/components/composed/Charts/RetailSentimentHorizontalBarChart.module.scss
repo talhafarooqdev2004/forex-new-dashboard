@@ -1,0 +1,422 @@
+/* Long / short palette — shared across Retail Sentiment and COT horizontal charts */
+$long-blue: #2563eb;
+$short-red: #FF0000; // Gauge Sell
+$long-blue-soft: #3b82f6;
+$short-red-soft: #FF8C8C; // Gauge Weak Sell
+
+/* Equal 20px gap between label | bar | net (aligned for all rows). */
+$chart-gap: 20px;
+
+.container {
+  background-color: rgb(var(--dark-grey));
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  padding: 24px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+  color: #ffffff;
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 14px;
+
+  .legendItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .legendLong,
+  .legendShort {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+  }
+
+  .legendLong {
+    background-color: $long-blue;
+  }
+
+  .legendShort {
+    background-color: $short-red;
+  }
+}
+
+.chartScrollRegion {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chartGrid {
+  width: max-content;
+  min-width: 100%;
+  margin: 0 auto;
+}
+
+.columnHeader,
+.row {
+  display: grid;
+  grid-template-columns: var(--label-col, 160px) minmax(0, 1fr) minmax(3.75rem, max-content);
+  /* 20px from aligned label edge → bar, and bar → Net Change (see `.label` right alignment). */
+  column-gap: $chart-gap;
+  align-items: center;
+}
+
+.columnHeader {
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.headerCellLabel,
+.headerCellBar {
+  min-height: 0;
+}
+
+.headerCellNet {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.headerNetText {
+  white-space: nowrap;
+}
+
+.row {
+  min-height: 46.5px;
+  margin-bottom: 2px;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.labelText {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.labelIcon {
+  font-size: 17px;
+  line-height: 1;
+  flex-shrink: 0;
+  font-style: normal;
+  font-weight: normal;
+}
+
+.labelFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #e5e7eb;
+  background: rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.barTrack {
+  min-width: 0;
+}
+
+/* Slightly rounded bar (not full pill) */
+.barContainer {
+  height: 28px;
+  display: flex;
+  flex-direction: row;
+  border-radius: 7px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.long,
+.short {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  box-sizing: border-box;
+
+  span {
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Outer corners + inner “pill” where long meets short (modifiers from TSX). */
+.long {
+  background-color: $long-blue;
+  justify-content: flex-end;
+  padding-right: 8px;
+}
+
+.longMeetShort {
+  border-radius: 7px 6px 6px 7px;
+}
+
+.longTerminal {
+  border-radius: 7px;
+}
+
+.short {
+  background-color: $short-red;
+  justify-content: flex-end;
+  padding-right: 8px;
+  padding-left: 0;
+}
+
+.shortMeetLong {
+  border-radius: 6px 7px 7px 6px;
+}
+
+.shortTerminal {
+  border-radius: 7px;
+}
+
+.netCellPos,
+.netCellNeg,
+.netCellNeutral {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.netCellPos {
+  color: $long-blue;
+}
+
+.netCellNeg {
+  color: #FF0000; // Gauge Sell
+}
+
+.netCellNeutral {
+  color: rgb(var(--secondary));
+}
+
+.xAxis {
+  max-width: 100%;
+  margin: 14px auto 0;
+  display: grid;
+  width: max-content;
+  min-width: 100%;
+  grid-template-columns: var(--label-col, 160px) minmax(0, 1fr) minmax(3.75rem, max-content);
+  column-gap: $chart-gap;
+}
+
+.xAxisInner {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #d1d5db;
+  padding-top: 2px;
+}
+
+.footerLegend {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 12px;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  justify-items: center;
+  text-align: center;
+}
+
+.footerLegendCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 280px;
+}
+
+.footerTitleRow {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.footerTitleLong {
+  color: $long-blue-soft;
+}
+
+.footerTitleBalanced {
+  color: #e5e7eb;
+}
+
+.footerTitleShort {
+  color: $short-red-soft;
+}
+
+.footerLegendSub {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #9ca3af;
+  text-align: center;
+  max-width: 22rem;
+}
+
+.footerEqBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 700;
+  color: #d1d5db;
+  flex-shrink: 0;
+}
+
+.footerBiasArrow {
+  flex-shrink: 0;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 14px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .label {
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .labelIcon {
+    font-size: 14px;
+  }
+
+  .labelFallback {
+    width: 22px;
+    height: 22px;
+    font-size: 9px;
+  }
+
+  .netCellPos,
+  .netCellNeg,
+  .netCellNeutral {
+    font-size: 11px;
+  }
+
+  .xAxisInner {
+    font-size: 10px;
+  }
+
+  .footerLegend {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .footerLegendCol {
+    max-width: 100%;
+  }
+}
+
+/* Light theme: card uses white (--dark-grey); avoid white-on-white copy. */
+:global(html:not(.dark)) .container {
+  color: rgb(var(--foreground));
+}
+
+:global(html:not(.dark)) .title {
+  color: rgb(var(--foreground));
+}
+
+:global(html:not(.dark)) .columnHeader {
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+:global(html:not(.dark)) .label {
+  color: rgb(var(--foreground));
+}
+
+:global(html:not(.dark)) .labelFallback {
+  color: rgb(var(--foreground));
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+:global(html:not(.dark)) .barContainer {
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+:global(html:not(.dark)) .xAxisInner {
+  color: rgb(var(--secondary));
+}
+
+:global(html:not(.dark)) .footerLegend {
+  border-top-color: rgba(0, 0, 0, 0.1);
+}
+
+:global(html:not(.dark)) .footerTitleBalanced {
+  color: rgb(var(--foreground));
+}
+
+:global(html:not(.dark)) .footerLegendSub {
+  color: rgb(var(--secondary));
+}
+
+:global(html:not(.dark)) .footerEqBadge {
+  color: rgb(var(--foreground));
+  border-color: rgba(0, 0, 0, 0.18);
+  background: rgba(0, 0, 0, 0.04);
+}

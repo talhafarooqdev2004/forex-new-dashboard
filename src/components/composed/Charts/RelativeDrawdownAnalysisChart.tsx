@@ -1,4 +1,5 @@
 import { svgPaths } from "../svgPaths";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 
 export default function RelativeDrawdownAnalysisChart() {
     return (
@@ -48,7 +49,7 @@ export default function RelativeDrawdownAnalysisChart() {
                     <div className="h-[44.654px] relative w-[768.5px]">
                         <div className="absolute inset-[-4.48%_0]">
                             <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 768.832 48.6535">
-                                <path d={svgPaths.p349b39e0} stroke="#FA003F" strokeWidth="4" />
+                                <path d={svgPaths.p349b39e0} stroke={GAUGE_SIGNAL_COLORS.sell} strokeWidth="4" />
                             </svg>
                         </div>
                     </div>
@@ -62,12 +63,12 @@ export default function RelativeDrawdownAnalysisChart() {
                         <path d={svgPaths.p1910a200} fill="url(#paint0_linear_1_1198)" opacity="0.2" stroke="url(#paint1_linear_1_1198)" />
                         <defs>
                             <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_1198" x1="143.5" x2="143.5" y1="1" y2="50">
-                                <stop stopColor="#FF0000" />
-                                <stop offset="1" stopColor="#FF0000" stopOpacity="0" />
+                                <stop stopColor={GAUGE_SIGNAL_COLORS.sell} />
+                                <stop offset="1" stopColor={GAUGE_SIGNAL_COLORS.sell} stopOpacity="0" />
                             </linearGradient>
                             <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_1198" x1="384.5" x2="384.5" y1="9" y2="1">
                                 <stop stopOpacity="0" />
-                                <stop offset="1" stopColor="#FF0000" />
+                                <stop offset="1" stopColor={GAUGE_SIGNAL_COLORS.sell} />
                             </linearGradient>
                         </defs>
                     </svg>
@@ -77,62 +78,62 @@ export default function RelativeDrawdownAnalysisChart() {
             {/* Data points */}
             <div className="absolute left-[56px] size-[8px] top-[197px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[101px] size-[8px] top-[195px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[139px] size-[8px] top-[193px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[172px] size-[8px] top-[192px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[212px] size-[8px] top-[190px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[252px] size-[8px] top-[188.29px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[289px] size-[8px] top-[187px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[346px] size-[8px] top-[183.19px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[394px] size-[8px] top-[180.19px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[454px] size-[8px] top-[174.1px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[518px] size-[8px] top-[166px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
             <div className="absolute left-[579px] size-[8px] top-[154.19px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 8 8">
-                    <circle cx="4" cy="4" fill="#00FF7F" r="4" />
+                    <circle cx="4" cy="4" fill={GAUGE_SIGNAL_COLORS.buy} r="4" />
                 </svg>
             </div>
 

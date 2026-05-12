@@ -70,7 +70,7 @@ export default function ActiveTradesTable() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="horizontal-scroll">
         <table className="w-full min-w-[900px]">
           <thead>
             <tr className="bg-stroke/10">

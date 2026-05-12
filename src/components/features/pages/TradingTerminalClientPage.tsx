@@ -15,7 +15,7 @@ import {
     SelectItem,
     FormControl
 } from "@/components/ui";
-import { Section } from "@/components/ui/layout";
+import Section from "@/components/ui/layout/Section";
 import Container from "@/components/ui/layout/Container";
 import { PipsGrowthChart } from "@/components/composed/Charts";
 import { ActiveTradesTable, TradeHistoryTable } from "@/components/composed/tables";
@@ -140,7 +140,7 @@ export default function TradingTerminalClientPage() {
             </Section>
         </Container>
     );
-};
+}
 
 function TradeAlertForm() {
     const { form, control, isSubmitting } = useTradeAlertForm();
@@ -380,4 +380,4 @@ function TradeAlertForm() {
             </div >
         </div>
     );
-};
+}

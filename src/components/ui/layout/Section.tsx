@@ -5,8 +5,8 @@ export default function Section({ padding = true, hasFlex = true, className, chi
     const flexClass = hasFlex ? "flex-1" : "";
 
     return (
-        <section className={cn(baseClass, flexClass, "p-6", className)}>
+        <section className={cn(baseClass, flexClass, padding ? "p-6" : "p-0", className)}>
             {children}
         </section>
     );
-};
+}

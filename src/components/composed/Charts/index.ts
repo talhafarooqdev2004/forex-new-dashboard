@@ -1,7 +1,6 @@
-export { default as AdvanceChart } from "./AdvanceChart";
 export { default as RelativeDrawdownAnalysisChart } from "./RelativeDrawdownAnalysisChart";
 export { default as MonthlyGainsChart } from "./MonthlyGainsChart";
-export { default as RetailSentimentChart } from "./RetailSentimentChart";
+export { default as RetailSentimentHorizontalBarChart } from "./RetailSentimentHorizontalBarChart";
 export { default as COTNonComLongVsShort } from "./COTNonComLongVsShort";
 export { default as COTWeeklyChangeNetPositions } from "./COTWeeklyChangeNetPositions";
 export { default as TrendAlignmentScoreChart } from "./TrendAlignmentScoreChart";

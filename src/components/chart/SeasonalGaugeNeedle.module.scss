@@ -1,0 +1,15 @@
+/** Currency Seasonal Trends gauges only — see `layout="currencySeasonal"` on SeasonalGaugeNeedle */
+.needleWrapper {
+    position: absolute;
+    left: 24%;
+    top: 56%;
+    pointer-events: none;
+    z-index: 2;
+    overflow: visible;
+}
+
+.guageChartIndicator {
+    width: 100%;
+    height: 100%;
+    display: block;
+}

@@ -1,4 +1,5 @@
 import svgPaths from "@/lib/svg-paths-admin-charts";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 
 // This Month Subscriber - Responsive version
 export default function ThisMonthSubscriberGuage() {
@@ -11,7 +12,7 @@ export default function ThisMonthSubscriberGuage() {
                     <p className="font-['Inter',sans-serif] font-normal text-[16px] leading-[24px]">
                         122 Paid
                     </p>
-                    <p className="font-['Inter',sans-serif] font-normal text-[16px] leading-[24px] text-[#00d492]">
+                    <p className="font-['Inter',sans-serif] font-normal text-[16px] leading-[24px]" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>
                         20%
                     </p>
                 </div>
@@ -38,7 +39,7 @@ export default function ThisMonthSubscriberGuage() {
                     <div className="absolute" style={{ inset: "3.13% 3.13% 21.56% 3.13%" }}>
                         <div className="absolute" style={{ inset: "-0.69% -0.56% -0.97% -0.56%" }}>
                             <svg className="block w-full h-full" fill="none" preserveAspectRatio="none" viewBox="0 0 155.458 125.565">
-                                <path d={svgPaths.p1dc8dc00} fill="#4ADE80" stroke="white" strokeWidth="1.70833" />
+                                <path d={svgPaths.p1dc8dc00} fill={GAUGE_SIGNAL_COLORS.buy} stroke="white" strokeWidth="1.70833" />
                             </svg>
                         </div>
                     </div>
@@ -47,7 +48,7 @@ export default function ThisMonthSubscriberGuage() {
                     <div className="absolute" style={{ inset: "71.05% 32.94% 3.12% 15.36%" }}>
                         <div className="absolute" style={{ inset: "-2.85% -1.3% -2.02% -1.42%" }}>
                             <svg className="block w-full h-full" fill="none" preserveAspectRatio="none" viewBox="0 0 87.1146 44.4109">
-                                <path d={svgPaths.p30cbabc0} fill="#FF0000" stroke="white" strokeWidth="1.70833" />
+                                <path d={svgPaths.p30cbabc0} fill={GAUGE_SIGNAL_COLORS.sell} stroke="white" strokeWidth="1.70833" />
                             </svg>
                         </div>
                     </div>
@@ -56,7 +57,7 @@ export default function ThisMonthSubscriberGuage() {
                     <div className="absolute" style={{ inset: "52.72% 3.3% 8% 63.87%" }}>
                         <div className="absolute" style={{ inset: "-1.44% -1.72% -1.78% -2.13%" }}>
                             <svg className="block w-full h-full" fill="none" preserveAspectRatio="none" viewBox="0 0 55.9049 66.4908">
-                                <path d={svgPaths.p25e25d00} fill="#FF0000" stroke="white" strokeWidth="1.70833" />
+                                <path d={svgPaths.p25e25d00} fill={GAUGE_SIGNAL_COLORS.sell} stroke="white" strokeWidth="1.70833" />
                             </svg>
                         </div>
                     </div>

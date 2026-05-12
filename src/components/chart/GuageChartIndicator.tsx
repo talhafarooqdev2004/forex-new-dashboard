@@ -1,3 +1,5 @@
+"use client";
+
 import styles from "./GuageChartIndicator.module.scss";
 
 type CustomIndicatorStyle = {

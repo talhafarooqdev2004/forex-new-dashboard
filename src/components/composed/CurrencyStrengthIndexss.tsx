@@ -1,6 +1,8 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 
-export default function CurrencyStrengthIndexs({ currency, value }: { currency: string, value: number }) {
+function CurrencyStrengthIndexs({ currency, value }: { currency: string, value: number }) {
     const isPositive = value > 0;
     const width = `${Math.abs(value) * 10}%`;
 
@@ -17,4 +19,6 @@ export default function CurrencyStrengthIndexs({ currency, value }: { currency: 
             </div>
         </div>
     );
-};
+}
+
+export default CurrencyStrengthIndexs;

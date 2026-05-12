@@ -3,3 +3,4 @@ export { default as TradingTerminalClientPage } from "./TradingTerminalClientPag
 export { default as TradingAnalysisClientPage } from "./TradingAnalysisClientPage";
 export { default as UserDashboardClientPage } from "./UserDashboardClientPage";
 export { default as EducationClientPage } from "./EducationClientPage";
+export { default as CurrencyFundamentalsClientPage } from "./CurrencyFundamentalsClientPage";

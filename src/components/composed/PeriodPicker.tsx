@@ -1,8 +1,27 @@
+"use client";
+
+import type { PropsWithChildren } from "react";
 import { months } from "@/constants/PeriodPickerData";
-import { cn } from "@/lib/utils";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 import { MonthProps } from "@/types";
 
-export default function PeriodPicker() {
+function Months({ children }: PropsWithChildren) {
+    return (
+        <div className="flex flex-wrap items-center gap-3">
+            {children}
+        </div>
+    );
+}
+
+function Month({ children, isActive }: PropsWithChildren<{ isActive: boolean }>) {
+    return (
+        <div className="px-3" style={isActive ? { color: GAUGE_SIGNAL_COLORS.buy } : undefined}>
+            {children}
+        </div>
+    );
+}
+
+function PeriodPicker() {
     const currentYear = new Date().getFullYear();
     const currentMonthIndex = new Date().getMonth();
 
@@ -21,33 +40,14 @@ export default function PeriodPicker() {
                 {months.map((month: MonthProps) => {
                     const isCurrentMonth = month.monthIndex === currentMonthIndex;
                     return (
-                        (
-                            <Month
-                                key={month.monthIndex}
-                                isActive={isCurrentMonth}
-                            >
-                                {isCurrentMonth ? month.name : month.shortName}
-                            </Month>
-                        )
-                    )
+                        <Month key={month.monthIndex} isActive={isCurrentMonth}>
+                            {isCurrentMonth ? month.name : month.shortName}
+                        </Month>
+                    );
                 })}
             </Months>
         </div>
     );
-};
+}
 
-function Months({ children }: React.PropsWithChildren) {
-    return (
-        <div className="flex flex-wrap items-center gap-3">
-            {children}
-        </div>
-    );
-};
-
-function Month({ children, isActive }: React.PropsWithChildren<{ isActive: boolean }>) {
-    return (
-        <div className={cn("px-3", isActive ? "text-[#05DF72]" : "")}>
-            {children}
-        </div>
-    );
-};
+export default PeriodPicker;

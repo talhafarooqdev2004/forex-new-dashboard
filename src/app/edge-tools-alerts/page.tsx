@@ -1,5 +1,12 @@
-import { EdgeToolsAlertsClientPage } from "@/components/features/pages";
+import { pageSeo } from "@/lib/seo";
+import { redirect } from "next/navigation";
 
-export default async function EdgeToolsAlertsPage() {
-    return <EdgeToolsAlertsClientPage />
-};
+export const metadata = pageSeo(
+    "Edge Tools Alerts",
+    "Edge tools alerts — redirecting to the main Edge Tools workspace.",
+    "/edge-tools-alerts",
+);
+
+export default function EdgeToolsAlertsRedirectPage() {
+    redirect("/edge-tools");
+}

@@ -1,10 +1,13 @@
 import { Button } from "@/components/ui";
-import { LabelSection, Section } from "@/components/ui/layout";
+import LabelSection from "@/components/ui/layout/LabelSection";
+import Section from "@/components/ui/layout/Section";
 import Container from "@/components/ui/layout/Container";
-import { DisciplineTrackerGuage } from "@/components/composed/Guages";
-import { UserTradeHistoryTable } from "@/components/composed/tables";
-import { PipsAndEquityGrowth } from "@/components/composed/Charts";
-import { PrimaryCard, PrimaryCards } from "@/components/composed";
+import DisciplineTrackerGuage from "@/components/composed/Guages/DisciplineTrackerGuage";
+import PipsAndEquityGrowth from "@/components/composed/Charts/PipsAndEquityGrowth";
+import PrimaryCard from "@/components/composed/PrimaryCard";
+import PrimaryCards from "@/components/composed/PrimaryCards";
+import UserTradeHistoryTable from "@/components/composed/tables/UserTradeHistoryTable";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 
 export default function UserDashboardClientPage() {
     return (
@@ -20,7 +23,7 @@ export default function UserDashboardClientPage() {
 
                     <div className="flex items-center gap-4 border-r border-solid border-[#9CA3AF] pr-4">
                         <span className="text-[#62748E]">Status:</span>
-                        <span className="text-[#00D492]">Active</span>
+                        <span style={{ color: GAUGE_SIGNAL_COLORS.buy }}>Active</span>
                     </div>
 
                     <div className="flex items-center gap-4 border-r border-solid border-[#9CA3AF] pr-4">
@@ -28,7 +31,7 @@ export default function UserDashboardClientPage() {
                         <span>Feb 28, 2026</span>
                     </div>
 
-                    <span className="text-[#00D492]">Enabled</span>
+                    <span style={{ color: GAUGE_SIGNAL_COLORS.buy }}>Enabled</span>
                 </div>
             </div>
 
@@ -42,9 +45,9 @@ export default function UserDashboardClientPage() {
                     <span>Win Rate</span>
                     <span className="flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="8" height="7" viewBox="0 0 8 7" fill="none">
-                            <path d="M3.89648 0L7.7936 6.75H-0.000629902L3.89648 0Z" fill="#05DF72" />
+                            <path d="M3.89648 0L7.7936 6.75H-0.000629902L3.89648 0Z" fill={GAUGE_SIGNAL_COLORS.buy} />
                         </svg>
-                        <span className="font-semibold text-xl text-greenDark">68%</span>
+                        <span className="font-semibold text-xl" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>68%</span>
                     </span>
                 </PrimaryCard>
 
@@ -56,8 +59,8 @@ export default function UserDashboardClientPage() {
                 <PrimaryCard className="flex-2 flex flex-col gap-2 w-full">
                     <span>Monthly Growth</span>
                     <div className="flex items-center gap-10">
-                        <span className="font-semibold text-xl text-greenDark">$50000</span>
-                        <span className="text-xl text-sell">-3.5%</span>
+                        <span className="font-semibold text-xl" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>$50000</span>
+                        <span className="text-xl" style={{ color: GAUGE_SIGNAL_COLORS.sell }}>-3.5%</span>
                     </div>
                 </PrimaryCard>
             </PrimaryCards>
@@ -107,7 +110,7 @@ export default function UserDashboardClientPage() {
             </div>
         </Container>
     );
-};
+}
 
 function MileStoneBadges() {
     return (
@@ -115,12 +118,12 @@ function MileStoneBadges() {
             <div className="grid grid-cols-[repeat(auto-fit,minmax(70px,1fr))] items-center justify-center gap-6 whitespace-nowrap">
                 <div className="flex flex-col items-center gap-5">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M6 9H4.5C3.83696 9 3.20107 8.73661 2.73223 8.26777C2.26339 7.79893 2 7.16304 2 6.5C2 5.83696 2.26339 5.20107 2.73223 4.73223C3.20107 4.26339 3.83696 4 4.5 4H6" stroke="#00D492" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M18 9H19.5C20.163 9 20.7989 8.73661 21.2678 8.26777C21.7366 7.79893 22 7.16304 22 6.5C22 5.83696 21.7366 5.20107 21.2678 4.73223C20.7989 4.26339 20.163 4 19.5 4H18" stroke="#00D492" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M4 22H20" stroke="#00D492" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M10 14.6602V17.0002C10 17.5502 9.53 17.9802 9.03 18.2102C7.85 18.7502 7 20.2402 7 22.0002" stroke="#00D492" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M14 14.6602V17.0002C14 17.5502 14.47 17.9802 14.97 18.2102C16.15 18.7502 17 20.2402 17 22.0002" stroke="#00D492" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M18 2H6V9C6 10.5913 6.63214 12.1174 7.75736 13.2426C8.88258 14.3679 10.4087 15 12 15C13.5913 15 15.1174 14.3679 16.2426 13.2426C17.3679 12.1174 18 10.5913 18 9V2Z" stroke="#00D492" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6 9H4.5C3.83696 9 3.20107 8.73661 2.73223 8.26777C2.26339 7.79893 2 7.16304 2 6.5C2 5.83696 2.26339 5.20107 2.73223 4.73223C3.20107 4.26339 3.83696 4 4.5 4H6" stroke={GAUGE_SIGNAL_COLORS.buy} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M18 9H19.5C20.163 9 20.7989 8.73661 21.2678 8.26777C21.7366 7.79893 22 7.16304 22 6.5C22 5.83696 21.7366 5.20107 21.2678 4.73223C20.7989 4.26339 20.163 4 19.5 4H18" stroke={GAUGE_SIGNAL_COLORS.buy} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M4 22H20" stroke={GAUGE_SIGNAL_COLORS.buy} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M10 14.6602V17.0002C10 17.5502 9.53 17.9802 9.03 18.2102C7.85 18.7502 7 20.2402 7 22.0002" stroke={GAUGE_SIGNAL_COLORS.buy} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 14.6602V17.0002C14 17.5502 14.47 17.9802 14.97 18.2102C16.15 18.7502 17 20.2402 17 22.0002" stroke={GAUGE_SIGNAL_COLORS.buy} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M18 2H6V9C6 10.5913 6.63214 12.1174 7.75736 13.2426C8.88258 14.3679 10.4087 15 12 15C13.5913 15 15.1174 14.3679 16.2426 13.2426C17.3679 12.1174 18 10.5913 18 9V2Z" stroke={GAUGE_SIGNAL_COLORS.buy} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
 
                     <div className="flex flex-col items-center">
@@ -154,7 +157,7 @@ function MileStoneBadges() {
             </div>
         </>
     );
-};
+}
 
 function RecentAlerts() {
     return (
@@ -162,8 +165,8 @@ function RecentAlerts() {
             <div className="flex flex-col gap-5">
                 <div className="flex items-start gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M22 17L13.5 8.5L8.5 13.5L2 7" stroke="#FF2056" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M16 17H22V11" stroke="#FF2056" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M22 17L13.5 8.5L8.5 13.5L2 7" stroke={GAUGE_SIGNAL_COLORS.sell} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M16 17H22V11" stroke={GAUGE_SIGNAL_COLORS.sell} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
 
                     <div className="flex flex-col gap-1">
@@ -176,9 +179,9 @@ function RecentAlerts() {
 
                 <div className="flex items-center gap-3">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10Z" fill="#00D492" fillOpacity="0.2" />
+                        <path d="M0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10Z" fill={GAUGE_SIGNAL_COLORS.buy} fillOpacity="0.2" />
                         <g opacity="0.999227">
-                            <path d="M6 10C6 7.79086 7.79086 6 10 6C12.2091 6 14 7.79086 14 10C14 12.2091 12.2091 14 10 14C7.79086 14 6 12.2091 6 10Z" fill="#00D492" />
+                            <path d="M6 10C6 7.79086 7.79086 6 10 6C12.2091 6 14 7.79086 14 10C14 12.2091 12.2091 14 10 14C7.79086 14 6 12.2091 6 10Z" fill={GAUGE_SIGNAL_COLORS.buy} />
                         </g>
                     </svg>
 
@@ -193,7 +196,7 @@ function RecentAlerts() {
             </div>
         </>
     );
-};
+}
 
 function PackageHistory() {
     return (
@@ -201,7 +204,7 @@ function PackageHistory() {
             <div className="flex flex-col gap-2 px-6 pb-6 border-b border-solid border-stroke">
                 <div className="flex items-center gap-3">
                     <span className="text-xl">Silver Plan</span>
-                    <span className="text-[#00C663] font-xl">Avtive</span>
+                    <span className="font-xl" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>Avtive</span>
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-xl">Renewal:</span>
@@ -222,25 +225,25 @@ function ActiveTrades() {
             <div className="flex flex-col gap-4">
                 <div className="border-b border-solid border-stroke pb-4 flex justify-between items-center px-6">
                     <span>EUR/USD</span>
-                    <span className="text-[#00C663]">Buy</span>
-                    <span className="text-[#00C663]">+40 Pips</span>
+                    <span style={{ color: GAUGE_SIGNAL_COLORS.buy }}>Buy</span>
+                    <span style={{ color: GAUGE_SIGNAL_COLORS.buy }}>+40 Pips</span>
                 </div>
 
                 <div className="border-b border-solid border-stroke pb-4 flex justify-between items-center px-6">
                     <span>GBP/JPY</span>
-                    <span className="text-[#FA003F]">Buy</span>
-                    <span className="text-[#FA003F]">-40 Pips</span>
+                    <span style={{ color: GAUGE_SIGNAL_COLORS.sell }}>Buy</span>
+                    <span style={{ color: GAUGE_SIGNAL_COLORS.sell }}>-40 Pips</span>
                 </div>
 
                 <div className="border-b border-solid border-stroke pb-4 flex justify-between items-center px-6">
                     <span>AUD/USD</span>
-                    <span className="text-[#00C663]">Buy</span>
-                    <span className="text-[#00C663]">+40 Pips</span>
+                    <span style={{ color: GAUGE_SIGNAL_COLORS.buy }}>Buy</span>
+                    <span style={{ color: GAUGE_SIGNAL_COLORS.buy }}>+40 Pips</span>
                 </div>
             </div>
         </>
     );
-};
+}
 
 function ActivityLog() {
     return (
@@ -269,4 +272,4 @@ function ActivityLog() {
             </div>
         </>
     );
-};
+}

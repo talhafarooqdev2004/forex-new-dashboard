@@ -1,0 +1,155 @@
+.root {
+    width: 100%;
+    min-width: 0;
+    margin-top: 1.25rem;
+    padding-top: 0.25rem;
+}
+
+.legend {
+    display: grid;
+    grid-template-columns: 74px 1fr;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.legendCurrency {
+    text-align: left;
+    color: rgb(var(--secondary));
+    letter-spacing: 0.02em;
+    text-transform: none;
+}
+
+.legendZones {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    text-align: center;
+}
+
+.strongBear {
+    color: #ff3b30;
+}
+
+.bear {
+    color: #ff9500;
+}
+
+.neutral {
+    color: #ffcc00;
+}
+
+.bull {
+    color: #9fe65a;
+}
+
+.strongBull {
+    color: #4cd964;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 74px 1fr;
+    gap: 10px;
+    align-items: center;
+    /* ~2.5× bar thickness — breathable vertical rhythm like reference. */
+    margin-bottom: 10px;
+}
+
+.labelCell {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+}
+
+.flag {
+    font-size: 1.125rem;
+    line-height: 1;
+}
+
+.code {
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: rgb(var(--foreground));
+}
+
+.trackWrap {
+    position: relative;
+    /* Room for ~12px bar + triangle slightly taller than bar. */
+    height: 32px;
+}
+
+.track {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 12px;
+    border-radius: 9999px;
+    transform: translateY(-50%);
+    /* Reference: deep red → orange → yellow → deep green (pill). */
+    background: linear-gradient(
+        to right,
+        #8b0000 0%,
+        #cc5500 22%,
+        #ff8c00 42%,
+        #ffef42 58%,
+        #6bab3a 78%,
+        #006400 100%
+    );
+}
+
+.markerAnchor {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+/* Diameter ≈ bar height (12px); 1px white ring — spec match. */
+.markerBlueSvg {
+    display: block;
+    width: 12px;
+    height: 12px;
+    overflow: visible;
+}
+
+/* Slightly larger than circle; apex extends past bar top/bottom. */
+.markerGreenSvg {
+    display: block;
+    width: 14px;
+    height: 16px;
+    overflow: visible;
+}
+
+.scaleRow {
+    display: grid;
+    grid-template-columns: 74px 1fr;
+    gap: 10px;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.scale {
+    position: relative;
+    height: 18px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: rgb(var(--secondary));
+}
+
+.scaleTick {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}

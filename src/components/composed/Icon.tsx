@@ -1,6 +1,8 @@
+"use client";
+
 import Image from "next/image";
 
-export default function Icon({
+function Icon({
     name,
     width = 20,
     height = 20,
@@ -20,4 +22,6 @@ export default function Icon({
             className={`object-contain ${className}`}
         />
     );
-};
+}
+
+export default Icon;

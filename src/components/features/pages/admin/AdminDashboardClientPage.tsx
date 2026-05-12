@@ -1,16 +1,14 @@
-import {
-    PrimaryCard,
-    PrimaryCards,
-    SvgIcon,
-} from "@/components/composed";
-import {
-    RevenueGrowthChart,
-    SubscriberGrowthChart,
-    TopCountriesChart,
-} from "@/components/composed/Charts";
-import { ThisMonthSubscriberGuage } from "@/components/composed/Guages";
-import { LabelSection, Section } from "@/components/ui/layout";
+import PrimaryCard from "@/components/composed/PrimaryCard";
+import PrimaryCards from "@/components/composed/PrimaryCards";
+import SvgIcon from "@/components/composed/SvgIcon";
+import RevenueGrowthChart from "@/components/composed/Charts/RevenueGrowthChart";
+import SubscriberGrowthChart from "@/components/composed/Charts/SubscriberGrowthChart";
+import TopCountriesChart from "@/components/composed/Charts/TopCountriesChart";
+import ThisMonthSubscriberGuage from "@/components/composed/Guages/ThisMonthSubscriberGuage";
+import LabelSection from "@/components/ui/layout/LabelSection";
+import Section from "@/components/ui/layout/Section";
 import Container from "@/components/ui/layout/Container";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 
 export default function AdminDashboardClientPage() {
     return (
@@ -32,7 +30,7 @@ export default function AdminDashboardClientPage() {
                         <SvgIcon icon="user" />
                         <div className="flex items-center gap-2">
                             <SvgIcon icon="revenue-growth" />
-                            <span className="font-semibold text-xl text-greenDark">68%</span>
+                            <span className="font-semibold text-xl" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>68%</span>
                         </div>
                     </div>
                 </PrimaryCard>
@@ -49,8 +47,8 @@ export default function AdminDashboardClientPage() {
                     <span>New Subscriber This Month</span>
                     <div className="flex items-center gap-2">
                         <SvgIcon icon="user" />
-                        <span className="font-semibold text-xl text-greenDark">378</span>
-                        <span className="text-xs text-greenDark">+134</span>
+                        <span className="font-semibold text-xl" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>378</span>
+                        <span className="text-xs" style={{ color: GAUGE_SIGNAL_COLORS.buy }}>+134</span>
                         <span>Paid</span>
                     </div>
                 </PrimaryCard>
@@ -124,7 +122,7 @@ export default function AdminDashboardClientPage() {
             </div>
         </Container>
     );
-};
+}
 
 function TotalRevenueSection() {
     return (
@@ -134,7 +132,7 @@ function TotalRevenueSection() {
                 <span className="text-xl">$54,970</span>
             </div>
             <div className="rounded-xl bg-currencyStrengthIndexBackground h-[11px]">
-                <div className="w-1/2 h-full bg-greenDark rounded-xl"></div>
+                <div className="w-1/2 h-full rounded-xl" style={{ backgroundColor: GAUGE_SIGNAL_COLORS.buy }}></div>
             </div>
             <div className="flex items-center justify-between">
                 <span className="text-xl">This Month</span>
@@ -142,8 +140,7 @@ function TotalRevenueSection() {
             </div>
         </div>
     );
-};
-
+}
 
 function TotalSubscriberSection() {
     return (
@@ -158,7 +155,7 @@ function TotalSubscriberSection() {
             </div>
         </div>
     );
-};
+}
 
 function CurrentMonthSubscriberSection() {
     return (
@@ -173,4 +170,4 @@ function CurrentMonthSubscriberSection() {
             </div>
         </div>
     );
-};
+}
