@@ -9,6 +9,7 @@ import BiasIcon from '@/components/composed/BiasIcon';
 import { useAuth } from "@/components/providers/AuthProvider";
 import { GAUGE_SIGNAL_COLORS } from '@/lib/gaugeSignalColors';
 import { filterDynamicTableForNonAdmin } from "@/lib/tableColumnAdmin";
+import { snapNearInteger } from "@/components/composed/dynamic-table/TableEditor/utils/tableUtils";
 
 interface DynamicTableDisplayProps {
     tableIdentifier: string;
