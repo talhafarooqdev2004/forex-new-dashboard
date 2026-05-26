@@ -7,6 +7,8 @@ import {
   dynamicTableService,
   DynamicTable,
 } from "@/services/dynamicTable.service";
+import CurrencyFlag from "@/components/ui/CurrencyFlag";
+import { getCurrencyCountryCode } from "@/lib/currencyFlags";
 import { cn } from "@/lib/utils";
 
 /** Same corner arrows as COT “Overall Sentiment” / Risk bias row. */
@@ -93,24 +95,16 @@ interface RetailSentimentHorizontalBarChartProps {
   barColors?: RetailSentimentBarColors;
 }
 
-// ─── Icon map (emoji) — matches COT / retail naming from sheet data ───────────
-const ICON_MAP: Record<string, string> = {
+/** Commodity / index emoji only — forex currencies use `<CurrencyFlag />` (SVG). */
+const COMMODITY_ICON_MAP: Record<string, string> = {
   "CRUDE OIL": "🛢️",
   "NATURAL GAS": "🔥",
   "WHEAT SRW": "🌾",
   "NASDAQ 100": "📈",
   "S&P 500": "📊",
   "S&P500": "📊",
-  "WTI": "🛢️",
-  "BRENT": "🛢️",
-  USD: "🇺🇸",
-  EUR: "🇪🇺",
-  GBP: "🇬🇧",
-  JPY: "🇯🇵",
-  CAD: "🇨🇦",
-  AUD: "🇦🇺",
-  NZD: "🇳🇿",
-  CHF: "🇨🇭",
+  WTI: "🛢️",
+  BRENT: "🛢️",
   XAU: "🥇",
   XAG: "🥈",
   Gold: "🥇",
@@ -126,18 +120,25 @@ const ICON_MAP: Record<string, string> = {
   Ethereum: "◆",
 };
 
-const ICON_KEYS_SORTED = Object.keys(ICON_MAP).sort((a, b) => b.length - a.length);
+const COMMODITY_ICON_KEYS_SORTED = Object.keys(COMMODITY_ICON_MAP).sort((a, b) => b.length - a.length);
 
-function getIcon(name: string): string | null {
+function resolveChartCurrencyCode(name: string): string | null {
   const trimmed = name.trim();
-  if (ICON_MAP[trimmed]) return ICON_MAP[trimmed];
+  if (getCurrencyCountryCode(trimmed)) return trimmed.toUpperCase().slice(0, 3);
   const upper = trimmed.toUpperCase();
-  for (const key of ICON_KEYS_SORTED) {
-    if (upper.includes(key.toUpperCase())) return ICON_MAP[key]!;
-  }
   const codes = upper.match(/\b[A-Z]{3}\b/g) ?? [];
   for (const c of codes) {
-    if (ICON_MAP[c]) return ICON_MAP[c]!;
+    if (getCurrencyCountryCode(c)) return c;
+  }
+  return null;
+}
+
+function getCommodityIcon(name: string): string | null {
+  const trimmed = name.trim();
+  if (COMMODITY_ICON_MAP[trimmed]) return COMMODITY_ICON_MAP[trimmed];
+  const upper = trimmed.toUpperCase();
+  for (const key of COMMODITY_ICON_KEYS_SORTED) {
+    if (upper.includes(key.toUpperCase())) return COMMODITY_ICON_MAP[key]!;
   }
   return null;
 }
@@ -159,9 +160,8 @@ function computeLabelColumnWidthPx(data: ChartData[]): number {
 
     let max = 0;
     for (const item of data) {
-        const icon = getIcon(item.name);
-        /** Emoji / flags often render wider than numeric `font-size`; keep bar alignment. */
-        const leading = icon ? 28 + 8 : 26 + 8;
+        const hasFlag = Boolean(resolveChartCurrencyCode(item.name) || getCommodityIcon(item.name));
+        const leading = hasFlag ? 21 + 8 : 26 + 8;
 
         ctx.font = "500 13px Arial, sans-serif";
         const w13 = ctx.measureText(item.name).width + letterSpacingExtra(item.name);
@@ -398,16 +398,19 @@ export default function RetailSentimentHorizontalBarChart({
         </div>
 
         {data.map((item, index) => {
-          const icon = getIcon(item.name);
+          const currencyCode = resolveChartCurrencyCode(item.name);
+          const commodityIcon = getCommodityIcon(item.name);
           const net = formatNetChange(item.long, item.short);
           const hasLong = item.long > 0;
           const hasShort = item.short > 0;
           return (
             <div key={`${item.name}-${index}`} className={styles.row}>
               <div className={styles.label}>
-                {icon ? (
+                {currencyCode ? (
+                  <CurrencyFlag currency={currencyCode} size={14} title={item.name} className={styles.labelIcon} />
+                ) : commodityIcon ? (
                   <span className={styles.labelIcon} aria-hidden="true">
-                    {icon}
+                    {commodityIcon}
                   </span>
                 ) : (
                   <span className={styles.labelFallback} aria-hidden="true">

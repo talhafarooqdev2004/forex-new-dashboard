@@ -5,6 +5,7 @@ import { useTheme } from "@/components/providers/ThemeProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Switch } from "@/components/ui/switch";
 import { ChevronRight, Moon, Sun } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -58,10 +59,19 @@ function QuickProfile() {
         return <span className="text-sm text-secondary">…</span>;
     }
 
+    if (!user) {
+        return (
+            <Link
+                href="/login"
+                className="rounded-lg bg-[rgb(var(--electric-blue))] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+            >
+                Sign in
+            </Link>
+        );
+    }
+
     const displayName =
-        user && [user.firstName, user.lastName].filter(Boolean).join(" ").trim()
-            ? [user.firstName, user.lastName].filter(Boolean).join(" ")
-            : user?.email ?? "Signed in";
+        [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || user.email;
     const initial = profileInitial(user);
 
     return (

@@ -5,7 +5,6 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/composed/base-tabl
 import baseTableStyles from "@/components/composed/base-table/BaseTable.module.scss";
 import { dynamicTableService, DynamicTable, CellMetadata } from '@/services/dynamicTable.service';
 import { calculateFormula as calculateFormulaUtil } from '@/utils/formulaCalculator';
-import { snapNearInteger } from './TableEditor/utils/tableUtils';
 import BiasIcon from '@/components/composed/BiasIcon';
 import { useAuth } from "@/components/providers/AuthProvider";
 import { GAUGE_SIGNAL_COLORS } from '@/lib/gaugeSignalColors';
@@ -822,13 +821,10 @@ export default function DynamicTableDisplay({
     };
 
     // Get display value for a cell (use stored computed value only, never recalculate)
-    // Applies rounding to fix floating point precision issues
     const getCellDisplayValue = (rowIndex: number, colIndex: number): string => {
         const cellData = rows[rowIndex]?.cells[colIndex];
         if (!cellData) return '';
 
-        // Always use the stored computed value - never recalculate formulas
-        // The value should have been calculated and stored at creation/editing time
         const value = cellData.value || '';
 
         if (tableIdentifier === 'score_dashboard_sheet76') {
@@ -836,26 +832,6 @@ export default function DynamicTableDisplay({
             if (headerLower.includes('net bias')) {
                 return stripNetBiasSheetDecorations(value);
             }
-        }
-
-        // Apply rounding and formatting if it's a numeric value
-        // But preserve text values like dates (containing /) or other non-numeric strings
-        if (value && value.trim() !== '') {
-            // Check if value contains date-like patterns (/, -, or other non-numeric characters)
-            // Only parse as number if it's a pure number (no slashes, dashes in date context, etc.)
-            const hasDatePattern = /[\/\-]/.test(value.trim());
-            if (!hasDatePattern) {
-                const normalized = value.trim().replace(/,/g, "");
-                const numValue = parseFloat(normalized);
-                const looksNumeric =
-                    normalized !== "" &&
-                    !Number.isNaN(numValue) &&
-                    /^[-+]?(\d+(\.\d*)?|\.\d+)(e[-+]?\d+)?$/i.test(normalized);
-                if (looksNumeric) {
-                    return formatNumberForDisplay(numValue);
-                }
-            }
-            // If it has date pattern or is not a number, return as-is
         }
 
         return value;

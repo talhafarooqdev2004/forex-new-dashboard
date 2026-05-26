@@ -5,18 +5,7 @@ import { apiConfig } from '@/services/api.config';
 import { googleSheetsService } from '@/services/googleSheets.service';
 import { TableRow, TableColumn, TableEditorProps, CellData, AutoColorSettings, BorderStyle, Alignment } from '../types';
 import { calculateFinalScore, calculateFormula, getCellDisplayValue } from '../utils/formulaUtils';
-import { formatNumber } from '../utils/tableUtils';
 import { CellMetadata } from '@/services/dynamicTable.service';
-
-const PLAIN_NUMERIC = /^[-+]?(\d+(\.\d*)?|\.\d+)(e[-+]?\d+)?$/i;
-
-function normalizePlainNumericValue(value: string): string {
-    const normalized = value.trim().replace(/,/g, '');
-    if (!normalized || !PLAIN_NUMERIC.test(normalized)) return value;
-    const parsed = Number.parseFloat(normalized);
-    if (Number.isNaN(parsed)) return value;
-    return formatNumber(parsed);
-}
 
 /** UI columns use `id` like `col-123` matching server `TableColumn.id`. */
 function parseUiColumnServerId(uiColId: string): number | null {
@@ -594,10 +583,10 @@ export function useTableData(props: TableEditorProps) {
 
                         if (formulaValue) {
                             const calculated = calculateFormula(formulaValue, actualRowIdx, colIdx, rows, columns, formulaStartRow);
-                            const num = parseFloat(calculated);
-                            finalValue = !isNaN(num) ? formatNumber(num) : calculated;
-                        } else {
-                            finalValue = normalizePlainNumericValue(finalValue);
+                            finalValue =
+                                calculated && calculated.trim() !== '' && !calculated.startsWith('=')
+                                    ? calculated
+                                    : finalValue;
                         }
 
                         const serverCol = resolveServerColumnForUiIndex(colIdx);

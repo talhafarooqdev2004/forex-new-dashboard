@@ -3,6 +3,7 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/composed/base-tabl
 import { TableRow, TableColumn, CellData } from '../types';
 import { CellMetadata } from '@/services/dynamicTable.service';
 import styles from '../../TableEditor.module.scss';
+import { getCellEditorString } from '../utils/tableUtils';
 
 const TABLE_CELL_BG = 'var(--table-cell-bg, rgb(var(--dark-grey)))';
 const TABLE_CELL_TEXT = 'var(--table-cell-text, #ffffff)';
@@ -674,10 +675,6 @@ export const EditorTable: React.FC<EditorTableProps> = ({
                                                         if (isColumn2) {
                                                             return '';
                                                         }
-                                                        // If cell has formula, show calculated result
-                                                        if (cellData.formula) {
-                                                            return displayValue;
-                                                        }
                                                         return displayValue;
                                                     })()}
                                                 </div>
@@ -695,13 +692,9 @@ export const EditorTable: React.FC<EditorTableProps> = ({
 
                                                         // If focused on this cell, show formula/raw value for editing
                                                         if (isSelected || (isEditingFormula && selectedCell?.rowIndex === rowIdx && selectedCell?.colIndex === colIdx)) {
-                                                            return cellData.formula || cellData.value || '';
+                                                            return getCellEditorString(cellData);
                                                         }
 
-                                                        // If cell has formula, show calculated result
-                                                        if (cellData.formula) {
-                                                            return displayValue;
-                                                        }
                                                         return displayValue;
                                                     })()}
                                                     onChange={(e) => {
@@ -735,7 +728,7 @@ export const EditorTable: React.FC<EditorTableProps> = ({
                                                     onBlur={(e) => {
                                                         // Only sync with backend if the value actually changed
                                                         const value = e.target.value;
-                                                        const originalValue = cellData.formula || cellData.value || '';
+                                                        const originalValue = getCellEditorString(cellData);
                                                         if (value !== originalValue) {
                                                             handleCellChange(rowIdx, colIdx, value);
                                                         }

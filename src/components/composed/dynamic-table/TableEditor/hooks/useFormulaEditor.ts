@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { TableRow, TableColumn } from '../types';
-import { adjustFormulaForRow, formatNumber } from '../utils/tableUtils';
+import { adjustFormulaForRow, getCellEditorString, toCellValueString } from '../utils/tableUtils';
 import { calculateFormula, calculateFormulaAsync } from '../utils/formulaUtils';
 import { googleSheetsService } from '@/services/googleSheets.service';
 
@@ -103,8 +103,7 @@ export function useFormulaEditor(
                             // Use local calculation result
                             const localResult = calculateFormula(value, rowIndex, colIndex, prevRows, columns, formulaStartRow);
                             console.log('✅ Local formula evaluation result inside setRows:', localResult);
-                            const numValue = parseFloat(localResult);
-                            cellData.value = !isNaN(numValue) ? formatNumber(numValue) : localResult;
+                            cellData.value = localResult;
                         } else if (value.startsWith('=')) {
                             // If needs API call, keep old value or show placeholder
                             // DON'T set cellData.value = value because value is the formula string
@@ -131,7 +130,7 @@ export function useFormulaEditor(
 
                     // Update cell in Google Sheets and get calculated result
                     const result = await googleSheetsService.updateCell(currentTableId, cell, value);
-                    calculatedValue = result.value?.toString() || '';
+                    calculatedValue = toCellValueString(result.value);
 
                     console.log('✅ Google Sheets result received:', { cell, result: calculatedValue });
 
@@ -145,9 +144,7 @@ export function useFormulaEditor(
                             // IMPORTANT: Always preserve the formula if one was entered
                             cellData.formula = value.startsWith('=') ? value : undefined;
 
-                            // Round numeric values if it's a number
-                            const numValue = parseFloat(calculatedValue);
-                            cellData.value = !isNaN(numValue) ? formatNumber(numValue) : calculatedValue;
+                            cellData.value = calculatedValue;
 
                             newCells[colIndex] = cellData;
                             newRows[rowIndex] = { ...newRows[rowIndex], cells: newCells };
@@ -186,28 +183,12 @@ export function useFormulaEditor(
                         const calculated = calculateFormula(value, rowIndex, colIndex, prevRows, columns, formulaStartRow);
                         console.log('✅ Local-only mode result:', calculated);
                         if (calculated && calculated.trim() !== '' && !calculated.startsWith('=')) {
-                            const numValue = parseFloat(calculated);
-                            roundedValue = !isNaN(numValue) ? formatNumber(numValue) : calculated;
-                        } else if (calculated && calculated.startsWith('=')) {
-                            // If it still starts with =, it's probably an error or unprocessed
-                            roundedValue = '';
+                            roundedValue = calculated;
                         } else {
                             roundedValue = '';
                         }
                     } else {
-                        const trimmed = value.trim();
-                        const normalized = trimmed.replace(/,/g, '');
-                        const numValue = Number.parseFloat(normalized);
-                        const looksNumeric =
-                            normalized !== '' &&
-                            !Number.isNaN(numValue) &&
-                            /^[-+]?(\d+(\.\d*)?|\.\d+)(e[-+]?\d+)?$/i.test(normalized);
-
-                        if (looksNumeric) {
-                            roundedValue = formatNumber(numValue);
-                        } else {
-                            roundedValue = value;
-                        }
+                        roundedValue = value;
                         cell.formula = undefined;
                     }
                     cell.value = roundedValue;
@@ -220,24 +201,18 @@ export function useFormulaEditor(
     }, [columns, formulaStartRow, setRows, tableIdentifier, useSpreadEngine]);
 
     const handleCellClick = useCallback((rowIndex: number, colIndex: number) => {
-        setSelectedCell(prev => {
+        const cellData = rows[rowIndex]?.cells[colIndex];
+        const val = getCellEditorString(cellData);
+
+        setSelectedCell((prev) => {
             const isSameCell = prev?.rowIndex === rowIndex && prev?.colIndex === colIndex;
-
-            // We need the latest rows here, so we'll use a functional update for rows indirectly
-            // but actually we just need the cell data.
-            // Since this is a click, it's ok to use the 'rows' from closure as it's just for display
-            const cellData = rows[rowIndex]?.cells[colIndex];
-            const val = cellData?.formula || cellData?.value || '';
-            setFormulaBarValue(val);
-
-            // Only update lastSyncedValueRef if we're clicking a different cell
             if (!isSameCell) {
-                console.log('📍 New cell selected, resetting lastSyncedValueRef:', val);
                 lastSyncedValueRef.current = val;
             }
-
             return { rowIndex, colIndex };
         });
+
+        setFormulaBarValue(val);
 
         setIsEditingFormula(false);
 
@@ -247,7 +222,7 @@ export function useFormulaEditor(
                 formulaBarInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         }, 100);
-    }, [rows]);
+    }, [rows, setRows]);
 
     const applyFormulaToColumn = useCallback(async (rowIndex: number, colIndex: number) => {
         // We need the formula from the current row. 
@@ -287,9 +262,7 @@ export function useFormulaEditor(
                             if (idx === rowIndex) return row;
                             const cell = googleSheetsService.indexToCell(idx, colIndex, formulaStartRow - 1);
                             const updateResult = result.updates.find(u => u.cell === cell);
-                            const calculatedValue = updateResult?.value?.toString() || '';
-                            const numValue = parseFloat(calculatedValue);
-                            const roundedValue = !isNaN(numValue) ? formatNumber(numValue) : calculatedValue;
+                            const roundedValue = toCellValueString(updateResult?.value);
                             const adjustedFormula = adjustFormulaForRow(sourceFormula, rowIndex, idx);
 
                             const newCells = [...row.cells];
@@ -315,8 +288,7 @@ export function useFormulaEditor(
                             const adjustedFormula = adjustFormulaForRow(sourceFormula, rowIndex, idx);
                             const localResult = calculateFormula(adjustedFormula, idx, colIndex, prevRows, columns, formulaStartRow);
 
-                            const numValue = parseFloat(localResult);
-                            const roundedValue = !isNaN(numValue) ? formatNumber(numValue) : localResult;
+                            const roundedValue = localResult;
 
                             return {
                                 ...row,
@@ -338,9 +310,10 @@ export function useFormulaEditor(
                     if (idx === rowIndex) return row;
                     const adjustedFormula = adjustFormulaForRow(sourceFormula, rowIndex, idx);
                     const calculated = calculateFormula(adjustedFormula, idx, colIndex, prevRows, columns, formulaStartRow);
-                    let roundedValue = calculated;
-                    const numValue = parseFloat(calculated);
-                    if (!isNaN(numValue)) roundedValue = formatNumber(numValue);
+                    const roundedValue =
+                        calculated && calculated.trim() !== '' && !calculated.startsWith('=')
+                            ? calculated
+                            : '';
                     return {
                         ...row,
                         cells: row.cells.map((c, cIdx) =>
@@ -390,7 +363,7 @@ export function useFormulaEditor(
                 // Here we need the latest row data to restore the value
                 // Using rows from closure is acceptable here for a cancel action
                 const cellData = rows[selectedCell.rowIndex]?.cells[selectedCell.colIndex];
-                setFormulaBarValue(cellData?.formula || cellData?.value || '');
+                setFormulaBarValue(getCellEditorString(cellData));
             }
         }
     }, [selectedCell, rows, handleCellChange]);

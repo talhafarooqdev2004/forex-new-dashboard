@@ -1,8 +1,4 @@
-import { Suspense } from "react";
-
 import EdgeToolsAlertsClientPage from "@/components/features/pages/EdgeToolsAlertsClientPage";
-import EdgeToolsPageSkeleton from "./EdgeToolsPageSkeleton";
-import Container from "@/components/ui/layout/Container";
 import { parseRiskModeSheetValue } from "@/lib/fundamentalDashboardData";
 import { serverFetchDynamicTableByIdentifier, serverFetchGoogleSheetCell } from "@/lib/serverAdminApi";
 import { pageSeo } from "@/lib/seo";
@@ -38,15 +34,5 @@ async function EdgeToolsWithData() {
 }
 
 export default function EdgeToolsPage() {
-    return (
-        <Suspense
-            fallback={
-                <Container>
-                    <EdgeToolsPageSkeleton />
-                </Container>
-            }
-        >
-            <EdgeToolsWithData />
-        </Suspense>
-    );
+    return <EdgeToolsWithData />;
 }

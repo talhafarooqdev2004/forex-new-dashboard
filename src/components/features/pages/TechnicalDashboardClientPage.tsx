@@ -213,8 +213,9 @@ export default function TechnicalDashboardClientPage({
                     ) : null}
 
                     {heatmapItems.length > 0 ? (
-                        <div className="rounded-xl bg-darkGrey px-5 py-6">
-                            <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
+                        <div className="rounded-xl bg-darkGrey px-2 py-6 sm:px-4 lg:px-5">
+                            {/* Always 4 per row; each box is equal width — inner padding grows on larger screens. */}
+                            <div className="grid min-w-0 grid-cols-4 gap-1.5 sm:gap-2 md:gap-3">
                                 {heatmapItems.map((item, index) => (
                                     <HeatMap
                                         key={`${item.pair}-${index}`}
@@ -229,7 +230,7 @@ export default function TechnicalDashboardClientPage({
                     ) : null}
                 </div>
 
-                <div className="w-full lg:w-[30%] flex-shrink-0 flex flex-col gap-4 min-h-0 lg:self-stretch">
+                <div className="w-full lg:w-[30%] flex-shrink-0 flex flex-col gap-6 min-h-0 lg:self-stretch">
                     <div className="bg-darkGrey rounded-xl px-6 py-4 shrink-0">
                         <h6 className="font-semibold mb-3">Currency Strength Index</h6>
 
@@ -267,11 +268,11 @@ export default function TechnicalDashboardClientPage({
             <div className="mt-6 flex min-w-0 flex-col gap-6">
                 <TradingViewAdvancedChart />
 
-                {/* Heading spans full width; row mirrors Edge TMV + Risk split (45% / 55% at xl). */}
+                {/* Below 1460px: gauges full-width row, then history full-width row; at 1460px+: 45% / 55% side by side. */}
                 <div className="flex min-w-0 flex-col gap-6">
                     <div className="relative mb-0 min-h-[40px] w-full shrink-0 px-1">
                         <h6 className="px-2 text-center font-semibold sm:px-28">Market Pulse</h6>
-                        <div className="absolute end-0 top-0 z-10">
+                        <div className="absolute end-0 top-0 z-10 hidden min-[1460px]:block">
                             <MarketPulseTimezoneSelect
                                 value={storedTimezone}
                                 onValueChange={setStoredTimezone}
@@ -280,40 +281,48 @@ export default function TechnicalDashboardClientPage({
                         </div>
                     </div>
 
-                    <div className="flex min-h-0 flex-col gap-6 xl:flex-row xl:items-stretch">
-                    <div className="flex w-full min-h-0 flex-nowrap gap-4 xl:w-[45%]">
-                        <EdgeTmGauge
-                            title="Trend"
-                            score={tmvScores.trend}
-                            gaugeZones={tmvGaugeZones}
-                            isDark={gaugePaletteDark}
-                        />
-                        <EdgeTmGauge
-                            title="Momentum"
-                            score={tmvScores.momentum}
-                            gaugeZones={tmvGaugeZones}
-                            isDark={gaugePaletteDark}
-                        />
-                        <EdgeTmGauge
-                            title="Volatility"
-                            score={tmvScores.volatility}
-                            gaugeZones={gaugePaletteDark ? DARK_VOLATILITY_ZONES : LIGHT_VOLATILITY_ZONES}
-                            isDark={gaugePaletteDark}
-                            needleMode="volatility"
-                        />
-                    </div>
+                    <div className="flex min-h-0 flex-col gap-6 min-[1460px]:flex-row min-[1460px]:items-stretch">
+                        <div className="flex w-full min-h-0 flex-nowrap gap-4 min-[1460px]:w-[45%]">
+                            <EdgeTmGauge
+                                title="Trend"
+                                score={tmvScores.trend}
+                                gaugeZones={tmvGaugeZones}
+                                isDark={gaugePaletteDark}
+                            />
+                            <EdgeTmGauge
+                                title="Momentum"
+                                score={tmvScores.momentum}
+                                gaugeZones={tmvGaugeZones}
+                                isDark={gaugePaletteDark}
+                            />
+                            <EdgeTmGauge
+                                title="Volatility"
+                                score={tmvScores.volatility}
+                                gaugeZones={gaugePaletteDark ? DARK_VOLATILITY_ZONES : LIGHT_VOLATILITY_ZONES}
+                                isDark={gaugePaletteDark}
+                                needleMode="volatility"
+                            />
+                        </div>
 
-                    <div className="flex min-h-0 w-full xl:w-[55%] xl:flex-col">
-                        <MarketPulseTmvHistory
-                            className="min-h-[280px] w-full flex-1 xl:min-h-0"
-                            trend={tmvScores.trend}
-                            momentum={tmvScores.momentum}
-                            volatility={tmvScores.volatility}
-                            timeZone={effectiveTimezone}
-                            historySlots={tmvHistorySlots}
-                        />
+                        <div className="flex w-full justify-end px-1 min-[1460px]:hidden">
+                            <MarketPulseTimezoneSelect
+                                value={storedTimezone}
+                                onValueChange={setStoredTimezone}
+                                className="items-end"
+                            />
+                        </div>
+
+                        <div className="flex min-h-0 w-full min-[1460px]:w-[55%] min-[1460px]:flex-col">
+                            <MarketPulseTmvHistory
+                                className="min-h-[280px] w-full flex-1 min-[1460px]:min-h-0"
+                                trend={tmvScores.trend}
+                                momentum={tmvScores.momentum}
+                                volatility={tmvScores.volatility}
+                                timeZone={effectiveTimezone}
+                                historySlots={tmvHistorySlots}
+                            />
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
         </Container>

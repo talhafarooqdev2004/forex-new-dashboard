@@ -421,7 +421,7 @@ export default function EdgeToolsAlertsClientPage({
                 <Section className="min-w-0 w-full overflow-visible min-[1450px]:w-[55%]">
                     <div className="flex min-h-[200px] flex-wrap items-center justify-center gap-8 p-6 sm:gap-10">
                         <h5 className="m-0 shrink-0 text-left font-semibold text-foreground text-2xl">Risk Mode</h5>
-                        <RiskModeSheetGauge riskModeScore={riskModeScore} isDark={isDarkMode} />
+                        <RiskModeSheetGauge riskModeScore={riskModeScore} isDark={isDarkMode} onLabelX={146} />
                     </div>
                 </Section>
             </div>

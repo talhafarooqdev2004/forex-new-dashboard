@@ -19,7 +19,7 @@ export default function TechnicalDashboardPageSkeleton() {
                     </div>
                 </div>
 
-                <div className="flex w-full flex-shrink-0 flex-col gap-4 min-h-0 lg:w-[30%] lg:self-stretch">
+                <div className="flex w-full flex-shrink-0 flex-col gap-6 min-h-0 lg:w-[30%] lg:self-stretch">
                     <div className="shrink-0 rounded-xl bg-darkGrey px-6 py-4">
                         <div className="mb-3 h-5 w-52 animate-pulse rounded bg-foreground/10" />
                         <div className="flex flex-col gap-2">
@@ -51,13 +51,13 @@ export default function TechnicalDashboardPageSkeleton() {
                     <div className="relative mb-0 min-h-[40px] w-full shrink-0 px-1">
                         <div className="mx-auto mt-2 h-6 w-36 animate-pulse rounded bg-darkGrey" />
                     </div>
-                    <div className="flex min-h-0 flex-col gap-6 xl:flex-row xl:items-stretch">
-                        <div className="flex w-full min-h-0 gap-4 xl:w-[45%]">
+                    <div className="flex min-h-0 flex-col gap-6 min-[1460px]:flex-row min-[1460px]:items-stretch">
+                        <div className="flex w-full min-h-0 gap-4 min-[1460px]:w-[45%]">
                             {Array.from({ length: 3 }).map((_, i) => (
                                 <div key={i} className="min-h-[120px] min-w-0 flex-1 animate-pulse rounded-2xl bg-darkGrey" />
                             ))}
                         </div>
-                        <div className="min-h-[280px] w-full flex-1 animate-pulse rounded-xl bg-darkGrey xl:w-[55%] xl:flex-col" />
+                        <div className="min-h-[280px] w-full flex-1 animate-pulse rounded-xl bg-darkGrey min-[1460px]:w-[55%] min-[1460px]:flex-col" />
                     </div>
                 </div>
             </div>

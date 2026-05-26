@@ -40,13 +40,13 @@ export default function HeatMap({
             Math.abs(value) < 1e-9 ? "0.0" : `${value > 0 ? "+" : ""}${value.toFixed(1)}`;
         return (
             <div
-                className="flex flex-col items-center justify-center gap-[7px] h-24 py-3 rounded-2xl"
+                className="flex h-24 w-full min-w-0 flex-col items-center justify-center gap-[7px] rounded-2xl px-1 py-3 sm:px-2 md:px-4 lg:px-6 xl:px-8"
                 style={{ backgroundColor }}
             >
-                <span className="text-xl font-semibold" style={{ color }}>
+                <span className="text-base font-semibold sm:text-lg lg:text-xl" style={{ color }}>
                     {pair}
                 </span>
-                <span className="font-normal tabular-nums" style={{ color }}>
+                <span className="font-normal tabular-nums text-sm sm:text-base" style={{ color }}>
                     {label}
                 </span>
             </div>
@@ -63,13 +63,13 @@ export default function HeatMap({
                 : clamped.toFixed(1);
         return (
             <div
-                className="flex flex-col items-center justify-center gap-[7px] h-24 py-3 rounded-2xl"
+                className="flex h-24 w-full min-w-0 flex-col items-center justify-center gap-[7px] rounded-2xl px-1 py-3 sm:px-2 md:px-4 lg:px-6 xl:px-8"
                 style={{ backgroundColor }}
             >
-                <span className="text-xl font-semibold" style={{ color }}>
+                <span className="text-base font-semibold sm:text-lg lg:text-xl" style={{ color }}>
                     {pair}
                 </span>
-                <span className="font-normal tabular-nums" style={{ color }}>
+                <span className="font-normal tabular-nums text-sm sm:text-base" style={{ color }}>
                     {label}
                 </span>
             </div>
@@ -90,13 +90,13 @@ export default function HeatMap({
               : `${clamped > 0 ? "+" : ""}${clamped.toFixed(1)}`;
         return (
             <div
-                className="flex flex-col items-center justify-center gap-[7px] h-24 py-3 rounded-2xl"
+                className="flex h-24 w-full min-w-0 flex-col items-center justify-center gap-[7px] rounded-2xl px-1 py-3 sm:px-2 md:px-4 lg:px-6 xl:px-8"
                 style={{ backgroundColor }}
             >
-                <span className="text-xl font-semibold" style={{ color }}>
+                <span className="text-base font-semibold sm:text-lg lg:text-xl" style={{ color }}>
                     {pair}
                 </span>
-                <span className="font-normal tabular-nums" style={{ color }}>
+                <span className="font-normal tabular-nums text-sm sm:text-base" style={{ color }}>
                     {label}
                 </span>
             </div>
@@ -113,7 +113,10 @@ export default function HeatMap({
     const { bg, color } = colorMap[variant as keyof typeof colorMap];
 
     return (
-        <div className="flex flex-col items-center justify-center gap-[7px] h-24 py-3 rounded-2xl" style={{ backgroundColor: bg }}>
+        <div
+            className="flex h-24 w-full min-w-0 flex-col items-center justify-center gap-[7px] rounded-2xl px-1 py-3 sm:px-2 md:px-4 lg:px-6 xl:px-8"
+            style={{ backgroundColor: bg }}
+        >
             <span className="text-xl font-semibold" style={{ color }}>{pair}</span>
             <span className="font-normal" style={{ color }}>{value}</span>
         </div>

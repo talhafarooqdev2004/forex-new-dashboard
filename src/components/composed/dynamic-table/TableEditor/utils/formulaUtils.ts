@@ -1,15 +1,6 @@
 import { calculateFormula as calculateFormulaUtil } from '@/utils/formulaCalculator';
 import { googleSheetsService } from '@/services/googleSheets.service';
 import { TableRow, TableColumn } from '../types';
-import { formatNumberGrouped } from './tableUtils';
-
-const PLAIN_NUMERIC = /^[-+]?(\d+(\.\d*)?|\.\d+)(e[-+]?\d+)?$/i;
-
-function isPlainNumericString(s: string): boolean {
-    const normalized = s.trim().replace(/,/g, '');
-    if (normalized === '' || !PLAIN_NUMERIC.test(normalized)) return false;
-    return !Number.isNaN(Number.parseFloat(normalized));
-}
 
 // Flag to enable/disable Google Sheets integration
 const USE_GOOGLE_SHEETS = process.env.NEXT_PUBLIC_USE_GOOGLE_SHEETS === 'true';
@@ -70,6 +61,7 @@ export const calculateFormulaAsync = async (
     }
 };
 
+/** Display text for a cell — no thousands grouping or decimal stripping; preserves sheet/user strings. */
 export const getCellDisplayValue = (
     rowIndex: number,
     colIndex: number,
@@ -82,29 +74,15 @@ export const getCellDisplayValue = (
 
     if (cellData.formula) {
         if (cellData.value && cellData.value.trim() !== '' && !cellData.value.startsWith('=')) {
-            const raw = cellData.value.trim();
-            if (isPlainNumericString(raw)) {
-                const numValue = parseFloat(raw.replace(/,/g, ''));
-                if (!Number.isNaN(numValue)) return formatNumberGrouped(numValue);
-            }
             return cellData.value;
         }
         const calculated = calculateFormula(cellData.formula, rowIndex, colIndex, rows, columns, formulaStartRow);
         if (calculated && !calculated.startsWith('=')) {
-            const numValue = parseFloat(calculated.replace(/,/g, ''));
-            if (!Number.isNaN(numValue)) {
-                return formatNumberGrouped(numValue);
-            }
             return calculated;
         }
         return '';
     }
 
-    const raw = (cellData.value || '').trim();
-    if (raw !== '' && isPlainNumericString(raw)) {
-        const numValue = parseFloat(raw.replace(/,/g, ''));
-        if (!Number.isNaN(numValue)) return formatNumberGrouped(numValue);
-    }
     return cellData.value || '';
 };
 
@@ -115,12 +93,15 @@ export const extractNumericValue = (
     columns: TableColumn[],
     formulaStartRow: number
 ): number | null => {
-    const displayValue = getCellDisplayValue(rowIndex, colIndex, rows, columns, formulaStartRow);
+    const cellData = rows[rowIndex]?.cells[colIndex];
+    const raw = (cellData?.formula
+        ? getCellDisplayValue(rowIndex, colIndex, rows, columns, formulaStartRow)
+        : cellData?.value) ?? '';
 
-    if (!displayValue || displayValue.trim() === '') return null;
+    if (!raw || raw.trim() === '') return null;
 
-    const normalized = displayValue.trim().replace(/,/g, '').replace(/%/g, '');
-    const numValue = parseFloat(normalized);
+    const normalized = raw.trim().replace(/,/g, '').replace(/%/g, '');
+    const numValue = Number.parseFloat(normalized);
     if (Number.isNaN(numValue)) return null;
 
     return numValue;
@@ -146,7 +127,6 @@ export const calculateColumnSum = (
 
 const normHeader = (h: string | undefined) => (h || "").toLowerCase().trim();
 
-/** Prefer "Macroshift Score" so we never sum a "Macroshift Trend" / MTF column that appears earlier (USD layout). */
 export function resolveMacroshiftScoreColumnIndex(columns: { header?: string; id?: string | number }[]): number {
     const byExact = columns.findIndex((c) => normHeader(c.header) === "macroshift score");
     if (byExact >= 0) return byExact;
@@ -159,7 +139,6 @@ export function resolveMacroshiftScoreColumnIndex(columns: { header?: string; id
     return columns.findIndex((c) => normHeader(c.header).includes("macroshift"));
 }
 
-/** Prefer "Divergence Score" over any other header containing "divergence". */
 export function resolveDivergenceScoreColumnIndex(columns: { header?: string; id?: string | number }[]): number {
     const byExact = columns.findIndex((c) => normHeader(c.header) === "divergence score");
     if (byExact >= 0) return byExact;
@@ -191,10 +170,6 @@ function rowCellsLookLikeCrossSheetTotalsRow(
     return isLikelyCrossSheetReferenceFormula(m) && isLikelyCrossSheetReferenceFormula(d);
 }
 
-/**
- * Footer row for compact currency fundamentals: explicit sheet row in metadata, or last row whose
- * Macroshift/Divergence formulas pull from another tab (not in-sheet SUMs).
- */
 function findCurrencyFundamentalsFooterRowIndex(
     rows: TableRow[],
     macroCol: number,
@@ -248,9 +223,7 @@ function resolveLastDataRowArrayIndexForSum(
 }
 
 export type CalculateFinalScoreOptions = {
-    /** 1-based Excel row index per row (same order as `rows`), from API `row_index`. */
     sheetRowNumbers?: number[];
-    /** 1-based sheet row where totals live (exclusive when summing detail rows). */
     formulaTotalsRow?: number;
 };
 

@@ -3,7 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { apiConfig } from "@/services/api.config";
-import { clearAuthCookie, setAuthCookie } from "@/lib/authCookie";
+import { clearAuthCookie, readAuthTokenFromCookie, setAuthCookie } from "@/lib/authCookie";
 import { clearVisitorPingSessionFlag, pingVisitorLocationAfterAuth, pingVisitorLocationFromBrowser } from "@/lib/visitorPing";
 
 const TOKEN_KEY = "authToken";
@@ -37,6 +37,46 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 type AuthPayload = { token: string; user: AuthUser };
+
+/** Accepts `{ success, data: { token, user } }` and a few common alternate shapes. */
+function extractAuthPayload(json: Record<string, unknown>): AuthPayload | null {
+    const pickUser = (u: unknown): AuthUser | null => {
+        if (!u || typeof u !== "object") return null;
+        const o = u as Record<string, unknown>;
+        const id = o.id;
+        const email = o.email;
+        const role = o.role;
+        if ((typeof id === "number" || typeof id === "string") && typeof email === "string" && typeof role === "string") {
+            return {
+                id,
+                email,
+                role,
+                firstName: typeof o.firstName === "string" ? o.firstName : undefined,
+                lastName: typeof o.lastName === "string" ? o.lastName : undefined,
+            };
+        }
+        return null;
+    };
+
+    const pickToken = (o: Record<string, unknown>): string | null => {
+        const t = o.token ?? o.accessToken ?? o.access_token;
+        return typeof t === "string" && t.trim() ? t : null;
+    };
+
+    const data = json.data;
+    if (data && typeof data === "object") {
+        const d = data as Record<string, unknown>;
+        const token = pickToken(d);
+        const user = pickUser(d.user);
+        if (token && user) return { token, user };
+    }
+
+    const token = pickToken(json);
+    const user = pickUser(json.user);
+    if (token && user) return { token, user };
+
+    return null;
+}
 
 function persistSession(payload: AuthPayload) {
     if (typeof window === "undefined") return;
@@ -81,16 +121,19 @@ async function postAuth(path: string, body: Record<string, unknown>): Promise<Au
             throw new Error(res.statusText || "Authentication failed");
         }
     }
-    if (!res.ok || !json.success || !json.data?.token || !json.data?.user) {
+    const payload = extractAuthPayload(json as Record<string, unknown>);
+    if (!res.ok || !json.success || !payload) {
         const msg =
             typeof json.message === "string" && json.message.trim()
                 ? json.message
                 : !res.ok
                   ? `Sign-in failed (${res.status})`
-                  : "Authentication failed";
+                  : res.ok && json.success && !payload
+                    ? "Sign-in succeeded but the server response was missing a token or user profile. Check API URL and response format."
+                    : "Authentication failed";
         throw new Error(msg);
     }
-    return json.data;
+    return payload;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -102,21 +145,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let cancelled = false;
 
         void (async () => {
-            const s = readStoredSession();
-            if (!s) {
+            const stored = readStoredSession();
+            const token = stored?.token ?? readAuthTokenFromCookie();
+            if (!token) {
                 if (!cancelled) setReady(true);
                 return;
             }
 
             try {
                 const res = await fetch(`${apiConfig.baseURL}/api/v1/auth/me`, {
-                    headers: { Authorization: `Bearer ${s.token}` },
+                    headers: { Authorization: `Bearer ${token}` },
                     credentials: "include",
                 });
                 if (cancelled) return;
 
                 if (res.status === 401 || res.status === 403) {
                     clearPersistedCredentialsOnly();
+                    clearAuthCookie();
                     setUser(null);
                     setToken(null);
                     return;
@@ -127,6 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 if (!res.ok || !json.success || !json.data) {
                     clearPersistedCredentialsOnly();
+                    clearAuthCookie();
                     setUser(null);
                     setToken(null);
                     return;
@@ -134,11 +180,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 localStorage.setItem(USER_KEY, JSON.stringify(json.data));
                 setUser(json.data);
-                setToken(s.token);
-                setAuthCookie(s.token);
+                setToken(token);
+                setAuthCookie(token);
             } catch {
                 if (!cancelled) {
                     clearPersistedCredentialsOnly();
+                    clearAuthCookie();
                     setUser(null);
                     setToken(null);
                 }
@@ -204,7 +251,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 headers: { Authorization: `Bearer ${t}` },
                 credentials: "include",
             });
-            if (res.status === 401 || res.status === 403 || res.status === 404) {
+            // Only clear the session on auth failures. 404 can occur from transient DB issues or
+            // mismatched ids; logging out here felt like "login works then nothing happens" for users.
+            if (res.status === 401 || res.status === 403) {
                 logout();
                 return;
             }

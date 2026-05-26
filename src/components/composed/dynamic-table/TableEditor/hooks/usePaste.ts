@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { TableRow, TableColumn, CellData } from '../types';
 import { CellMetadata } from '@/services/dynamicTable.service';
-import { formatNumber } from '../utils/tableUtils';
 
 const NON_TEXT_MARKERS_REGEX = /<[^>]*>/g;
 const ARROW_MARKERS_REGEX = /[\u2190-\u21FF\u27A1\u2B05\u2B06\u2B07\u25B2\u25BC\u25B6\u25C0\uFE0F\u{1F53A}\u{1F53B}]/gu;
@@ -296,11 +295,6 @@ export function usePaste(
 
                         if (isCurrencyFundamental) {
                             val = sanitizeCurrencyFundamentalsPasteValue(val, colIdx, targetColumnCount);
-                        }
-
-                        if (formula) {
-                            const num = parseFloat(val);
-                            if (!isNaN(num)) val = formatNumber(num);
                         }
 
                         return { value: val, formula, metadata };

@@ -30,8 +30,9 @@ export default function SeasonalGaugeNeedle({
     style,
     layout = "default",
 }: SeasonalGaugeNeedleProps) {
-    const lineStroke = isDark ? "#E5E7EB" : "#121417";
-    const hubFill = "#E5E7EB";
+    const needleColor = isDark ? "#E5E7EB" : "#121417";
+    const lineStroke = needleColor;
+    const hubFill = needleColor;
     // The provided SVG points left from hub, while admin needle geometry points right.
     // Flip around pivot first, then apply admin-equivalent rotation.
     const flipAroundPivot = `translate(${PIVOT_X * 2} 0) scale(-1 1)`;

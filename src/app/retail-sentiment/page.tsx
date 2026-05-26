@@ -1,8 +1,4 @@
-import { Suspense } from "react";
-
 import RetailSentimentClientPage from "@/components/features/pages/RetailSentimentClientPage";
-import RetailSentimentPageSkeleton from "./RetailSentimentPageSkeleton";
-import Container from "@/components/ui/layout/Container";
 import { pageSeo } from "@/lib/seo";
 import { serverFetchDynamicTableByIdentifier } from "@/lib/serverAdminApi";
 
@@ -20,15 +16,5 @@ async function RetailSentimentWithData() {
 }
 
 export default function RetailSentimentPage() {
-    return (
-        <Suspense
-            fallback={
-                <Container>
-                    <RetailSentimentPageSkeleton />
-                </Container>
-            }
-        >
-            <RetailSentimentWithData />
-        </Suspense>
-    );
+    return <RetailSentimentWithData />;
 }

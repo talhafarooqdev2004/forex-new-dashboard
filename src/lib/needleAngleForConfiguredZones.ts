@@ -162,3 +162,9 @@ export function zoneColorForConfiguredScore(score: number | null, zones: FxGauge
     const z = getZoneForValue(score, zones);
     return z?.color;
 }
+
+/** Admin band name for a raw score (e.g. Strong Buy, Neutral) — used in FX Analyzer score-table bias column. */
+export function gaugeZoneNameForConfiguredScore(score: number | null, zones: FxGaugeZone[]): string | null {
+    if (score === null || !Number.isFinite(score) || !zones.length) return null;
+    return getZoneForValue(score, zones)?.name ?? null;
+}

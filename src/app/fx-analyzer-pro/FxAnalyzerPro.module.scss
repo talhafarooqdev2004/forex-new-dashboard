@@ -23,12 +23,12 @@
     }
 
     /* Scores table has no thead — top rule of grid */
-    tbody:first-child > tr:first-child > td {
+    tbody:first-child>tr:first-child>td {
         border-top: 2px solid rgb(var(--stroke));
     }
 
     /* When thead exists, avoid double line under header */
-    thead + tbody > tr:first-child > td {
+    thead+tbody>tr:first-child>td {
         border-top: none;
     }
 }
@@ -36,6 +36,7 @@
 /* Dark mode: match Table Editor / `BaseTable` default cell borders (`--table-cell-border` → charcoal). */
 :global(html.dark) {
     .fxAnalyzerDataTable {
+
         th,
         td {
             border-bottom-color: rgb(var(--charcoal));
@@ -46,12 +47,13 @@
             border-top-color: rgb(var(--charcoal));
         }
 
-        tbody:first-child > tr:first-child > td {
+        tbody:first-child>tr:first-child>td {
             border-top-color: rgb(var(--charcoal));
         }
     }
 
     .fxAnalyzerPro__dynamicTables {
+
         :global(table td),
         :global(table th) {
             border-color: rgb(var(--charcoal)) !important;
@@ -73,6 +75,13 @@
     padding: 0;
     line-height: normal;
     overflow: hidden;
+}
+
+/** Bias column in the pair score table — one weight for Bullish, Strong Buy, Risk Off, etc. */
+.fxAnalyzerPro__scoreBias {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
 }
 
 .fxAnalyzerPro__scoreTable {
@@ -106,6 +115,7 @@
 
 /** Bottom `DynamicTableDisplay` tables — same stroke/charcoal as preview tables, 2px. */
 .fxAnalyzerPro__dynamicTables {
+
     :global(table td),
     :global(table th) {
         border-color: rgb(var(--stroke)) !important;
@@ -113,23 +123,33 @@
     }
 }
 
+/* Fixed layout at all screen sizes — currency rail + two columns (no responsive breakpoint). */
 .fxAnalyzerPro__pageContainer {
     display: flex;
+    flex-direction: row;
     gap: 12px;
 
     .fxAnalyzerPro__dropdownSection {
         width: 15%;
         border-radius: 12px;
         padding: 20px 10px;
-        padding-top: 0px;
+        padding-top: 0;
         display: flex;
         flex-direction: column;
+        flex-wrap: nowrap;
         gap: 15px;
+
+        > div {
+            box-sizing: border-box;
+            width: 100%;
+            min-width: 0;
+        }
     }
 
     .fxAnalyzerPro__contentSection {
         width: 85%;
         display: flex;
+        flex-direction: row;
         align-items: stretch;
         gap: 25px;
         border-radius: 16px;
@@ -143,23 +163,12 @@
         }
 
         .fxAnalyzerPro__fundamentalsPanel {
+            display: flex;
             flex: 1;
             min-width: 0;
             width: 50%;
-            display: flex;
             flex-direction: column;
             gap: 30px;
-        }
-    }
-}
-
-@media (max-width: 1360px) {
-    .fxAnalyzerPro__contentSection {
-        flex-direction: column;
-
-        .fxAnalyzerPro__sentimentPanel,
-        .fxAnalyzerPro__fundamentalsPanel {
-            width: 100% !important;
         }
     }
 }

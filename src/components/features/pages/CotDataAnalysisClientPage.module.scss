@@ -1,0 +1,51 @@
+$cot-upper-compact-max: 1349px;
+
+/** Upper row only: Overall Sentiment + Bullish/Bearish (not Pair Bias or tables below). */
+.cotUpperSection {
+    @media (max-width: $cot-upper-compact-max) {
+        .cotOverallHeading,
+        .cotOverallHeadingInput {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .cotOverallBias {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .cotOverallArrow {
+            width: 18px;
+            height: 18px;
+        }
+
+        .cotOverallCommentary {
+            font-size: 0.75rem;
+            line-height: 1.125rem;
+        }
+
+        .cotOverallGaugeWrap {
+            max-width: 190px;
+        }
+
+        .cotOverallScore {
+            font-size: 1.5rem;
+        }
+
+        section h5 {
+            font-size: 0.875rem !important;
+            line-height: 1.25rem;
+        }
+
+        .cotSentimentRowCurrency,
+        .cotSentimentRowValue {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .cotSentimentEmpty {
+            font-size: 0.75rem;
+            line-height: 1.125rem;
+        }
+    }
+}

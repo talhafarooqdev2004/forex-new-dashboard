@@ -42,7 +42,11 @@
   
   } */
 
-  p, span, li, a, small {
+  p,
+  span,
+  li,
+  a,
+  small {
     @apply text-sm;
     /* @apply xl:text-lg 2xl:text-xl 3xl:text-2xl; */
   }
@@ -50,7 +54,7 @@
   button {
     @apply outline-none;
   }
-  
+
   /* Light theme (default)*/
   :root {
     --primary: 59 130 246;
@@ -97,6 +101,7 @@
     --forum-tab-active-bar: 1 197 25;
     --forum-tab-active: 34 41 52;
   }
+
   html.dark {
     --primary: 59 130 246;
     --secondary: 156 163 175;

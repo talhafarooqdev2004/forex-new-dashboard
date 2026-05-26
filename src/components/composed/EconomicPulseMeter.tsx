@@ -1,5 +1,6 @@
 "use client";
 
+import CurrencyFlag from "@/components/ui/CurrencyFlag";
 import { ECONOMIC_PULSE_SCALE_ANCHORS, type EconomicPulseRow } from "@/lib/fundamentalDashboardData";
 
 import styles from "./EconomicPulseMeter.module.scss";
@@ -30,9 +31,7 @@ export default function EconomicPulseMeter({ rows }: EconomicPulseMeterProps) {
             {rows.map((row) => (
                 <div key={row.currency} className={styles.row}>
                     <div className={styles.labelCell}>
-                        <span className={styles.flag} aria-hidden>
-                            {row.flagEmoji}
-                        </span>
+                        <CurrencyFlag currency={row.currency} size={13} title={row.currency} className={styles.flag} />
                         <span className={styles.code}>{row.currency}</span>
                     </div>
                     <div className={styles.trackWrap}>

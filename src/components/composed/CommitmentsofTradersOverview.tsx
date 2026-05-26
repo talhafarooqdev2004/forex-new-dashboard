@@ -6,6 +6,7 @@ import {
   type CotOverviewRow,
 } from "@/lib/fundamentalDashboardData";
 import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
+import CurrencyFlag from "@/components/ui/CurrencyFlag";
 import Icon from "./Icon";
 
 type CommitmentsofTradersOverviewProps = {
@@ -23,9 +24,9 @@ export default function CommitmentsofTradersOverview({
       {rows.length === 0 ? (
         <tr>
           <td colSpan={5} className="py-6 text-center text-sm text-secondary">
-            No COT overview data. Add rows to &quot;Currency Pair
-            Sentiment&quot; and matching currencies in &quot;COT Raw Data&quot;
-            (last column = net index 0–100%).
+            No COT overview data. Sync &quot;Currency Pair Sentiment&quot; (symbol = 5th-to-last
+            column, change in N.comm = 4th-to-last, position change % = 3rd-to-last) and matching
+            currencies in &quot;COT Raw Data&quot;.
           </td>
         </tr>
       ) : (
@@ -45,7 +46,7 @@ function CommitmentsofTraders({ children }: React.PropsWithChildren) {
             <th className="text-center">Change in N.comm positions</th>
             <th>Position change %</th>
             <th>COT Net index (0-100)</th>
-            <th>Score</th>
+            <th className="whitespace-nowrap">COT Index</th>
           </tr>
         </thead>
         <tbody>{children}</tbody>
@@ -74,20 +75,28 @@ function positionChangeTone(delta: number | null): PositionChangeTone {
   return delta > 0 ? "positive" : "negative";
 }
 
-function formatChangeNcommCompact(raw: string): string {
+function formatChangeNcommFull(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return "—";
-  if (/k\s*$/i.test(trimmed)) return trimmed;
+
+  const kMatch = trimmed.match(/^(-?[\d.,]+)\s*k\s*$/i);
+  if (kMatch) {
+    const base = parseSignedNumber(kMatch[1]!);
+    if (base !== null) return formatIntegerWithCommas(base * 1000);
+  }
 
   const n = parseSignedNumber(trimmed.replace(/[,%]/g, ""));
   if (n === null) return trimmed;
 
-  const abs = Math.abs(n);
-  if (abs < 1000) {
-    return Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.?0+$/, "");
+  return formatIntegerWithCommas(n);
+}
+
+function formatIntegerWithCommas(n: number): string {
+  const rounded = Math.round(n);
+  if (Math.abs(n - rounded) < 1e-6) {
+    return rounded.toLocaleString("en-US");
   }
-  const kAbs = Math.round(abs / 1000);
-  return n < 0 ? `-${kAbs}k` : `${kAbs}k`;
+  return n.toLocaleString("en-US", { maximumFractionDigits: 1 });
 }
 
 const COT_NEUTRAL_SEGMENT = "#64748b";
@@ -111,14 +120,12 @@ function CommitmentsofTrader({ row }: { row: CotOverviewRow }) {
     <tr className="border-t border-solid border-[#000] text-sm">
       <td className="font-semibold">
         <div className="flex items-center gap-2 whitespace-nowrap">
-          <span className="text-lg leading-none" aria-hidden>
-            {row.flagEmoji}
-          </span>
+          <CurrencyFlag label={row.symbolLabel} size={14} title={row.symbolLabel} />
           <span>{row.symbolLabel}</span>
         </div>
       </td>
       <td className="px-2 text-center font-semibold tabular-nums">
-        {formatChangeNcommCompact(row.changeInNcommDisplay)}
+        {formatChangeNcommFull(row.changeInNcommDisplay)}
       </td>
       <td className="font-semibold">
         <div className="flex items-center gap-2">

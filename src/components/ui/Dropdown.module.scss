@@ -1,4 +1,7 @@
 .dropdown {
+    width: 100%;
+    box-sizing: border-box;
+
     &__btn {
         color: rgb(var(--foreground));
         background-color: rgb(var(--dark-grey));

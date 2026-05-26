@@ -1,8 +1,4 @@
-import { Suspense } from "react";
-
 import CotDataAnalysisClientPage from "@/components/features/pages/CotDataAnalysisClientPage";
-import CotDataAnalysisPageSkeleton from "./CotDataAnalysisPageSkeleton";
-import Container from "@/components/ui/layout/Container";
 import {
     COT_OVERALL_RISK_BIAS_CELL,
     COT_OVERALL_RISK_SCORE_FALLBACK_CELL,
@@ -82,16 +78,7 @@ async function CotDataAnalysisWithData() {
     );
 }
 
+/** Route `loading.tsx` provides the skeleton; avoid nested Suspense (React devtools warning). */
 export default function CotDataAnalysisPage() {
-    return (
-        <Suspense
-            fallback={
-                <Container>
-                    <CotDataAnalysisPageSkeleton />
-                </Container>
-            }
-        >
-            <CotDataAnalysisWithData />
-        </Suspense>
-    );
+    return <CotDataAnalysisWithData />;
 }

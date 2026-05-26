@@ -1,7 +1,7 @@
 import styles from "./FxAnalyzerPro.module.scss";
 
 /**
- * Mirrors `FXAnalyzerProClient` layout: SCSS `pageContainer` → 15% currency rail + 85% two panels.
+ * Mirrors `FXAnalyzerProClient`: fixed rail + two-column layout at all screen sizes.
  */
 export default function FxAnalyzerProPageSkeleton() {
     return (
@@ -51,7 +51,7 @@ export default function FxAnalyzerProPageSkeleton() {
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-xl bg-darkGrey pb-0 pt-4">
+                        <div className="min-w-0 rounded-xl bg-darkGrey pb-0 pt-4 section-scroll">
                             <div className="mx-auto mb-3 h-5 w-40 animate-pulse rounded bg-foreground/10" />
                             <div className="space-y-0 px-2 pb-4">
                                 {Array.from({ length: 4 }).map((_, i) => (
@@ -60,7 +60,7 @@ export default function FxAnalyzerProPageSkeleton() {
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-xl bg-darkGrey pb-0 pt-4">
+                        <div className="min-w-0 rounded-xl bg-darkGrey pb-0 pt-4 section-scroll">
                             <div className="mx-auto mb-3 h-5 w-44 animate-pulse rounded bg-foreground/10" />
                             <div className="grid grid-cols-4 gap-1 px-2 pb-4">
                                 {Array.from({ length: 4 }).map((_, i) => (

@@ -13,24 +13,28 @@ import {
 
 import { cn } from "@/lib/utils";
 import { formatMarketPulseAxisTime } from "@/lib/marketPulseTimezone";
-import { FX_TMV_SCORE_MAX, FX_TMV_SCORE_MIN, volatilityHistoryBarColor } from "@/lib/fxTmvGaugeZones";
+import { FX_TMV_SCORE_MAX, FX_TMV_SCORE_MIN } from "@/lib/fxTmvGaugeZones";
+import {
+    TMV_HISTORY_BAR_COUNT,
+    TMV_HISTORY_SLOT_MS,
+    TMV_HISTORY_TIME_LABEL_INDICES,
+} from "@/lib/tmvHistoryConfig";
 
-/** 22 slots × 15 minutes = 5.5 hours of history per loop. */
-const BAR_COUNT = 22;
-const REFERENCE_BAR_COUNT = 22;
-const SLOT_MS = 15 * 60 * 1000;
+const BAR_COUNT = TMV_HISTORY_BAR_COUNT;
+const SLOT_MS = TMV_HISTORY_SLOT_MS;
+
+/** Equal-width segments that fill the row: (100% − 1px gaps) / bar count. */
+const BAR_SEGMENT_WIDTH = `calc((100% - ${BAR_COUNT - 1}px) / ${BAR_COUNT})`;
+const BAR_TRACK_HEIGHT_PX = 60;
 
 /** Trend, Momentum, Volatility: |2.5| = full bar height (same numeric domain as TMV gauges). */
 const TM_BAR_MAX = 2.5;
 
-/** Trend / Momentum history: red (bearish), yellow (neutral band), green (bullish) — TM neutral ±0.5. */
+/** Trend / Momentum / Volatility history bars: red (≤0), green (>0) — same rule; no gauge pink/yellow. */
 const TM_HIST_RED = "#FF0000";
-const TM_HIST_YELLOW = "#FFFF00";
 const TM_HIST_GREEN = "#05871A";
 
-const BAR_SEGMENT_WIDTH = `calc((100% - ${REFERENCE_BAR_COUNT - 1}px) / ${REFERENCE_BAR_COUNT})`;
-
-const TIME_AXIS_LABEL_STARTS = [0, 4, 8, 12, 16, 20] as const;
+const TIME_AXIS_LABEL_STARTS = TMV_HISTORY_TIME_LABEL_INDICES;
 
 /** Consecutive persisted snapshots from the left (slots are `[oldest…newest]` then `null` padding). */
 function countFilledBarsFromLeft(slots: (MarketPulseTmvHistorySnapshot | null)[]): number {
@@ -70,17 +74,14 @@ function clampTrendMomentum(score: number): number {
 
 function trendMomentumHistoryColor(score: number): string {
     const s = clampTrendMomentum(score);
-    if (s < -0.5) return TM_HIST_RED;
-    if (s > 0.5) return TM_HIST_GREEN;
-    return TM_HIST_YELLOW;
+    return s > 0 ? TM_HIST_GREEN : TM_HIST_RED;
 }
 
-function scoreToBarVisual(score: number, variant: "tm" | "vol"): { heightPct: number; fillColor: string } {
+function scoreToBarVisual(score: number): { heightPct: number; fillColor: string } {
     const s = clampTrendMomentum(score);
     const mag = Math.abs(s);
     const heightPct = Math.min(100, (mag / TM_BAR_MAX) * 100);
-    const fillColor = variant === "vol" ? volatilityHistoryBarColor(s) : trendMomentumHistoryColor(s);
-    return { heightPct, fillColor };
+    return { heightPct, fillColor: trendMomentumHistoryColor(s) };
 }
 
 function snapshotTimeMs(slot: MarketPulseTmvHistorySnapshot | null): number {
@@ -132,7 +133,7 @@ function buildDummyHistorySlots(): TmvTriple[] {
         const t = i / Math.max(1, BAR_COUNT - 1);
         const wave = Math.sin(t * Math.PI * 2.4 + 0.55) * 2.2;
         const wave2 = Math.cos(t * Math.PI * 1.8 + 0.35) * 2.1;
-        const step = ((i % 11) - 5) * 0.22;
+        const step = ((i % 19) - 9) * 0.22;
         let vol = step * 0.35 + Math.sin(i * 0.42) * 1.1;
         vol = clampTrendMomentum(vol);
         if (Math.abs(vol) < DUMMY_MIN_ABS_VOL) {
@@ -146,14 +147,14 @@ function buildDummyHistorySlots(): TmvTriple[] {
     });
 }
 
-function BarTrack({ score, variant }: { score: number; variant: "tm" | "vol" }) {
-    const { heightPct, fillColor } = scoreToBarVisual(score, variant);
+function BarTrack({ score }: { score: number }) {
+    const { heightPct, fillColor } = scoreToBarVisual(score);
     const showFill = heightPct > 0;
 
     return (
         <div
-            className="relative h-10 shrink-0 overflow-hidden rounded-t-[2px] bg-currencyStrengthIndexBackground"
-            style={{ width: BAR_SEGMENT_WIDTH, minWidth: BAR_SEGMENT_WIDTH }}
+            className="relative shrink-0 overflow-hidden rounded-t-[2px] bg-currencyStrengthIndexBackground"
+            style={{ width: BAR_SEGMENT_WIDTH, minWidth: BAR_SEGMENT_WIDTH, height: BAR_TRACK_HEIGHT_PX }}
         >
             {showFill ? (
                 <div
@@ -175,7 +176,6 @@ function MetricRow({
     liveIndex,
     scrollRef,
     onScroll,
-    barVariant,
 }: {
     label: string;
     values: (number | null)[];
@@ -183,7 +183,6 @@ function MetricRow({
     liveIndex: number;
     scrollRef: (el: HTMLDivElement | null) => void;
     onScroll: UIEventHandler<HTMLDivElement>;
-    barVariant: "tm" | "vol";
 }) {
     return (
         <div className="flex w-full flex-col gap-2">
@@ -198,7 +197,6 @@ function MetricRow({
                 {values.map((v, i) => (
                     <BarTrack
                         key={i}
-                        variant={barVariant}
                         score={liveIndex >= 0 && i === liveIndex ? liveScore : (v ?? 0)}
                     />
                 ))}
@@ -287,10 +285,10 @@ export default function MarketPulseTmvHistory({
     const [history, setHistory] = useState<HistoryState>(() =>
         useSyntheticTimeline
             ? {
-                  slots: buildDummyHistorySlots(),
-                  /** −1 = every column uses dummy slots (no “live” replacement column). */
-                  cursor: -1,
-              }
+                slots: buildDummyHistorySlots(),
+                /** −1 = every column uses dummy slots (no “live” replacement column). */
+                cursor: -1,
+            }
             : { slots: Array.from({ length: BAR_COUNT }, () => null), cursor: 0 },
     );
 
@@ -347,14 +345,24 @@ export default function MarketPulseTmvHistory({
             const delay = Math.max(1, SLOT_MS - (Date.now() % SLOT_MS));
             timeoutRef.current = setTimeout(() => {
                 const snap = lastRef.current;
+                const entry = {
+                    ...snap,
+                    capturedAt: new Date().toISOString(),
+                    slotStartMs: Math.floor(Date.now() / SLOT_MS) * SLOT_MS,
+                };
                 setHistory((prev) => {
+                    // Completed a full row (0…39) — clear and start a new cycle at bar 0.
+                    if (prev.cursor === BAR_COUNT - 1) {
+                        const nextSlots: (MarketPulseTmvHistorySnapshot | null)[] = Array.from(
+                            { length: BAR_COUNT },
+                            () => null,
+                        );
+                        nextSlots[0] = entry;
+                        return { slots: nextSlots, cursor: 1 };
+                    }
                     const nextSlots = [...prev.slots];
-                    nextSlots[prev.cursor] = {
-                        ...snap,
-                        capturedAt: new Date().toISOString(),
-                        slotStartMs: Math.floor(Date.now() / SLOT_MS) * SLOT_MS,
-                    };
-                    return { slots: nextSlots, cursor: (prev.cursor + 1) % BAR_COUNT };
+                    nextSlots[prev.cursor] = entry;
+                    return { slots: nextSlots, cursor: prev.cursor + 1 };
                 });
                 setAxisNowMs(Date.now());
                 arm();
@@ -424,7 +432,7 @@ export default function MarketPulseTmvHistory({
         const filled = countFilledBarsFromLeft(activeHistory.slots);
         const rightSlotStart = Math.floor(now / SLOT_MS) * SLOT_MS;
         const map = new Map<number, string>();
-        for (let i = 0; i < BAR_COUNT; i += 4) {
+        for (const i of TIME_AXIS_LABEL_STARTS) {
             if (filled < i + 1) continue;
             const slotStartMs = rightSlotStart - (BAR_COUNT - 1 - i) * SLOT_MS;
             map.set(i, formatMarketPulseAxisTime(slotStartMs, timeZone));
@@ -444,7 +452,6 @@ export default function MarketPulseTmvHistory({
         >
             <MetricRow
                 label="Trend"
-                barVariant="tm"
                 values={trendValues}
                 liveScore={trend}
                 liveIndex={historyLiveColumnIndex}
@@ -453,7 +460,6 @@ export default function MarketPulseTmvHistory({
             />
             <MetricRow
                 label="Momentum"
-                barVariant="tm"
                 values={momentumValues}
                 liveScore={momentum}
                 liveIndex={historyLiveColumnIndex}
@@ -463,7 +469,6 @@ export default function MarketPulseTmvHistory({
             <div className="flex w-full min-w-0 flex-col gap-3">
                 <MetricRow
                     label="Volatility"
-                    barVariant="vol"
                     values={volatilityValues}
                     liveScore={volatility}
                     liveIndex={historyLiveColumnIndex}

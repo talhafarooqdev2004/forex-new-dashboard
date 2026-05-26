@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { io } from "socket.io-client";
 
 import styles from "./FxAnalyzerPro.module.scss";
@@ -13,7 +13,8 @@ import DynamicTableDisplay from "@/components/composed/dynamic-table/DynamicTabl
 import BiasIcon from "@/components/composed/BiasIcon";
 import Container from "@/components/ui/layout/Container";
 import PrimaryCard from "@/components/composed/PrimaryCard";
-import { apiConfig } from "@/services/api.config";
+import FxAnalyzerProPageSkeleton from "./FxAnalyzerProPageSkeleton";
+import { apiConfig, fetchAPI } from "@/services/api.config";
 import { dynamicTableService, DynamicTable, TableColumn, TableRow } from "@/services/dynamicTable.service";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -33,7 +34,13 @@ import {
 import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 import { FX_ANALYZER_DYNAMIC_TABLE_IDS } from "@/lib/fxAnalyzerTableIds";
 import type { FxGaugeZone } from "@/lib/gaugeZonesFromConfigurations";
-import { fxAnalyzerDiscreteNeedleRotationDeg, zoneColorForConfiguredScore } from "@/lib/needleAngleForConfiguredZones";
+import {
+    fxAnalyzerDiscreteNeedleRotationDeg,
+    gaugeZoneNameForConfiguredScore,
+    zoneColorForConfiguredScore,
+} from "@/lib/needleAngleForConfiguredZones";
+import type { FxAnalyzerScoreGaugeType } from "@/lib/fxAnalyzerGaugeDefaults";
+import { riskModeBiasLabelFromRawScore, riskModeBiasToSentiment } from "@/lib/riskModeGauge";
 
 const CURRENCIES = ["USD", "GBP", "EUR", "AUD", "CAD", "NZD", "CHF"];
 const shortDarkBgColor = GAUGE_SIGNAL_COLORS.sell;
@@ -502,6 +509,8 @@ function getCurrencyStrengthStyle(score: number | null): { fillPercent: number; 
     return { fillPercent, color, cursorPercent: fillPercent };
 }
 
+const SCORE_BIAS_CLASS = styles.fxAnalyzerPro__scoreBias;
+
 function NetScoreSignal({ netBias, netScore, isDark }: { netBias: string | null; netScore: number | null; isDark: boolean }) {
     const hasBiasText = Boolean(netBias?.trim());
     const label =
@@ -522,7 +531,7 @@ function NetScoreSignal({ netBias, netScore, isDark }: { netBias: string | null;
 
     return (
         <div className="flex flex-nowrap items-center justify-center gap-3 whitespace-nowrap">
-            <span className="font-medium" style={{ color }}>
+            <span className={SCORE_BIAS_CLASS} style={{ color }}>
                 {label}
             </span>
             {netScore !== null || hasBiasText ? <BiasIcon sentiment={iconBias} /> : null}
@@ -574,16 +583,33 @@ function FxCurrencyStanceBlock({ legs, isDark }: { legs: { currency: string; cen
     );
 }
 
-function ScoreSignal({ score, riskMode = false, isDark }: { score: number | null; riskMode?: boolean; isDark: boolean }) {
+function ScoreSignal({
+    score,
+    riskMode = false,
+    isDark,
+    gaugeZones,
+}: {
+    score: number | null;
+    riskMode?: boolean;
+    isDark: boolean;
+    gaugeZones?: readonly FxGaugeZone[];
+}) {
     const bias = biasFromScore(score);
-    const label = riskMode && score !== null ? (score > 0 ? "Risk On" : score < 0 ? "Risk Off" : "Neutral") : bias;
+    const riskLabel = riskMode ? riskModeBiasLabelFromRawScore(score) : null;
+    const zoneLabel = !riskMode && gaugeZones?.length ? gaugeZoneNameForConfiguredScore(score, [...gaugeZones]) : null;
+    const label = riskLabel ?? zoneLabel ?? (score === null ? "N/A" : bias);
+    const displayBias = riskMode && riskLabel && riskLabel !== "N/A" ? riskModeBiasToSentiment(riskLabel) : bias;
+    const color =
+        riskMode && riskLabel && riskLabel !== "N/A"
+            ? biasColor(displayBias, isDark)
+            : fxAnalyzerLabelZoneColor(label, isDark) ?? biasColor(displayBias, isDark);
 
     return (
         <div className="flex flex-nowrap items-center justify-center gap-3 whitespace-nowrap">
-            <span className="font-medium" style={{ color: biasColor(bias, isDark) }}>
-                {score === null ? "N/A" : label}
+            <span className={SCORE_BIAS_CLASS} style={{ color }}>
+                {label}
             </span>
-            {score !== null ? <BiasIcon sentiment={bias} /> : null}
+            {score !== null ? <BiasIcon sentiment={displayBias} /> : null}
         </div>
     );
 }
@@ -629,6 +655,8 @@ function FxEdgeGauge({
                 gaugeZones={arcZones}
                 customLeftLabel="Sell"
                 customRightLabel="Buy"
+                customLabelFontSize={big ? 8.5 : 11.5}
+                customLabelDy={big ? 0 : 2}
                 renderIndicator={({ rotation: rot, transition }) => (
                     <SeasonalGaugeNeedle
                         rotationDeg={rot}
@@ -669,6 +697,8 @@ export default function FXAnalyzerProClient({
     const [tables, setTables] = useState<TableMap>(() => initialFxAnalyzerTableMap(initialTables));
     const [selectedPairName, setSelectedPairName] = useState<string | null>(null);
     const [htmlHasDarkClass, setHtmlHasDarkClass] = useState(false);
+    const [bootstrapping, setBootstrapping] = useState(true);
+    const initialLoadDoneRef = useRef(false);
 
     useLayoutEffect(() => {
         const sync = () => setHtmlHasDarkClass(document.documentElement.classList.contains("dark"));
@@ -682,10 +712,16 @@ export default function FXAnalyzerProClient({
 
     const trackedTableIds = useMemo(() => [...FX_ANALYZER_DYNAMIC_TABLE_IDS] as string[], []);
 
-    const loadTables = useCallback(async () => {
+    const loadTables = useCallback(async (options?: { syncFromSheets?: boolean }) => {
         const ids = [...FX_ANALYZER_DYNAMIC_TABLE_IDS];
 
         try {
+            if (options?.syncFromSheets) {
+                await fetchAPI(`${apiConfig.baseURL}/api/v1/admin/fx-analyzer-technical/sync-from-sheets`, {
+                    method: "POST",
+                }).catch(() => null);
+            }
+
             const responses = await Promise.all(
                 ids.map(async (identifier) => ({
                     identifier,
@@ -701,11 +737,15 @@ export default function FXAnalyzerProClient({
             );
         } catch (error) {
             console.error("Failed to load FX analyzer tables:", error);
+        } finally {
+            initialLoadDoneRef.current = true;
+            setBootstrapping(false);
         }
     }, []);
 
     useEffect(() => {
-        void loadTables();
+        const syncFromSheets = !initialLoadDoneRef.current;
+        void loadTables({ syncFromSheets });
     }, [loadTables, refreshTrigger]);
 
     useDashboardBackendPoll(loadTables);
@@ -768,14 +808,22 @@ export default function FXAnalyzerProClient({
 
     const scoreRows = displayPair
         ? [
-            ["Fundamental Score", displayPair.fundamentalScore, false] as const,
-            ["Seasonality", displayPair.seasonalScore, false] as const,
-            ["COT Score", displayPair.cotScore, false] as const,
-            ["Trend Score", displayPair.trendScore, false] as const,
-            ["Sentiment Score", displayPair.sentimentScore, false] as const,
-            ["Risk Meter", displayPair.riskMeter, true] as const,
+            ["Fundamental Score", displayPair.fundamentalScore, false, "fundamental"] as const,
+            ["Seasonality", displayPair.seasonalScore, false, "gauge"] as const,
+            ["COT Score", displayPair.cotScore, false, "gauge"] as const,
+            ["Trend Score", displayPair.trendScore, false, "trend"] as const,
+            ["Sentiment Score", displayPair.sentimentScore, false, "sentiment"] as const,
+            ["Risk Meter", displayPair.riskMeter, true, null] as const,
         ]
         : [];
+
+    if (bootstrapping) {
+        return (
+            <Container>
+                <FxAnalyzerProPageSkeleton />
+            </Container>
+        );
+    }
 
     return (
         <Container>
@@ -915,43 +963,53 @@ export default function FXAnalyzerProClient({
                                                 }}
                                             >
                                                 <tbody>
-                                                {scoreRows.map(([label, score, isRisk]) => (
-                                                    <tr key={label} className="bg-darkGrey">
-                                                        {scoreCell(label, {
+                                                    {scoreRows.map(([rowLabel, score, isRisk, zoneType]) => (
+                                                        <tr key={rowLabel} className="bg-darkGrey">
+                                                            {scoreCell(rowLabel, {
+                                                                width: "38%",
+                                                                fontWeight: 500,
+                                                                textAlign: "left",
+                                                            })}
+                                                            {scoreCell(formatScore(score), { width: "24%", fontWeight: 500 })}
+                                                            {scoreCell(
+                                                                <ScoreSignal
+                                                                    score={score}
+                                                                    riskMode={isRisk}
+                                                                    isDark={gaugePaletteDark}
+                                                                    gaugeZones={
+                                                                        zoneType ? zonesByType[zoneType as FxAnalyzerScoreGaugeType] : undefined
+                                                                    }
+                                                                />,
+                                                                {
+                                                                    width: "38%",
+                                                                    minWidth: 0,
+                                                                    fontWeight: 500,
+                                                                    whiteSpace: "nowrap",
+                                                                },
+                                                            )}
+                                                        </tr>
+                                                    ))}
+                                                    <tr className="bg-darkGrey">
+                                                        {scoreCell("Net Score", {
                                                             width: "38%",
                                                             fontWeight: 500,
                                                             textAlign: "left",
                                                         })}
-                                                        {scoreCell(formatScore(score), { width: "24%", fontWeight: 500 })}
-                                                        {scoreCell(<ScoreSignal score={score} riskMode={isRisk} isDark={gaugePaletteDark} />, {
-                                                            width: "38%",
-                                                            minWidth: 0,
-                                                            fontWeight: 500,
-                                                            whiteSpace: "nowrap",
-                                                        })}
+                                                        {scoreCell(formatScore(displayPair.netScore), { width: "24%", fontWeight: 500 })}
+                                                        {scoreCell(
+                                                            <NetScoreSignal
+                                                                netBias={displayPair.netBias}
+                                                                netScore={displayPair.netScore}
+                                                                isDark={gaugePaletteDark}
+                                                            />,
+                                                            {
+                                                                width: "38%",
+                                                                minWidth: 0,
+                                                                fontWeight: 500,
+                                                                whiteSpace: "nowrap",
+                                                            },
+                                                        )}
                                                     </tr>
-                                                ))}
-                                                <tr className="bg-darkGrey">
-                                                    {scoreCell("Net Score", {
-                                                        width: "38%",
-                                                        fontWeight: 500,
-                                                        textAlign: "left",
-                                                    })}
-                                                    {scoreCell(formatScore(displayPair.netScore), { width: "24%", fontWeight: 500 })}
-                                                    {scoreCell(
-                                                        <NetScoreSignal
-                                                            netBias={displayPair.netBias}
-                                                            netScore={displayPair.netScore}
-                                                            isDark={gaugePaletteDark}
-                                                        />,
-                                                        {
-                                                            width: "38%",
-                                                            minWidth: 0,
-                                                            fontWeight: 500,
-                                                            whiteSpace: "nowrap",
-                                                        },
-                                                    )}
-                                                </tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -1018,8 +1076,8 @@ export default function FXAnalyzerProClient({
                                                             rawScore !== null && Number.isFinite(rawScore) && rawScore < 0
                                                                 ? { color: shortDarkBgColor }
                                                                 : rawScore !== null && Number.isFinite(rawScore) && rawScore > 0
-                                                                  ? { color: longDarkBgColor }
-                                                                  : undefined
+                                                                    ? { color: longDarkBgColor }
+                                                                    : undefined
                                                         }
                                                     >
                                                         {rawScore ?? "N/A"}
@@ -1111,6 +1169,12 @@ function PositionBar({ currency, data }: { currency: string; data: { long: numbe
     );
 }
 
+function formatTradeFrameLabel(timeFrame: string): string {
+    const m = /^(\d+)\s*H$/i.exec(timeFrame.trim());
+    if (m) return `${m[1]} H`;
+    return timeFrame;
+}
+
 function TechnicalTrendsPreview({ rows, isDark }: { rows: TechnicalTrendData[]; isDark: boolean }) {
     const fallback = [
         { timeFrame: "1H", trend: "N/A", momentum: "N/A", volatility: "N/A" },
@@ -1148,7 +1212,7 @@ function TechnicalTrendsPreview({ rows, isDark }: { rows: TechnicalTrendData[]; 
                                             fontWeight: 600,
                                         }}
                                     >
-                                        {value}
+                                        {index === 0 ? formatTradeFrameLabel(String(value)) : value}
                                     </td>
                                 );
                             })}

@@ -1,8 +1,4 @@
-import { Suspense } from "react";
-
 import CurrencyFundamentalsClientPage from "@/components/features/pages/CurrencyFundamentalsClientPage";
-import CurrencyFundamentalsPageSkeleton from "./CurrencyFundamentalsPageSkeleton";
-import Container from "@/components/ui/layout/Container";
 import { pageSeo } from "@/lib/seo";
 import { serverFetchDynamicTablesByIdentifiers } from "@/lib/serverAdminApi";
 
@@ -21,15 +17,5 @@ async function CurrencyFundamentalsWithData() {
 }
 
 export default function CurrencyFundamentalsPage() {
-    return (
-        <Suspense
-            fallback={
-                <Container className="relative">
-                    <CurrencyFundamentalsPageSkeleton />
-                </Container>
-            }
-        >
-            <CurrencyFundamentalsWithData />
-        </Suspense>
-    );
+    return <CurrencyFundamentalsWithData />;
 }

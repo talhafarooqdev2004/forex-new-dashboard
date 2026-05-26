@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -14,7 +13,6 @@ import { DEFAULT_POST_LOGIN_PATH, resolvePostLoginPath } from "@/lib/postLoginRe
 
 export default function AdminLoginPageClient() {
     const { adminLogin, ready } = useAuth();
-    const router = useRouter();
     const [next, setNext] = useState(DEFAULT_POST_LOGIN_PATH);
 
     useEffect(() => {
@@ -33,8 +31,7 @@ export default function AdminLoginPageClient() {
         try {
             await adminLogin(email, password);
             toast.success("Signed in as administrator");
-            router.replace(resolvePostLoginPath(next));
-            router.refresh();
+            window.location.assign(resolvePostLoginPath(next));
         } catch (err) {
             toast.error(err instanceof Error ? err.message : "Admin login failed");
         } finally {

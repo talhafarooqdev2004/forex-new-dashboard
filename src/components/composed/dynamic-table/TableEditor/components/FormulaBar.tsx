@@ -1,6 +1,6 @@
 import React from 'react';
 import { TableRow, TableColumn } from '../types';
-import { getCellReference } from '../utils/tableUtils';
+import { getCellEditorString, getCellReference } from '../utils/tableUtils';
 import { getCellDisplayValue } from '../utils/formulaUtils';
 import styles from '../../TableEditor.module.scss';
 
@@ -36,6 +36,14 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
     applyFormulaToColumn
 }) => {
     const isSyncing = selectedCell ? syncingCells[`${selectedCell.rowIndex}-${selectedCell.colIndex}`] : false;
+    const selectedCellData = selectedCell
+        ? rows[selectedCell.rowIndex]?.cells[selectedCell.colIndex]
+        : undefined;
+    const barValue = isEditingFormula
+        ? formulaBarValue
+        : selectedCell
+            ? getCellEditorString(selectedCellData)
+            : formulaBarValue;
 
     return (
         <div className={styles.formulaBar}>
@@ -52,9 +60,15 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
                 ref={formulaBarInputRef}
                 type="text"
                 className={styles.formulaBarInput}
-                value={formulaBarValue}
+                value={barValue}
                 onChange={(e) => handleFormulaBarChange(e.target.value)}
-                onFocus={() => setIsEditingFormula(true)}
+                onFocus={() => {
+                    if (selectedCell) {
+                        handleFormulaBarChange(getCellEditorString(selectedCellData));
+                    }
+                    setIsEditingFormula(true);
+                }}
+                onBlur={() => setIsEditingFormula(false)}
                 onKeyDown={(e) => {
                     handleFormulaBarKeyDown(e);
                     if (!isEditingFormula && selectedCell && !e.shiftKey && !e.ctrlKey && !e.metaKey) {

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { PropsWithChildren } from "react";
 import GuageChart from "@/components/chart/GuageChart";
 import SeasonalGaugeNeedle from "@/components/chart/SeasonalGaugeNeedle";
-import { getCurrencyFlagEmoji } from "@/lib/currencyFlags";
+import CurrencyFlag from "@/components/ui/CurrencyFlag";
 import {
     DARK_GAUGE_ZONES,
     getRotationForScore,
@@ -66,9 +66,7 @@ function SeasonalTrend({
             </span>
 
             <span className="text-base font-normal flex items-center gap-2.5 text-foreground">
-                <span className="text-base leading-none" aria-hidden>
-                    {getCurrencyFlagEmoji(currency)}
-                </span>
+                <CurrencyFlag currency={currency} size={13} title={currency} />
                 {currency}
             </span>
         </div>

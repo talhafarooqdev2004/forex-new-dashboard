@@ -4,19 +4,22 @@ import GuageChart from "@/components/chart/GuageChart";
 import SeasonalGaugeNeedle from "@/components/chart/SeasonalGaugeNeedle";
 import type { FxTmvGaugeZoneList } from "@/lib/fxTmvGaugeZones";
 
-/** Seven arc segments on 0–100 (matches `GuageChart` seven-path layout). */
+/**
+ * Seven arc segments on 0–100 — same hues as Fundamental / TMV Risk Mode
+ * (3 reds left, yellow center, 3 distinct greens right: #2FE24B, #25B73C, #05871A).
+ */
 const RISK_MODE_GAUGE_ZONES: FxTmvGaugeZoneList = [
-    { name: "High risk", minValue: 0, maxValue: 11.67, color: "#D30000" },
-    { name: "Elevated risk", minValue: 11.67, maxValue: 23.33, color: "#FF0000" },
-    { name: "Moderate risk", minValue: 23.33, maxValue: 35, color: "#FF8C8C" },
-    { name: "Caution", minValue: 35, maxValue: 50, color: "#FFFF00" },
-    { name: "Neutral band", minValue: 50, maxValue: 65, color: "#2FE24B" },
-    { name: "Favorable", minValue: 65, maxValue: 82.5, color: "#2FE24B" },
-    { name: "Strong", minValue: 82.5, maxValue: 100, color: "#05871A" },
+    { name: "Strong Off", minValue: 0, maxValue: 14.29, color: "#D30000" },
+    { name: "Off", minValue: 14.29, maxValue: 28.57, color: "#FF0000" },
+    { name: "Weak Off", minValue: 28.57, maxValue: 42.86, color: "#FF8C8C" },
+    { name: "Neutral", minValue: 42.86, maxValue: 57.14, color: "#FFFF00" },
+    { name: "Weak On", minValue: 57.14, maxValue: 71.43, color: "#2FE24B" },
+    { name: "On", minValue: 71.43, maxValue: 85.71, color: "#25B73C" },
+    { name: "Strong On", minValue: 85.71, maxValue: 100, color: "#05871A" },
 ];
 
 /**
- * Needle angles per band (pivot `24.377 13.7272` in `SeasonalGaugeNeedle`), low score (On / risk) → left.
+ * Needle angles per band (pivot `24.377 13.7272` in `SeasonalGaugeNeedle`), low score (Off / red) → left.
  * Order follows zones sorted ascending by `minValue`.
  */
 const RISK_MODE_NEEDLE_ROT_DEG = [
@@ -42,7 +45,7 @@ function riskModeZoneIndex(rawScore: number): number {
 }
 
 /** Discrete needle angle per colored band (Edge Tools Risk Mode 0–100). */
-function getRiskModeNeedleRotationDeg(rawScore: number): number {
+export function getRiskModeNeedleRotationDeg(rawScore: number): number {
     const idx = riskModeZoneIndex(rawScore);
     return RISK_MODE_NEEDLE_ROT_DEG[Math.min(Math.max(idx, 0), RISK_MODE_NEEDLE_ROT_DEG.length - 1)]!;
 }
@@ -56,12 +59,14 @@ type RiskModeSheetGaugeProps = {
     isDark: boolean;
     /** Wrapper around the chart (width / alignment). */
     className?: string;
+    /** SVG x for the “On” label (default 126; Edge Tools uses 146). */
+    onLabelX?: number;
 };
 
 /**
  * Risk Mode sheet **0–100**: seven arc bands; needle uses discrete rotation per band (pivot in `SeasonalGaugeNeedle`).
  */
-export default function RiskModeSheetGauge({ riskModeScore, isDark, className }: RiskModeSheetGaugeProps) {
+export default function RiskModeSheetGauge({ riskModeScore, isDark, className, onLabelX = 126 }: RiskModeSheetGaugeProps) {
     const rotation = getRiskModeNeedleRotationDeg(riskModeScore);
     const gaugeZones = riskModeGaugeZonesForTheme(isDark);
 
@@ -74,8 +79,10 @@ export default function RiskModeSheetGauge({ riskModeScore, isDark, className }:
                     rotation,
                 }}
                 gaugeZones={gaugeZones}
-                customLeftLabel="On"
-                customRightLabel="Off"
+                customLeftLabel="Off"
+                customRightLabel="On"
+                customRightLabelX={onLabelX}
+                customRightLabelTextAnchor="middle"
                 renderIndicator={({ rotation: rot, transition }) => (
                     <SeasonalGaugeNeedle
                         rotationDeg={rot}

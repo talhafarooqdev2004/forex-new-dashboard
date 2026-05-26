@@ -60,8 +60,65 @@ function formatSignedValue(n: number): string {
     return String(n);
 }
 
+/** Currency / asset label — 5th column from the end (sheet col Z when `T1:AA18` + `AB` + `AF` + `AG`). */
+export function resolveCurrencyPairSentimentSymbolColumn(columns: TableColumn[]): TableColumn | null {
+    if (columns.length < 5) return null;
+    return columns[columns.length - 5] ?? null;
+}
+
+/** Numeric change score (sheet col AA) — 4th from end; was the last column before AB/AF/AG were appended. */
+export function resolveCurrencyPairSentimentScoreColumn(columns: TableColumn[]): TableColumn | null {
+    if (columns.length >= 5) {
+        return columns[columns.length - 4] ?? null;
+    }
+    if (columns.length >= 1) {
+        return columns[columns.length - 1] ?? null;
+    }
+    return null;
+}
+
+/** Weekly change % (COT bar chart) — always first column in merged grid (sheet position change %). */
+export function resolveCurrencyPairSentimentWeeklyChangeColumn(columns: TableColumn[]): TableColumn | null {
+    if (columns.length < 1) return null;
+    return columns[0] ?? null;
+}
+
+/** Current column (sheet col AB) — 3rd from end. */
+export function resolveCurrencyPairSentimentCurrentColumn(columns: TableColumn[]): TableColumn | null {
+    if (columns.length >= 5) {
+        return columns[columns.length - 3] ?? null;
+    }
+    if (columns.length >= 1) {
+        return columns[0] ?? null;
+    }
+    return null;
+}
+
+/** Column map for merged `T1:AA18` + `AB` + `AF` + `AG` (and legacy 3+ col tables). */
+export function getCurrencyPairSentimentColumnMap(columns: TableColumn[]): {
+    symbol: TableColumn;
+    changeInNcomm: TableColumn;
+    positionChangePct: TableColumn;
+} | null {
+    if (columns.length >= 5) {
+        const symbol = columns[columns.length - 5];
+        const changeInNcomm = columns[columns.length - 4];
+        const positionChangePct = columns[columns.length - 3];
+        if (!symbol || !changeInNcomm || !positionChangePct) return null;
+        return { symbol, changeInNcomm, positionChangePct };
+    }
+    if (columns.length >= 3) {
+        const symbol = columns[columns.length - 2];
+        const changeInNcomm = columns[columns.length - 1];
+        const positionChangePct = columns[0];
+        if (!symbol || !changeInNcomm || !positionChangePct) return null;
+        return { symbol, changeInNcomm, positionChangePct };
+    }
+    return null;
+}
+
 /**
- * Currency Pair Sentiment: 2nd-to-last column = name, last column = numeric sentiment.
+ * Currency Pair Sentiment → top bullish / bearish: name = 5th-to-last; score = 4th-to-last (Change Position).
  */
 export function buildCurrencyPairSentimentLists(table: DynamicTable): {
     bullish: CotSentimentSideRow[];
@@ -72,8 +129,11 @@ export function buildCurrencyPairSentimentLists(table: DynamicTable): {
         return { bullish: [], bearish: [] };
     }
 
-    const nameColumn = columns[columns.length - 2];
-    const valueColumn = columns[columns.length - 1];
+    const nameColumn = resolveCurrencyPairSentimentSymbolColumn(columns);
+    const valueColumn = resolveCurrencyPairSentimentScoreColumn(columns);
+    if (!nameColumn || !valueColumn) {
+        return { bullish: [], bearish: [] };
+    }
 
     const bullishCandidates: CotSentimentSideRow[] = [];
     const bearishCandidates: CotSentimentSideRow[] = [];
@@ -171,108 +231,64 @@ export function buildPairBiasRowsFromCotTable(table: DynamicTable): CotPairBiasR
 }
 
 export type ForexPositioningRow = {
-    rank: number;
-    currency: string;
-    positionDisplay: string;
-    prevDisplay: string;
-    sentiment: "Bullish" | "Bearish";
+    symbol: string;
+    previousDisplay: string;
+    currentDisplay: string;
+    changePositionDisplay: string;
+    sentiment: "Bullish" | "Bearish" | "Neutral";
 };
 
-/** Format net position for table cells (values assumed in contract “K” units like the legacy mock). */
-function formatOutlookContractsK(n: number): string {
-    const rounded = Math.round(n);
-    if (rounded === 0) return "0K";
-    const sign = rounded > 0 ? "+" : "-";
-    return `${sign}${Math.abs(rounded)}K`;
+function formatOutlookCellDisplay(raw: string | null | undefined): string {
+    const s = raw?.trim();
+    return s && s.length > 0 ? s : "—";
 }
 
 /**
- * COT Raw Data — Current Forex Positioning (sorted by `column_index`):
- *
- * **6+ columns:**
- * - **Position** = col2 − col4 (indices `1` and `3`).
- * - **Prev** from col6 (index `5`): if that score is **negative**, `Prev = Position + col6`; if **positive**,
- *   `Prev = Position − col6`; if zero or empty, `Prev = Position` (or col6 omitted → `Prev = Position`).
- *
- * **5 columns:** **Position** = col2 − col4; **Prev** = col5 − col3 (same rule as before when col5 present; else Position − col3).
- *
- * **Legacy 3 columns:** col2 = position; **Prev** = `position − col3`.
- *
- * Rows with net position 0 are omitted. Sentiment from sign of net position.
+ * Currency Pair Sentiment → Current Forex Positioning:
+ * - **Symbols** = 5th-to-last column (currency name)
+ * - **Change Position** = 4th-to-last column
+ * - **Current** = 3rd-to-last column
+ * - **Previous** = 2nd-to-last column
+ * - **Sentiment** = last column (Bullish / Bearish / Neutral label)
  */
-export function buildForexPositioningFromCotRawTable(table: DynamicTable): ForexPositioningRow[] {
+export function buildForexPositioningFromCurrencyPairSentimentTable(table: DynamicTable): ForexPositioningRow[] {
     const columns = getSortedColumns(table);
-    if (columns.length < 3) {
+    if (columns.length < 5) {
         return [];
     }
 
-    const currencyCol = columns[0];
-    const positionCol = columns[1];
-    const prevInputCol = columns[2];
-    const legacyMode = columns.length < 5;
-    const sixthColMode = columns.length >= 6;
-    const subtractCol = legacyMode ? null : columns[3];
-    /** Used only when there are exactly five data columns (no 6th-col Prev rule). */
-    const prevBaseCol = !legacyMode && !sixthColMode ? columns[4] : null;
-    const sixthAdjCol = sixthColMode ? columns[5] : null;
+    const symbolCol = resolveCurrencyPairSentimentSymbolColumn(columns);
+    if (!symbolCol) return [];
+
+    const changeCol = columns[columns.length - 4]!;
+    const currentCol = columns[columns.length - 3]!;
+    const previousCol = columns[columns.length - 2]!;
+    const sentimentCol = columns[columns.length - 1]!;
 
     const out: ForexPositioningRow[] = [];
-    let rank = 0;
 
     for (const row of getSortedRows(table)) {
-        const currency = extractCellValue(row, currencyCol.id);
-        if (!currency?.trim()) continue;
+        const symbol = extractCellValue(row, symbolCol.id);
+        if (!symbol?.trim()) continue;
 
-        const positionRaw = extractCellValue(row, positionCol.id);
-        const prevInputRaw = extractCellValue(row, prevInputCol.id);
-        const prevInput = parseNumericValue(prevInputRaw);
+        const sentimentRaw = extractCellValue(row, sentimentCol.id);
+        if (!sentimentRaw?.trim()) continue;
 
-        let current: number | null;
-        if (legacyMode) {
-            current = parseNumericValue(positionRaw);
-        } else {
-            const v2 = parseNumericValue(positionRaw);
-            const v4 = parseNumericValue(extractCellValue(row, subtractCol!.id));
-            if (v2 === null && v4 === null) continue;
-            current = (v2 ?? 0) - (v4 ?? 0);
-        }
-
-        if (current === null || current === 0) continue;
-
-        let prevComputed: number;
-        if (legacyMode) {
-            prevComputed = prevInput === null ? current : current - prevInput;
-        } else if (sixthColMode) {
-            const c6 = parseNumericValue(extractCellValue(row, sixthAdjCol!.id));
-            if (c6 === null) {
-                prevComputed = current;
-            } else if (c6 < 0) {
-                prevComputed = current + c6;
-            } else if (c6 > 0) {
-                prevComputed = current - c6;
-            } else {
-                prevComputed = current;
-            }
-        } else {
-            const prevBase = parseNumericValue(extractCellValue(row, prevBaseCol!.id));
-            if (prevBase !== null) {
-                prevComputed = prevInput === null ? prevBase : prevBase - prevInput;
-            } else {
-                prevComputed = prevInput === null ? current : current - prevInput;
-            }
-        }
-
-        rank += 1;
         out.push({
-            rank,
-            currency: currency.trim().toUpperCase(),
-            positionDisplay: formatOutlookContractsK(current),
-            prevDisplay: formatOutlookContractsK(prevComputed),
-            sentiment: current > 0 ? "Bullish" : "Bearish",
+            symbol: symbol.trim().toUpperCase(),
+            previousDisplay: formatOutlookCellDisplay(extractCellValue(row, previousCol.id)),
+            currentDisplay: formatOutlookCellDisplay(extractCellValue(row, currentCol.id)),
+            changePositionDisplay: formatOutlookCellDisplay(extractCellValue(row, changeCol.id)),
+            sentiment: normalizeBiasLabel(sentimentRaw),
         });
     }
 
     return out;
+}
+
+/** @deprecated Use `buildForexPositioningFromCurrencyPairSentimentTable`. */
+export function buildForexPositioningFromCotRawTable(table: DynamicTable): ForexPositioningRow[] {
+    return buildForexPositioningFromCurrencyPairSentimentTable(table);
 }
 
 /** True when Google Sheets returned no usable value (empty, dash, em dash). */

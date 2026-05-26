@@ -202,7 +202,7 @@ export default function FundamentalDashboardClientPage({
 
     return (
         <Container className="flex flex-col gap-8">
-            <div className="grid grid-cols-2 items-stretch gap-8 3xl:grid-cols-3">
+            <div className="grid grid-cols-2 items-stretch gap-8">
                 <FundamentalPageSection title="Fundamental Currency Strength Index" alignStart sectionClassName="pb-[30px]">
                     <FundamentalCurrencyStrengthIndex strengthRows={strengthRows} riskModeScore={riskModeScore} isDark={gaugeDark} />
                 </FundamentalPageSection>

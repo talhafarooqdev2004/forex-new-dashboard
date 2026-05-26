@@ -6,6 +6,18 @@ const nextConfig: NextConfig = {
     turbopack: {
         root: path.join(__dirname),
     },
+    /**
+     * Lets nginx (and similar proxies) stream RSC + Suspense instead of buffering the full HTML
+     * before sending — required for route skeletons on VPS production.
+     */
+    async headers() {
+        return [
+            {
+                source: "/:path*",
+                headers: [{ key: "X-Accel-Buffering", value: "no" }],
+            },
+        ];
+    },
 };
 
 export default nextConfig;

@@ -38,6 +38,7 @@ import {
     COT_DEFAULT_MARKET_COMMENTARY,
     putAdminAppConfig,
 } from "@/lib/cotPageAppConfig";
+import styles from "./CotDataAnalysisClientPage.module.scss";
 
 const CURRENCY_PAIR_SENTIMENT_ID = "currency_pair_sentiment";
 const COT_SENTIMENT_NET_SCORE_ID = "cot_sentiment_net_score";
@@ -340,19 +341,31 @@ export default function CotDataAnalysisClientPage({
 
     return (
         <Container>
-            <div className="flex min-w-0 flex-row items-stretch gap-6">
-                <div className="flex min-w-0 flex-[60_1_0%] flex-col gap-6 self-stretch">
-                    <Section className="flex min-h-[min(42vh,440px)] flex-1 flex-col">
+            {/*
+              Layout (design reference):
+              ┌──────────────────────────────┬─────────────┐
+              │ Overall │ Bullish/Bearish  │  Pair Bias  │
+              ├──────────────────────────────┤  (full      │
+              │ Current Forex Positioning    │   height)   │
+              └──────────────────────────────┴─────────────┘
+            */}
+            <div className="flex min-w-0 flex-col items-stretch gap-6 xl:flex-row">
+                {/* Left block shrinks; Pair Bias keeps natural table width on the right */}
+                <div className="flex min-w-0 flex-1 flex-col gap-6 self-stretch">
+                    <div
+                        className={`${styles.cotUpperSection} flex min-h-[min(360px,42vh)] min-w-0 flex-col gap-4 md:flex-row md:gap-6 lg:min-h-[min(400px,44vh)]`}
+                    >
+                        <Section className="flex min-h-[280px] min-w-0 flex-1 flex-col md:min-h-0">
                         <div className="flex min-h-0 flex-1 flex-col gap-2">
                             {/* Header row — same line as design reference */}
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                <span className="font-normal text-foreground text-base sm:text-lg">
+                                <span className={`${styles.cotOverallHeading} font-normal text-foreground text-base sm:text-lg`}>
                                     Overall Sentiment for
                                     {editingMonth && isAdmin && ready && token ? (
                                         <input
                                             ref={monthInputRef}
                                             type="text"
-                                            className="ml-1 inline-block min-w-[6rem] max-w-[14rem] align-baseline rounded border border-stroke bg-background py-0.5 pl-1.5 pr-1.5 text-base font-normal text-foreground sm:text-lg"
+                                            className={`${styles.cotOverallHeadingInput} ml-1 inline-block min-w-[6rem] max-w-[14rem] align-baseline rounded border border-stroke bg-background py-0.5 pl-1.5 pr-1.5 text-base font-normal text-foreground sm:text-lg`}
                                             value={draftMonth}
                                             onChange={(e) => setDraftMonth(e.target.value)}
                                             onBlur={() => void commitMonth()}
@@ -374,8 +387,8 @@ export default function CotDataAnalysisClientPage({
                                             <span
                                                 className={
                                                     isAdmin && ready && token
-                                                        ? "text-base sm:text-lg cursor-text rounded-sm px-0.5 hover:bg-white/5"
-                                                        : "text-base sm:text-lg"
+                                                        ? `${styles.cotOverallHeading} text-base sm:text-lg cursor-text rounded-sm px-0.5 hover:bg-white/5`
+                                                        : `${styles.cotOverallHeading} text-base sm:text-lg`
                                                 }
                                                 onDoubleClick={() => {
                                                     if (!ready || !isAdmin || !token) return;
@@ -387,11 +400,11 @@ export default function CotDataAnalysisClientPage({
                                             </span>
                                         </>
                                     )}
-                                    <span className="text-base sm:text-lg">:</span>
+                                    <span className={`${styles.cotOverallHeading} text-base sm:text-lg`}>:</span>
                                 </span>
                                 <span className="flex items-center gap-1">
                                     <span
-                                        className="text-base font-semibold sm:text-lg"
+                                        className={`${styles.cotOverallBias} text-base font-semibold sm:text-lg`}
                                         style={{ color: biasAccent.color }}
                                     >
                                         {biasDisplay}
@@ -399,6 +412,7 @@ export default function CotDataAnalysisClientPage({
                                     {biasAccent.showUpArrow ? (
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
+                                            className={styles.cotOverallArrow}
                                             width="23"
                                             height="23"
                                             viewBox="0 0 23 23"
@@ -451,7 +465,7 @@ export default function CotDataAnalysisClientPage({
                             {editingCommentary && isAdmin && ready && token ? (
                                 <textarea
                                     ref={commentaryRef}
-                                    className="mt-1 max-w-3xl w-full rounded-md border border-stroke bg-background px-2 py-1.5 text-sm leading-snug text-foreground"
+                                    className={`${styles.cotOverallCommentary} mt-1 max-w-3xl w-full rounded-md border border-stroke bg-background px-2 py-1.5 text-sm leading-snug text-foreground`}
                                     rows={4}
                                     value={draftCommentary}
                                     onChange={(e) => setDraftCommentary(e.target.value)}
@@ -467,7 +481,7 @@ export default function CotDataAnalysisClientPage({
                                 />
                             ) : (
                                 <p
-                                    className={`mt-1 max-w-3xl text-sm leading-snug text-[rgb(var(--secondary))] ${isAdmin && ready && token ? "cursor-text select-text rounded-sm" : ""
+                                    className={`${styles.cotOverallCommentary} mt-1 max-w-3xl text-sm leading-snug text-[rgb(var(--secondary))] ${isAdmin && ready && token ? "cursor-text select-text rounded-sm" : ""
                                         }`}
                                     onDoubleClick={() => {
                                         if (!ready || !isAdmin || !token) return;
@@ -480,21 +494,22 @@ export default function CotDataAnalysisClientPage({
                             )}
 
                             <div className="mt-3 flex flex-1 flex-col items-center justify-center border-t border-solid border-stroke/60 pt-4">
-                                <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-                                    <span className="text-3xl font-bold tabular-nums leading-none text-foreground">
-                                        {formatCotOverallRiskScoreDisplay(cotOverallRiskScore)}
-                                    </span>
+                                <div className="flex flex-col items-center gap-3">
                                     <RiskModeSheetGauge
                                         riskModeScore={mapCotOverallRiskScoreToGauge0100(cotOverallRiskScore)}
                                         isDark={isDarkMode}
+                                        onLabelX={146}
                                         className="flex w-[min(100%,220px)] max-w-[260px] shrink-0 justify-center"
                                     />
+                                    <span className="text-3xl font-bold tabular-nums leading-none text-foreground">
+                                        {formatCotOverallRiskScoreDisplay(cotOverallRiskScore)}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                    </Section>
+                        </Section>
 
-                    <div className="flex flex-wrap gap-6">
+                        <div className="flex min-h-[280px] min-w-0 flex-1 flex-col gap-4 md:min-h-0 md:gap-6">
                         <LabelSection
                             label="Bullish Sentiment"
                             icon={
@@ -516,12 +531,12 @@ export default function CotDataAnalysisClientPage({
                                 </svg>
                             }
                             padding={false}
-                            className="flex-1"
+                            className="flex min-h-0 w-full flex-1 flex-col"
                         >
-                            <div>
+                            <div className="flex flex-1 flex-col justify-center">
                                 {bullishCurrencies.length === 0 ? (
-                                    <div className="px-6 py-4 text-sm text-secondary">
-                                        No bullish rows (positive values in the last column of Currency Pair Sentiment).
+                                    <div className={`${styles.cotSentimentEmpty} px-6 py-4 text-sm text-secondary`}>
+                                        No bullish rows (positive values in the Change Position column of Currency Pair Sentiment).
                                     </div>
                                 ) : (
                                     bullishCurrencies.map((row, index) => (
@@ -530,10 +545,10 @@ export default function CotDataAnalysisClientPage({
                                             className={`py-3 ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
                                         >
                                             <div className="flex items-center justify-between px-6">
-                                                <span className="text-base font-semibold sm:text-lg">{row.currency}</span>
+                                                <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
                                                 <div className="flex items-center gap-2">
                                                     <Icon name="profit-icon.svg" width={11} height={11} />
-                                                    <span style={{ color: GAUGE_SIGNAL_COLORS.buy }}>{row.valueDisplay}</span>
+                                                    <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.buy }}>{row.valueDisplay}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -562,12 +577,12 @@ export default function CotDataAnalysisClientPage({
                                 </svg>
                             }
                             padding={false}
-                            className="flex-1"
+                            className="flex min-h-0 w-full flex-1 flex-col"
                         >
-                            <div>
+                            <div className="flex flex-1 flex-col justify-center">
                                 {bearishCurrencies.length === 0 ? (
-                                    <div className="px-6 py-4 text-sm text-secondary">
-                                        No bearish rows (negative values in the last column of Currency Pair Sentiment).
+                                    <div className={`${styles.cotSentimentEmpty} px-6 py-4 text-sm text-secondary`}>
+                                        No bearish rows (negative values in the Change Position column of Currency Pair Sentiment).
                                     </div>
                                 ) : (
                                     bearishCurrencies.map((row, index) => (
@@ -576,10 +591,10 @@ export default function CotDataAnalysisClientPage({
                                             className={`py-3 ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
                                         >
                                             <div className="flex items-center justify-between px-6">
-                                                <span className="text-base font-semibold sm:text-lg">{row.currency}</span>
+                                                <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
                                                 <div className="flex items-center gap-2">
                                                     <Icon name="loss-icon.svg" width={11} height={11} />
-                                                    <span style={{ color: GAUGE_SIGNAL_COLORS.sell }}>{row.valueDisplay}</span>
+                                                    <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.sell }}>{row.valueDisplay}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -587,14 +602,19 @@ export default function CotDataAnalysisClientPage({
                                 )}
                             </div>
                         </LabelSection>
+                        </div>
                     </div>
 
-                    <Section hasFlex={false} padding={false}>
+                    <Section hasFlex={false} padding={false} className="w-full">
                         <FundamentalOutlookTable refreshTrigger={refreshTrigger} />
                     </Section>
                 </div>
 
-                <Section hasFlex={false} padding={false} className="min-w-0 flex-[40_1_0%] self-stretch">
+                <Section
+                    hasFlex={false}
+                    padding={false}
+                    className="flex w-full shrink-0 flex-col self-stretch xl:w-max xl:min-w-[440px]"
+                >
                     <COTPairBiasTable rows={pairBiasRows} />
                 </Section>
             </div>

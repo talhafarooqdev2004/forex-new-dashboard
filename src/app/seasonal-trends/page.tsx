@@ -1,7 +1,3 @@
-import { Suspense } from "react";
-
-import Container from "@/components/ui/layout/Container";
-import SeasonalTrendsPageSkeleton from "./SeasonalTrendsPageSkeleton";
 import { pageSeo } from "@/lib/seo";
 import { serverFetchDynamicTableByIdentifier } from "@/lib/serverAdminApi";
 import SeasonalTrendsClientPage from "./SeasonalTrendsClientPage";
@@ -40,15 +36,5 @@ async function SeasonalTrendsWithData() {
 }
 
 export default function SeasonalTrendsPage() {
-    return (
-        <Suspense
-            fallback={
-                <Container>
-                    <SeasonalTrendsPageSkeleton />
-                </Container>
-            }
-        >
-            <SeasonalTrendsWithData />
-        </Suspense>
-    );
+    return <SeasonalTrendsWithData />;
 }

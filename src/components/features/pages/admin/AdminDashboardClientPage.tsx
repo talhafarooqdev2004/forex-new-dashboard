@@ -79,7 +79,7 @@ export default function AdminDashboardClientPage() {
 
             <div className="flex flex-col lg:flex-row gap-4 mt-4 min-w-0">
                 <div className="w-full lg:w-[40%] flex min-w-0">
-                    <LabelSection label="Subscriber Growth" padding={false} className="w-full min-w-0 overflow-hidden">
+                    <LabelSection label="Subscriber Growth" padding={false} className="w-full min-w-0">
                         <SubscriberGrowthChart />
                     </LabelSection>
                 </div>

@@ -2,7 +2,8 @@
 
 import GuageChart from "@/components/chart/GuageChart";
 import SeasonalGaugeNeedle from "@/components/chart/SeasonalGaugeNeedle";
-import { getCurrencyFlagEmoji } from "@/lib/currencyFlags";
+import { getRiskModeNeedleRotationDeg } from "@/components/composed/RiskModeSheetGauge";
+import CurrencyFlag from "@/components/ui/CurrencyFlag";
 import type { StrengthRow } from "@/lib/fundamentalDashboardData";
 import {
   FX_TMV_GAUGE_ZONES_DARK,
@@ -32,14 +33,6 @@ const LIGHT_RISK_GAUGE_ZONES = LIGHT_GAUGE_ZONES.map((z, i) => ({
   name: RISK_ZONE_NAMES[i]!,
 }));
 
-/** Exact Edge Tools mapping: red below 35, neutral 35-65, green from 65. */
-function getRiskModeNeedleRotationDeg(rawScore: number): number {
-  const s = Math.max(0, Math.min(100, rawScore));
-  if (s < 35) return -125;
-  if (s < 65) return -62;
-  return -2;
-}
-
 type FundamentalCurrencyStrengthIndexProps = {
   strengthRows: StrengthRow[];
   riskModeScore: number;
@@ -51,7 +44,9 @@ export default function FundamentalCurrencyStrengthIndex({
   riskModeScore,
   isDark,
 }: FundamentalCurrencyStrengthIndexProps) {
-  const riskGaugeRotation = getRiskModeNeedleRotationDeg(riskModeScore);
+  const riskGaugeRotation = getRiskModeNeedleRotationDeg(
+    Math.max(0, Math.min(100, riskModeScore)),
+  );
   const riskZones = isDark ? DARK_RISK_GAUGE_ZONES : LIGHT_RISK_GAUGE_ZONES;
 
   return (
@@ -82,8 +77,10 @@ export default function FundamentalCurrencyStrengthIndex({
               transition: "0.8s ease-out",
             }}
             gaugeZones={riskZones}
-            customLeftLabel="On"
-            customRightLabel="Off"
+            customLeftLabel="Off"
+            customRightLabel="On"
+            customRightLabelX={146}
+            customRightLabelTextAnchor="middle"
             renderIndicator={({ rotation: rot, transition }) => (
               <SeasonalGaugeNeedle
                 rotationDeg={rot}
@@ -108,14 +105,11 @@ function FundamentalStrengthBar({ row }: { row: StrengthRow }) {
   const showBar = score !== 0 && fillPercent > 0;
   const label = Number.isInteger(score) ? String(score) : score.toFixed(1);
   const barGradient = getCurrencyStrengthIndexBarGradient(score);
-  const flag = getCurrencyFlagEmoji(row.currency);
 
   return (
     <div className="flex min-w-0 w-full items-center gap-2.5">
       <div className="flex w-[74px] shrink-0 items-center gap-2">
-        <span className="text-lg leading-none" aria-hidden>
-          {flag}
-        </span>
+        <CurrencyFlag currency={row.currency} size={14} title={row.currency} />
         <span className="truncate text-sm tabular-nums text-foreground">
           {row.currency}
         </span>
@@ -136,7 +130,7 @@ function FundamentalStrengthBar({ row }: { row: StrengthRow }) {
           </div>
         ) : (
           <div className="absolute left-2 top-1/2 -translate-y-1/2 text-xs tabular-nums text-foreground/80">
-            0
+            {label}
           </div>
         )}
       </div>

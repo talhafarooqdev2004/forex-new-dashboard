@@ -11,6 +11,7 @@ const config: Config = {
 	theme: {
 		extend: {
 			screens: {
+				'layout-wide': '1700px',
 				'3xl': '1920px'
 			},
 			fontSize: {
@@ -27,6 +28,9 @@ const config: Config = {
 			},
 			flex: {
 				'2': '2 2 0%'
+			},
+			maxWidth: {
+				'dashboard-main': '1300px',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

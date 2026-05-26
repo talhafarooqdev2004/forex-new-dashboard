@@ -2,7 +2,19 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { verifyJwtHs256 } from "@/lib/jwtHs256Verify";
 
-const COOKIE = "forex_jwt";
+import { AUTH_COOKIE } from "@/lib/authCookie";
+
+const COOKIE = AUTH_COOKIE;
+
+function redirectToLogin(request: NextRequest, pathname: string, clearSession = false) {
+    const login = new URL("/login", request.url);
+    login.searchParams.set("next", pathname);
+    const response = NextResponse.redirect(login);
+    if (clearSession) {
+        response.cookies.set(COOKIE, "", { path: "/", maxAge: 0 });
+    }
+    return response;
+}
 
 const PUBLIC_PREFIXES = [
     "/login",
@@ -29,21 +41,26 @@ export async function proxy(request: NextRequest) {
 
     const token = request.cookies.get(COOKIE)?.value;
     if (!token) {
-        const login = new URL("/login", request.url);
-        login.searchParams.set("next", pathname);
-        return NextResponse.redirect(login);
+        return redirectToLogin(request, pathname);
     }
 
     const secret = process.env.JWT_SECRET?.trim();
     if (!secret) {
-        console.error("[proxy] JWT_SECRET is not set — cannot verify session.");
-        return NextResponse.next();
+        console.error(
+            "[proxy] JWT_SECRET is not set — cannot verify session. Set it in .env to match forex-admin-backend.",
+        );
+        return redirectToLogin(request, pathname, true);
     }
 
     const payload = await verifyJwtHs256(token, secret);
     if (!payload) {
-        const login = new URL("/login", request.url);
-        return NextResponse.redirect(login);
+        if (process.env.NODE_ENV !== "production") {
+            console.warn(
+                "[proxy] Invalid or expired session cookie. If login succeeds but you return to /login, " +
+                    "ensure forex-dashboard JWT_SECRET matches forex-admin-backend JWT_SECRET.",
+            );
+        }
+        return redirectToLogin(request, pathname, true);
     }
 
     return NextResponse.next();

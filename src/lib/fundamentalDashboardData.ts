@@ -1,6 +1,6 @@
 import type { DynamicTable, TableColumn, TableRow } from "@/services/dynamicTable.service";
 
-import { getCentralBankFlagEmoji, getCurrencyFlagEmoji } from "@/lib/currencyFlags";
+import { getCurrencyPairSentimentColumnMap } from "@/lib/cotDataAnalysisFromTables";
 import { FX_TMV_GAUGE_ZONES_DARK, FX_TMV_GAUGE_ZONES_LIGHT } from "@/lib/fxTmvGaugeZones";
 
 const CURRENCY_CODES = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD", "MXN", "NOK", "SEK", "DKK", "PLN", "SGD", "HKD", "CZK"];
@@ -27,7 +27,6 @@ const MONTH_ALIASES: string[][] = [
 export type CotOverviewRow = {
     id: string;
     symbolLabel: string;
-    flagEmoji: string;
     changeInNcommDisplay: string;
     positionChangeDisplay: string;
     cotNetIndexPercent: number | null;
@@ -41,7 +40,6 @@ export type SeasonalityRow = { label: string; score: number };
 export type CentralBankPolicyRow = {
     id: string;
     centralBank: string;
-    flagEmoji: string;
     currentRate: string;
     lastChange: string;
     stance: string;
@@ -192,6 +190,15 @@ function isExcludedCotAsset(name: string): boolean {
     return EXCLUDED_ASSETS.has(normalizeAssetLabel(name));
 }
 
+/** Fundamental COT Overview only — forex currencies, not commodities (sugar, gold, etc.). */
+function isFundamentalCotOverviewCurrency(name: string): boolean {
+    if (!name?.trim() || isExcludedCotAsset(name)) return false;
+    const codes = extractCodesFromText(name);
+    if (codes.length > 0) return true;
+    const t = name.trim().toUpperCase();
+    return /^[A-Z]{3}$/.test(t) && CURRENCY_CODES.includes(t);
+}
+
 function extractCodesFromText(text: string): string[] {
     const upper = text.toUpperCase();
     return [...new Set(CURRENCY_CODES.filter((code) => upper.includes(code)))];
@@ -235,37 +242,34 @@ function findCotNetIndexForName(cotRaw: DynamicTable, sentimentName: string): { 
 }
 
 /**
- * Currency Pair Sentiment: col 0 = position change display, second-to-last = name/symbol, last = change in N.comm.
- * COT Raw Data: last column = net index 0–100% (matched by first column / currency codes).
+ * Currency Pair Sentiment (merged `T1:AA18` + `AB` + `AF` + `AG`):
+ * - Symbol = 5th-to-last (Z)
+ * - Change in N.comm = 4th-to-last (AA)
+ * - Position change % = 3rd-to-last (AB)
+ * COT Raw Data: last column = net index 0–100% (matched by currency code / name).
+ * Fundamental dashboard: **currencies only** (commodities filtered out here only).
  */
 export function buildCotOverviewRows(sentiment: DynamicTable | null, cotRaw: DynamicTable | null): CotOverviewRow[] {
     if (!sentiment?.columns?.length) return [];
 
     const cols = getSortedColumns(sentiment);
-    if (cols.length < 3) return [];
-
-    const firstCol = cols[0]!;
-    const nameCol = cols[cols.length - 2]!;
-    const ncommCol = cols[cols.length - 1]!;
+    const columnMap = getCurrencyPairSentimentColumnMap(cols);
+    if (!columnMap) return [];
 
     const out: CotOverviewRow[] = [];
 
     for (const row of getSortedRows(sentiment)) {
-        const nameRaw = getCellValue(row, nameCol.id);
-        if (!nameRaw || isExcludedCotAsset(nameRaw)) continue;
+        const nameRaw = getCellValue(row, columnMap.symbol.id);
+        if (!nameRaw || !isFundamentalCotOverviewCurrency(nameRaw)) continue;
 
-        const positionChange = getCellValue(row, firstCol.id) ?? "—";
-        const ncommRaw = getCellValue(row, ncommCol.id) ?? "—";
-
-        const key = symbolKeyFromSentimentName(nameRaw);
-        const flag = getCurrencyFlagEmoji(key);
+        const positionChange = getCellValue(row, columnMap.positionChangePct.id) ?? "—";
+        const ncommRaw = getCellValue(row, columnMap.changeInNcomm.id) ?? "—";
 
         const { percent, display } = cotRaw ? findCotNetIndexForName(cotRaw, nameRaw) : { percent: null, display: "N/A" };
 
         out.push({
             id: `${row.id}-${nameRaw}`,
             symbolLabel: nameRaw.trim(),
-            flagEmoji: flag,
             changeInNcommDisplay: ncommRaw,
             positionChangeDisplay: positionChange,
             cotNetIndexPercent: percent,
@@ -348,7 +352,6 @@ const ECONOMIC_PULSE_CURRENCIES = ["USD", "EUR", "GBP", "AUD", "NZD", "CAD", "CH
 
 export type EconomicPulseRow = {
     currency: string;
-    flagEmoji: string;
     /** 0–100 along bar; uses same piecewise scale as printed ticks (evenly spaced labels). */
     bluePct: number;
     /** 0–100 along bar; uses same piecewise scale as printed ticks (evenly spaced labels). */
@@ -417,7 +420,6 @@ export function buildEconomicPulseRows(scores: EconomicPulseSheetByCurrency | nu
     const map = scores ?? {};
     return ECONOMIC_PULSE_CURRENCIES.map((code) => ({
         currency: code,
-        flagEmoji: getCurrencyFlagEmoji(code),
         bluePct: economicPulseScoreToBarPct(map[code]?.macroshift ?? null),
         greenPct: economicPulseScoreToBarPct(map[code]?.divergence ?? null),
     }));
@@ -446,7 +448,6 @@ export function buildCentralBankPolicyRows(table: DynamicTable | null): CentralB
         out.push({
             id: String(row.id),
             centralBank: displayName,
-            flagEmoji: getCentralBankFlagEmoji(displayName),
             currentRate: getCellValue(row, c1.id) ?? "—",
             lastChange: getCellValue(row, c3.id) ?? "—",
             stance,

@@ -67,6 +67,12 @@ const SCORE_FONT_SIZE = 4.25;
 /** Inherits `color` from chart wrapper (`text-foreground`) — avoids faint gray on light `bg-chartInnerBg`. */
 const PAIR_LABEL_FILL = "currentColor";
 
+/** Horizontal Y-axis grid — kept subtle so bars read clearly. */
+const GRID_LINE_STROKE_WIDTH = 0.35;
+const GRID_LINE_STROKE_OPACITY = 0.14;
+const ZERO_LINE_STROKE_WIDTH = 0.45;
+const ZERO_LINE_STROKE_OPACITY = 0.28;
+
 const gridLines = [
     { mt: vy(31.47), w: sx(465.353), ml: sx(23.51) },
     { mt: vy(49.77), w: sx(465.353), ml: sx(23.51) },
@@ -219,11 +225,25 @@ function GridLines({ scaleMax, axisTicks }: { scaleMax: number; axisTicks?: read
                     x2={g0.ml + g0.w}
                     y2={valueToAxisY(v, scaleMax)}
                     stroke="currentColor"
-                    strokeOpacity={0.35}
-                    strokeWidth={0.7}
+                    strokeOpacity={GRID_LINE_STROKE_OPACITY}
+                    strokeWidth={GRID_LINE_STROKE_WIDTH}
                 />
             ))}
         </>
+    );
+}
+
+function ZeroLine() {
+    return (
+        <line
+            x1={zeroLine.ml}
+            y1={zeroLine.mt}
+            x2={zeroLine.ml + zeroLine.w}
+            y2={zeroLine.mt}
+            stroke="currentColor"
+            strokeOpacity={ZERO_LINE_STROKE_OPACITY}
+            strokeWidth={ZERO_LINE_STROKE_WIDTH}
+        />
     );
 }
 
@@ -287,14 +307,7 @@ function StaticDriveSvg() {
         >
             <YAxisLabels scaleMax={DEFAULT_SCALE_MAX} />
             <GridLines scaleMax={DEFAULT_SCALE_MAX} />
-            <line
-                x1={zeroLine.ml}
-                y1={zeroLine.mt}
-                x2={zeroLine.ml + zeroLine.w}
-                y2={zeroLine.mt}
-                stroke="currentColor"
-                strokeWidth={0.7}
-            />
+            <ZeroLine />
             {staticGreenHeights.map((rawH, i) => {
                 const h = rawH * V_SCALE;
                 return (
@@ -454,14 +467,7 @@ function DataDriveSvg({
         >
             <YAxisLabels scaleMax={scaleMax} axisTicks={axisTicks} />
             <GridLines scaleMax={scaleMax} axisTicks={axisTicks} />
-            <line
-                x1={zeroLine.ml}
-                y1={Y_ZERO}
-                x2={zeroLine.ml + zeroLine.w}
-                y2={Y_ZERO}
-                stroke="currentColor"
-                strokeWidth={0.7}
-            />
+            <ZeroLine />
 
             {layout.green.map((bar, i) => {
                 const showInline = bar.h >= MIN_BAR_H_FOR_INLINE_SCORE;

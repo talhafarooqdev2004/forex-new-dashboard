@@ -1,7 +1,3 @@
-import { Suspense } from "react";
-
-import Container from "@/components/ui/layout/Container";
-import FundamentalDashboardPageSkeleton from "./FundamentalDashboardPageSkeleton";
 import { pageSeo } from "@/lib/seo";
 import FundamentalDashboardClientPage from "./FundamentalDashboardClientPage";
 import { parseFundamentalsNewPulseSheetGrid, parseRiskModeSheetValue } from "@/lib/fundamentalDashboardData";
@@ -58,15 +54,5 @@ async function FundamentalDashboardWithData() {
 }
 
 export default function FundamentalDashboardPage() {
-    return (
-        <Suspense
-            fallback={
-                <Container className="flex flex-col gap-8">
-                    <FundamentalDashboardPageSkeleton />
-                </Container>
-            }
-        >
-            <FundamentalDashboardWithData />
-        </Suspense>
-    );
+    return <FundamentalDashboardWithData />;
 }

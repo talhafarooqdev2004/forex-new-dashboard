@@ -13,8 +13,8 @@ import { AuthFormCardSkeleton } from "@/components/skeletons/AuthFormCardSkeleto
 import { DEFAULT_POST_LOGIN_PATH, resolvePostLoginPath } from "@/lib/postLoginRedirect";
 
 export default function LoginPageClient() {
-    const { login, ready } = useAuth();
     const router = useRouter();
+    const { login, ready, user } = useAuth();
     const [next, setNext] = useState(DEFAULT_POST_LOGIN_PATH);
 
     useEffect(() => {
@@ -22,6 +22,11 @@ export default function LoginPageClient() {
         const n = q.get("next");
         if (n && n.startsWith("/")) setNext(resolvePostLoginPath(n));
     }, []);
+
+    useEffect(() => {
+        if (!ready || !user) return;
+        router.replace(resolvePostLoginPath(next));
+    }, [ready, user, next, router]);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -33,8 +38,9 @@ export default function LoginPageClient() {
         try {
             await login(email, password);
             toast.success("Signed in");
-            router.replace(resolvePostLoginPath(next));
-            router.refresh();
+            // Full navigation avoids occasional App Router cases where client replace/refresh
+            // leaves you on /login even though the sign-in API succeeded.
+            window.location.assign(resolvePostLoginPath(next));
         } catch (err) {
             toast.error(err instanceof Error ? err.message : "Login failed");
         } finally {

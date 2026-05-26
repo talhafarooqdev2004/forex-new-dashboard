@@ -5,13 +5,13 @@ import { useCallback, useEffect, useState } from "react";
 
 import BiasIcon from "../BiasIcon";
 import {
-    buildForexPositioningFromCotRawTable,
+    buildForexPositioningFromCurrencyPairSentimentTable,
     type ForexPositioningRow,
 } from "@/lib/cotDataAnalysisFromTables";
 import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 import { dynamicTableService } from "@/services/dynamicTable.service";
 
-const COT_RAW_DATA_IDENTIFIER = "cot_raw_data";
+const CURRENCY_PAIR_SENTIMENT_ID = "currency_pair_sentiment";
 
 type FundamentalOutlookTableProps = {
     refreshTrigger?: number;
@@ -24,9 +24,9 @@ export default function FundamentalOutlookTable({ refreshTrigger = 0 }: Fundamen
     const load = useCallback(async () => {
         try {
             setLoading(true);
-            const res = await dynamicTableService.getTableByIdentifier(COT_RAW_DATA_IDENTIFIER);
+            const res = await dynamicTableService.getTableByIdentifier(CURRENCY_PAIR_SENTIMENT_ID);
             if (res?.data) {
-                setRows(buildForexPositioningFromCotRawTable(res.data));
+                setRows(buildForexPositioningFromCurrencyPairSentimentTable(res.data));
             } else {
                 setRows([]);
             }
@@ -43,29 +43,27 @@ export default function FundamentalOutlookTable({ refreshTrigger = 0 }: Fundamen
 
     return (
         <>
-            <h5 className="text-center pt-6 mb-4">Current Forex Positioning</h5>
+            <h5 className="mb-5 pt-7 text-center">Current Forex Positioning</h5>
 
             {loading ? (
                 <p className="py-6 text-center text-sm text-secondary">Loading positioning…</p>
             ) : rows.length === 0 ? (
                 <p className="py-6 text-center text-sm text-secondary">
-                    Add a &quot;COT Raw Data&quot; table: Currency (1st), long (2nd), … (4th) short leg, optional 5th for Prev
-                    when only five columns, and a 6th column for Prev when present: Position = 2nd − 4th; if 6+ columns,
-                    Prev = Position + 6th when 6th is negative, Prev = Position − 6th when 6th is positive (empty 6th → Prev =
-                    Position). Legacy 3 columns: Position = 2nd, Prev = 2nd − 3rd. Only non-zero net positions are shown
-                    (Bullish / Bearish).
+                    Sync &quot;Currency Pair Sentiment&quot; from Google Sheets. Symbols = 5th-to-last column (currency
+                    names); then Change Position, Current, Previous, and Sentiment on the last four columns.
                 </p>
             ) : (
                 <Outlooks>
                     {rows.map((outlook, index) => (
                         <Outlook
-                            key={`${index}-${outlook.currency}-${outlook.positionDisplay}`}
+                            key={`${index}-${outlook.symbol}-${outlook.currentDisplay}`}
                             rowIndex={index}
-                            rank={outlook.rank}
-                            currency={outlook.currency}
-                            position={outlook.positionDisplay}
-                            prev={outlook.prevDisplay}
+                            symbol={outlook.symbol}
+                            previous={outlook.previousDisplay}
+                            current={outlook.currentDisplay}
+                            changePosition={outlook.changePositionDisplay}
                             sentiment={outlook.sentiment}
+                            isLast={index === rows.length - 1}
                         />
                     ))}
                 </Outlooks>
@@ -76,23 +74,23 @@ export default function FundamentalOutlookTable({ refreshTrigger = 0 }: Fundamen
 
 function Outlooks({ children }: PropsWithChildren) {
     return (
-        <div className="horizontal-scroll w-full min-w-0">
-            <table className="w-full border-collapse text-sm text-center min-w-[600px]">
+        <div className="horizontal-scroll w-full min-w-0 overflow-hidden px-1">
+            <table className="w-full min-w-[600px] border-collapse text-center text-sm [&_tbody_tr:last-child_td]:border-b-0">
                 <thead>
                     <tr className="whitespace-nowrap">
-                        <th className="border-t-2 border-b-2 border-r-2 border-charcoal border-l-0 px-4 py-3">
-                            Rank
+                        <th className="border-t-2 border-b-2 border-r-2 border-charcoal border-l-0 px-5 py-3.5">
+                            Symbols
                         </th>
-                        <th className="border-t-2 border-b-2 border-x-2 border-charcoal px-4 py-3">
-                            Currency
+                        <th className="border-t-2 border-b-2 border-x-2 border-charcoal px-5 py-3.5">
+                            Previous
                         </th>
-                        <th className="border-t-2 border-b-2 border-x-2 border-charcoal px-4 py-3">
-                            Position
+                        <th className="border-t-2 border-b-2 border-x-2 border-charcoal px-5 py-3.5">
+                            Current
                         </th>
-                        <th className="border-t-2 border-b-2 border-x-2 border-charcoal px-4 py-3">
-                            Prev
+                        <th className="border-t-2 border-b-2 border-x-2 border-charcoal px-5 py-3.5">
+                            Change Position
                         </th>
-                        <th className="border-t-2 border-b-2 border-l-2 border-charcoal border-r-0 px-4 py-3">
+                        <th className="border-t-2 border-b-2 border-l-2 border-charcoal border-r-0 px-5 py-3.5">
                             Sentiment
                         </th>
                     </tr>
@@ -106,43 +104,69 @@ function Outlooks({ children }: PropsWithChildren) {
     );
 }
 
-/** Upward trend (left → right), green — bullish / positive position */
+/** Upward trend (left → right), green — bullish */
 const SPARKLINE_UP_D =
     "M0 20L7.27273 16L14.5455 18.4L21.8182 13.6L29.0909 12L36.3636 10.4L43.6364 8L50.9091 5.6L58.1818 7.2L65.4545 4L72.7273 2.4L80 0";
 
-/** Downward trend: same X as up path, Y mirrored in 0…20 — bearish / negative position */
+/** Downward trend — bearish */
 const SPARKLINE_DOWN_D =
     "M0 0L7.27273 4L14.5455 1.6L21.8182 6.4L29.0909 8L36.3636 9.6L43.6364 12L50.9091 14.4L58.1818 12.8L65.4545 16L72.7273 17.6L80 20";
 
+function outlookCellClass(extra: string, isLast: boolean) {
+    return `border-2 border-charcoal px-5 py-3.5 ${isLast ? "border-b-0" : ""} ${extra}`.trim();
+}
+
+function sentimentAccent(sentiment: ForexPositioningRow["sentiment"]): {
+    color: string;
+    textColor: string;
+    sparkPath: string;
+} {
+    if (sentiment === "Bullish") {
+        return {
+            color: GAUGE_SIGNAL_COLORS.buy,
+            textColor: "#ffffff",
+            sparkPath: SPARKLINE_UP_D,
+        };
+    }
+    if (sentiment === "Bearish") {
+        return {
+            color: GAUGE_SIGNAL_COLORS.sell,
+            textColor: "#ffffff",
+            sparkPath: SPARKLINE_DOWN_D,
+        };
+    }
+    return {
+        color: GAUGE_SIGNAL_COLORS.neutral,
+        textColor: "#000000",
+        sparkPath: SPARKLINE_UP_D,
+    };
+}
+
 function Outlook({
     rowIndex,
-    rank,
-    currency,
-    position,
-    prev,
+    symbol,
+    previous,
+    current,
+    changePosition,
     sentiment,
+    isLast = false,
 }: {
     rowIndex: number;
-    rank: number;
-    currency: string;
-    position: string;
-    prev: string;
-    sentiment: "Bullish" | "Bearish";
+    symbol: string;
+    previous: string;
+    current: string;
+    changePosition: string;
+    sentiment: ForexPositioningRow["sentiment"];
+    isLast?: boolean;
 }) {
-    const isBullish = sentiment === "Bullish";
     const clipId = `cot-forex-pos-spark-${rowIndex}`;
-    const signalColor = isBullish ? GAUGE_SIGNAL_COLORS.buy : GAUGE_SIGNAL_COLORS.sell;
-    const sparkPath = isBullish ? SPARKLINE_UP_D : SPARKLINE_DOWN_D;
+    const { color: signalColor, textColor, sparkPath } = sentimentAccent(sentiment);
 
     return (
         <tr>
-            <td className="border-2 border-charcoal border-l-0 px-4 py-3 font-semibold">
-                {rank}
-            </td>
-
-            <td className="border-2 border-charcoal px-4 py-3 font-semibold whitespace-nowrap">
+            <td className={outlookCellClass("border-l-0 whitespace-nowrap font-semibold", isLast)}>
                 <div className="flex items-center justify-center gap-[10px] flex-nowrap min-w-0">
-                    <span className="whitespace-nowrap shrink-0">{currency}</span>
+                    <span className="whitespace-nowrap shrink-0">{symbol}</span>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="80"
@@ -164,17 +188,24 @@ function Outlook({
                 </div>
             </td>
 
-            <td className="border-2 border-charcoal px-4 py-3">
-                {position}
+            <td className={outlookCellClass("", isLast)}>
+                {previous}
             </td>
 
-            <td className="border-2 border-charcoal px-4 py-3">
-                {prev}
+            <td className={outlookCellClass("", isLast)}>
+                {current}
             </td>
 
-            <td className="border-2 border-charcoal border-r-0 px-4 py-3">
-                <div className="flex items-center justify-center gap-2">
-                    <div className="rounded-[4px] px-2 py-1 w-20 text-center text-white" style={{ backgroundColor: signalColor }}>
+            <td className={outlookCellClass("", isLast)}>
+                {changePosition}
+            </td>
+
+            <td className={outlookCellClass("border-r-0", isLast)}>
+                <div className="flex items-center justify-center gap-2.5">
+                    <div
+                        className="w-20 rounded-[4px] px-2.5 py-1.5 text-center"
+                        style={{ backgroundColor: signalColor, color: textColor }}
+                    >
                         {sentiment}
                     </div>
                     <BiasIcon sentiment={sentiment} />

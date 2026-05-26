@@ -15,8 +15,15 @@ const roundFloat = (num: number): number => {
     return Math.round(num * 1e15) / 1e15;
 };
 
+const snapNearInteger = (num: number): number => {
+    if (!Number.isFinite(num)) return num;
+    const r = Math.round(num);
+    if (Math.abs(num - r) < 1e-7) return r;
+    return num;
+};
+
 const formatNumber = (num: number): string => {
-    const rounded = roundFloat(num);
+    const rounded = roundFloat(snapNearInteger(roundFloat(num)));
     let formatted = rounded.toFixed(12);
     formatted = formatted.replace(/\.?0+$/, "");
     return formatted;

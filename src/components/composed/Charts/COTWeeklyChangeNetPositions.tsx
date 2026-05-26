@@ -5,6 +5,10 @@ import { useEffect, useState } from "react";
 import Section from "@/components/ui/layout/Section";
 import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 import {
+  resolveCurrencyPairSentimentSymbolColumn,
+  resolveCurrencyPairSentimentWeeklyChangeColumn,
+} from "@/lib/cotDataAnalysisFromTables";
+import {
   dynamicTableService,
   DynamicTable,
 } from "@/services/dynamicTable.service";
@@ -12,35 +16,33 @@ import {
 const CURRENCY_PAIR_SENTIMENT_ID = "currency_pair_sentiment";
 const FIXED_RANGE = 15;
 
-const MAX_BAR_COUNT = 16;
+/** Space below the title before the plot (Y-axis / grid). */
+const TITLE_BOTTOM_SPACE_PCT = 4;
+/** Space between rotated currency labels and the chart bottom edge. */
+const X_AXIS_LABEL_BOTTOM_PCT = 6;
 
 // Drawable area boundaries (% of container width)
 const CHART_LEFT = 4.71; // where the y-axis / grid starts
 const CHART_RIGHT = 96.52; // where the grid ends
 
 const Y_AXIS_LABELS = ["15", "10", "05", "0", "-5", "-10", "-15"];
-const Y_AXIS_TOPS = [
-  "15.75%",
-  "24.20%",
-  "32.65%",
-  "41.10%",
-  "49.55%",
-  "58.00%",
-  "66.45%",
-];
-const GRID_LINE_TOPS = [
-  "18.07%",
-  "26.52%",
-  "34.97%",
-  "43.42%",
-  "51.87%",
-  "60.32%",
-  "68.77%",
-];
 
-const BASELINE_TOP = 43.42;
-const POSITIVE_MAX_HEIGHT = 25.35;
-const NEGATIVE_MAX_HEIGHT = 25.35;
+/** Match Edge Tools Sentiment Drive Index — faint grid; zero line slightly stronger. */
+const GRID_LINE_OPACITY = 0.08;
+const ZERO_LINE_OPACITY = 0.16;
+/** Y-axis label tops — offset slightly above grid lines. */
+const Y_AXIS_TOPS = [
+  7.68, 19.01, 30.35, 41.68, 53.01, 64.35, 75.68,
+].map((p) => `${p + TITLE_BOTTOM_SPACE_PCT}%`);
+/** Grid lines for ±15 … 0 … −15 (wider vertical span = taller bars). */
+const GRID_LINE_TOPS = [
+  10, 21.33, 32.67, 44, 55.33, 66.67, 78,
+].map((p) => `${p + TITLE_BOTTOM_SPACE_PCT}%`);
+
+const BASELINE_TOP = 44 + TITLE_BOTTOM_SPACE_PCT;
+/** Max bar height (% of container) at ±FIXED_RANGE — matches grid extent above/below baseline. */
+const POSITIVE_MAX_HEIGHT = 34;
+const NEGATIVE_MAX_HEIGHT = 34;
 
 // Bar width as % of container — kept narrow so bars don't overlap at 16 items
 const BAR_WIDTH_PCT = 1.45;
@@ -68,10 +70,9 @@ function tableToWeeklyPoints(table: DynamicTable): ChartPoint[] {
   const columns = [...(table.columns ?? [])].sort(
     (a, b) => a.column_index - b.column_index,
   );
-  if (columns.length < 3) return [];
-
-  const valueCol = columns[0];
-  const labelCol = columns[columns.length - 2];
+  const labelCol = resolveCurrencyPairSentimentSymbolColumn(columns);
+  const valueCol = resolveCurrencyPairSentimentWeeklyChangeColumn(columns);
+  if (!labelCol || !valueCol) return [];
   const rows = [...(table.rows ?? [])].sort(
     (a, b) => a.row_index - b.row_index,
   );
@@ -99,7 +100,6 @@ export default function COTWeeklyChangeNetPositions({
 }: COTWeeklyChangeNetPositionsProps) {
   const [points, setPoints] = useState<ChartPoint[]>([]);
   const [loading, setLoading] = useState(true);
-  const visiblePoints = points.slice(0, MAX_BAR_COUNT);
 
   useEffect(() => {
     let cancelled = false;
@@ -130,13 +130,14 @@ export default function COTWeeklyChangeNetPositions({
   return (
     <Section padding={false} className="w-full">
       <div className="w-full horizontal-scroll bg-darkGrey rounded-[12px]">
-        <div className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/380] overflow-hidden text-foreground">
-          <p
-            className="absolute top-[5.20%] font-['Inter',sans-serif] font-bold leading-6 text-[min(1.8vw,20px)] text-foreground whitespace-nowrap"
-            style={{ left: "calc(50% - min(19.6vw, 220.5px))" }}
+        <div className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/600] overflow-hidden text-foreground">
+          <div
+            className="absolute left-0 right-0 top-[5.20%] z-10 flex justify-center px-4 pb-4"
           >
-            Weekly Change Net Non Commercial Positions
-          </p>
+            <p className="font-['Inter',sans-serif] text-center text-[min(2vw,22px)] font-bold leading-6 text-foreground">
+              Weekly Change Net Non Commercial Positions
+            </p>
+          </div>
 
           {loading ? (
             <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm text-secondary">
@@ -144,20 +145,15 @@ export default function COTWeeklyChangeNetPositions({
             </p>
           ) : points.length === 0 ? (
             <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm text-secondary text-center px-6">
-              No chart data. Use Currency Pair Sentiment: column 1 = weekly %
-              change, second-to-last column = currency label.
+              No chart data. Sync Currency Pair Sentiment (symbol + position change % columns).
             </p>
           ) : (
             <>
               {Y_AXIS_LABELS.map((label, i) => (
                 <p
                   key={`y-${label}`}
-                  className="absolute font-['Inter',sans-serif] font-normal leading-[22px] text-foreground tracking-[-0.18px] whitespace-nowrap"
-                  style={{
-                    left: i < 4 ? "1.41%" : "0.96%",
-                    top: Y_AXIS_TOPS[i],
-                    fontSize: i < 5 ? "min(1.4vw,16px)" : "min(1.2vw,14px)",
-                  }}
+                  className="absolute left-[1.1%] font-['Poppins',sans-serif] text-[13px] font-medium leading-none text-foreground/65 whitespace-nowrap"
+                  style={{ top: Y_AXIS_TOPS[i] }}
                 >
                   {label}
                 </p>
@@ -166,28 +162,17 @@ export default function COTWeeklyChangeNetPositions({
               {GRID_LINE_TOPS.map((top, i) => (
                 <div
                   key={`grid-${i}`}
-                  className="absolute left-[4.71%] h-px"
-                  style={{ top, width: "91.81%" }}
-                >
-                  <svg
-                    width="100%"
-                    height="1"
-                    fill="none"
-                    preserveAspectRatio="none"
-                    viewBox="0 0 1013.61 1"
-                    className="block"
-                  >
-                    <path
-                      d="M1013.61 0.5H0"
-                      stroke="currentColor"
-                      strokeOpacity={i === 3 ? 0.95 : 0.35}
-                    />
-                  </svg>
-                </div>
+                  className="absolute left-[4.71%] h-px bg-foreground"
+                  style={{
+                    top,
+                    width: "91.81%",
+                    opacity: i === 3 ? ZERO_LINE_OPACITY : GRID_LINE_OPACITY,
+                  }}
+                />
               ))}
 
-              {visiblePoints.map((p, i) => {
-                const total = visiblePoints.length;
+              {points.map((p, i) => {
+                const total = points.length;
                 const clamped = Math.max(
                   -FIXED_RANGE,
                   Math.min(FIXED_RANGE, p.value),
@@ -231,13 +216,13 @@ export default function COTWeeklyChangeNetPositions({
 
                     {/* Value label above/below bar */}
                     <span
-                      className="absolute -translate-x-1/2 font-['Poppins',sans-serif] font-medium leading-[1.4] text-[min(1.0vw,11px)] text-foreground text-center whitespace-nowrap"
+                      className="absolute -translate-x-1/2 font-['Poppins',sans-serif] text-[15px] font-medium leading-snug text-foreground text-center whitespace-nowrap"
                       style={{
                         left: `${barCentre}%`,
                         top:
                           clamped >= 0
-                            ? `${Math.max(top - 4, 10)}%`
-                            : `${Math.min(top + height + 1.4, 71)}%`,
+                            ? `${Math.max(top - 4, 5 + TITLE_BOTTOM_SPACE_PCT)}%`
+                            : `${Math.min(top + height + 1.4, 82 + TITLE_BOTTOM_SPACE_PCT)}%`,
                       }}
                     >
                       {p.valueLabel}
@@ -245,12 +230,11 @@ export default function COTWeeklyChangeNetPositions({
 
                     {/* Rotated x-axis label */}
                     <div
-                      className="absolute -translate-x-full flex items-end justify-center pb-0"
+                      className="absolute -translate-x-full flex items-end justify-center pb-3"
                       style={{
                         left: `${barCentre + 2.2}%`,
-                        top: "80.00%",
+                        bottom: `${X_AXIS_LABEL_BOTTOM_PCT}%`,
                         width: "4.8%",
-                        height: "11%",
                       }}
                     >
                       <div
@@ -258,7 +242,7 @@ export default function COTWeeklyChangeNetPositions({
                         style={{ transform: "rotate(-41.88deg)" }}
                       >
                         <p
-                          className="font-['Inter',sans-serif] font-normal leading-4 text-[min(1.1vw,12px)] text-foreground text-right tracking-[-0.12px] whitespace-nowrap"
+                          className="font-['Poppins',sans-serif] text-[15px] font-medium leading-4 text-foreground text-right tracking-[-0.12px] whitespace-nowrap"
                           title={p.label}
                         >
                           {p.label}

@@ -1,10 +1,6 @@
-import { Suspense } from "react";
-
 import TechnicalDashboardClientPage from "@/components/features/pages/TechnicalDashboardClientPage";
-import Container from "@/components/ui/layout/Container";
 import { pageSeo } from "@/lib/seo";
 import { loadTechnicalDashboardInitialWidgetTables } from "./loadTechnicalDashboardData";
-import TechnicalDashboardPageSkeleton from "./TechnicalDashboardPageSkeleton";
 
 export const metadata = pageSeo(
     "Technical Dashboard",
@@ -27,15 +23,5 @@ async function TechnicalDashboardWithData() {
 }
 
 export default function TechnicalDashboardPage() {
-    return (
-        <Suspense
-            fallback={
-                <Container>
-                    <TechnicalDashboardPageSkeleton />
-                </Container>
-            }
-        >
-            <TechnicalDashboardWithData />
-        </Suspense>
-    );
+    return <TechnicalDashboardWithData />;
 }

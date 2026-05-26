@@ -1,7 +1,3 @@
-import { Suspense } from "react";
-
-import Container from "@/components/ui/layout/Container";
-import ScoreDashboardPageSkeleton from "./ScoreDashboardPageSkeleton";
 import { pageSeo } from "@/lib/seo";
 import { serverFetchDynamicTableByIdentifier } from "@/lib/serverAdminApi";
 import ScoreDashboardClientPage from "./ScoreDashboardClientPage";
@@ -20,15 +16,5 @@ async function ScoreDashboardWithData() {
 }
 
 export default function ScoreDashboardPage() {
-    return (
-        <Suspense
-            fallback={
-                <Container>
-                    <ScoreDashboardPageSkeleton />
-                </Container>
-            }
-        >
-            <ScoreDashboardWithData />
-        </Suspense>
-    );
+    return <ScoreDashboardWithData />;
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -14,7 +13,6 @@ import { DEFAULT_POST_LOGIN_PATH } from "@/lib/postLoginRedirect";
 
 export default function RegisterPageClient() {
     const { register, ready } = useAuth();
-    const router = useRouter();
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -28,8 +26,7 @@ export default function RegisterPageClient() {
         try {
             await register({ email, password, firstName, lastName });
             toast.success("Account created");
-            router.replace(DEFAULT_POST_LOGIN_PATH);
-            router.refresh();
+            window.location.assign(DEFAULT_POST_LOGIN_PATH);
         } catch (err) {
             toast.error(err instanceof Error ? err.message : "Registration failed");
         } finally {

@@ -8,18 +8,6 @@ import Header from "@/components/layout/Header";
 
 const SideBar = dynamic(() => import("@/components/layout/SideBar"), {
     ssr: true,
-    loading: () => (
-        <div
-            className="flex w-full min-h-[120px] flex-col gap-2 bg-darkGrey px-3 py-4"
-            aria-busy="true"
-            aria-label="Loading navigation"
-        >
-            <div className="mx-auto mb-4 h-9 w-[80%] animate-pulse rounded-lg bg-foreground/10" />
-            {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-10 w-full animate-pulse rounded-xl bg-foreground/5" />
-            ))}
-        </div>
-    ),
 });
 
 const AUTH_LAYOUT_PATHS = new Set([
@@ -43,12 +31,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
     return (
         <div className="flex min-w-[1024px] w-full">
-            <div className="w-[19%]">
+            <div className="w-[19%] layout-wide:w-[15%]">
                 <SideBar />
             </div>
-            <div className="w-[81%] min-w-0 flex flex-col">
+            <div className="w-[81%] min-w-0 flex flex-col layout-wide:w-[85%]">
                 <Header />
-                <main className="bg-charcoal p-8 min-w-0 flex-1">{children}</main>
+                <main className="min-w-0 flex-1 bg-charcoal p-8">
+                    <div className="mx-auto w-full min-w-0 max-w-dashboard-main">{children}</div>
+                </main>
             </div>
         </div>
     );

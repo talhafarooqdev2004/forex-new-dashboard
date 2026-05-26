@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { DEFAULT_POST_LOGIN_PATH } from "@/lib/postLoginRedirect";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -64,10 +65,17 @@ function MaintenanceScreen() {
  */
 export function MaintenanceModeGate({ children }: { children: ReactNode }) {
     const pathname = usePathname();
+    const router = useRouter();
     const { ready, user, isAdmin } = useAuth();
     const [maintenanceOn, setMaintenanceOn] = useState<boolean | null>(null);
 
     const onAuthPath = isAuthPath(pathname);
+
+    useEffect(() => {
+        if (!ready || onAuthPath || user) return;
+        const next = pathname && pathname.startsWith("/") ? pathname : DEFAULT_POST_LOGIN_PATH;
+        router.replace(`/login?next=${encodeURIComponent(next)}`);
+    }, [ready, user, onAuthPath, pathname, router]);
 
     useEffect(() => {
         if (onAuthPath) {
@@ -101,6 +109,14 @@ export function MaintenanceModeGate({ children }: { children: ReactNode }) {
     }
 
     if (!ready) {
+        return (
+            <AppShell>
+                <ShellMainPlaceholder />
+            </AppShell>
+        );
+    }
+
+    if (!onAuthPath && !user) {
         return (
             <AppShell>
                 <ShellMainPlaceholder />

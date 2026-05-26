@@ -1,5 +1,5 @@
 /**
- * Mirrors `FundamentalDashboardClientPage`: `Container` gap-8 + 2×2 / 3-col grid with a stacked fourth column.
+ * Mirrors `FundamentalDashboardClientPage`: `Container` gap-8 + 2-col grid with a stacked fourth column.
  */
 function FundamentalSectionCardSkeleton() {
     return (
@@ -18,7 +18,7 @@ function FundamentalSectionCardSkeleton() {
 export default function FundamentalDashboardPageSkeleton() {
     return (
         <div
-            className="grid grid-cols-2 items-stretch gap-8 3xl:grid-cols-3"
+            className="grid grid-cols-2 items-stretch gap-8"
             role="status"
             aria-label="Loading fundamental dashboard"
         >

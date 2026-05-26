@@ -1,7 +1,4 @@
-import { Suspense } from "react";
-
 import AdminSettingsClientPage from "./AdminSettingsClientPage";
-import AdminSettingsPageSkeleton from "./AdminSettingsPageSkeleton";
 import { pageSeo } from "@/lib/seo";
 import { serverFetchAppConfigValue } from "@/lib/serverAdminApi";
 
@@ -26,9 +23,5 @@ async function AdminSettingsWithData() {
 }
 
 export default function AdminSettingsPage() {
-    return (
-        <Suspense fallback={<AdminSettingsPageSkeleton />}>
-            <AdminSettingsWithData />
-        </Suspense>
-    );
+    return <AdminSettingsWithData />;
 }
