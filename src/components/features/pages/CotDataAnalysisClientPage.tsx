@@ -353,9 +353,9 @@ export default function CotDataAnalysisClientPage({
                 {/* Left block shrinks; Pair Bias keeps natural table width on the right */}
                 <div className="flex min-w-0 flex-1 flex-col gap-6 self-stretch">
                     <div
-                        className={`${styles.cotUpperSection} flex min-h-[min(360px,42vh)] min-w-0 flex-col gap-4 md:flex-row md:gap-6 lg:min-h-[min(400px,44vh)]`}
+                        className={`${styles.cotUpperSection} flex min-h-[min(360px,42vh)] min-w-0 flex-col items-stretch gap-4 md:flex-row md:gap-6 lg:min-h-[min(400px,44vh)]`}
                     >
-                        <Section className="flex min-h-[280px] min-w-0 flex-1 flex-col md:min-h-0">
+                        <Section className={`${styles.cotOverallSection} flex min-h-[280px] min-w-0 flex-1 flex-col md:min-h-0`}>
                         <div className="flex min-h-0 flex-1 flex-col gap-2">
                             {/* Header row — same line as design reference */}
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -509,7 +509,7 @@ export default function CotDataAnalysisClientPage({
                         </div>
                         </Section>
 
-                        <div className="flex min-h-[280px] min-w-0 flex-1 flex-col gap-4 md:min-h-0 md:gap-6">
+                        <div className={`${styles.cotSentimentColumn} flex min-h-[280px] min-w-0 flex-col gap-4 md:min-h-0 md:gap-6`}>
                         <LabelSection
                             label="Bullish Sentiment"
                             icon={
@@ -531,28 +531,36 @@ export default function CotDataAnalysisClientPage({
                                 </svg>
                             }
                             padding={false}
-                            className="flex min-h-0 w-full flex-1 flex-col"
+                            className={`${styles.cotSentimentPanel} flex min-h-0 w-full flex-1 flex-col`}
                         >
-                            <div className="flex flex-1 flex-col justify-center">
+                            <div className={`${styles.cotSentimentPanelBody} flex flex-1 flex-col`}>
                                 {bullishCurrencies.length === 0 ? (
                                     <div className={`${styles.cotSentimentEmpty} px-6 py-4 text-sm text-secondary`}>
                                         No bullish rows (positive values in the Change Position column of Currency Pair Sentiment).
                                     </div>
                                 ) : (
-                                    bullishCurrencies.map((row, index) => (
-                                        <div
-                                            key={`bull-${row.currency}-${index}`}
-                                            className={`py-3 ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
-                                        >
-                                            <div className="flex items-center justify-between px-6">
-                                                <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <Icon name="profit-icon.svg" width={11} height={11} />
-                                                    <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.buy }}>{row.valueDisplay}</span>
+                                    <div
+                                        className={`${styles.cotSentimentRowsGroup} ${
+                                            bullishCurrencies.length === 1
+                                                ? styles.cotSentimentRowsGroupSingle
+                                                : styles.cotSentimentRowsGroupMulti
+                                        }`}
+                                    >
+                                        {bullishCurrencies.map((row, index) => (
+                                            <div
+                                                key={`bull-${row.currency}-${index}`}
+                                                className={`${styles.cotSentimentRow} py-3 ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
+                                            >
+                                                <div className="flex items-center justify-between px-6">
+                                                    <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <Icon name="profit-icon.svg" width={11} height={11} />
+                                                        <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.buy }}>{row.valueDisplay}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         </LabelSection>
@@ -577,28 +585,36 @@ export default function CotDataAnalysisClientPage({
                                 </svg>
                             }
                             padding={false}
-                            className="flex min-h-0 w-full flex-1 flex-col"
+                            className={`${styles.cotSentimentPanel} flex min-h-0 w-full flex-1 flex-col`}
                         >
-                            <div className="flex flex-1 flex-col justify-center">
+                            <div className={`${styles.cotSentimentPanelBody} flex flex-1 flex-col`}>
                                 {bearishCurrencies.length === 0 ? (
                                     <div className={`${styles.cotSentimentEmpty} px-6 py-4 text-sm text-secondary`}>
                                         No bearish rows (negative values in the Change Position column of Currency Pair Sentiment).
                                     </div>
                                 ) : (
-                                    bearishCurrencies.map((row, index) => (
-                                        <div
-                                            key={`bear-${row.currency}-${index}`}
-                                            className={`py-3 ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
-                                        >
-                                            <div className="flex items-center justify-between px-6">
-                                                <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <Icon name="loss-icon.svg" width={11} height={11} />
-                                                    <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.sell }}>{row.valueDisplay}</span>
+                                    <div
+                                        className={`${styles.cotSentimentRowsGroup} ${
+                                            bearishCurrencies.length === 1
+                                                ? styles.cotSentimentRowsGroupSingle
+                                                : styles.cotSentimentRowsGroupMulti
+                                        }`}
+                                    >
+                                        {bearishCurrencies.map((row, index) => (
+                                            <div
+                                                key={`bear-${row.currency}-${index}`}
+                                                className={`${styles.cotSentimentRow} py-3 ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
+                                            >
+                                                <div className="flex items-center justify-between px-6">
+                                                    <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <Icon name="loss-icon.svg" width={11} height={11} />
+                                                        <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.sell }}>{row.valueDisplay}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         </LabelSection>
