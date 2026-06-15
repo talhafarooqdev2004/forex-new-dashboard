@@ -13,148 +13,273 @@ import {
     SelectTrigger,
     SelectContent,
     SelectItem,
-    FormControl
+    FormControl,
 } from "@/components/ui";
+import Icon from "@/components/composed/Icon";
+import Link from "next/link";
 import Section from "@/components/ui/layout/Section";
 import Container from "@/components/ui/layout/Container";
-import { PipsGrowthChart } from "@/components/composed/Charts";
+import TradingTerminalPerformanceSection from "@/components/composed/trading-terminal/TradingTerminalPerformanceSection";
+import TradingTerminalInsightsSection from "@/components/composed/trading-terminal/TradingTerminalInsightsSection";
 import { ActiveTradesTable, TradeHistoryTable } from "@/components/composed/tables";
-import { Search } from "lucide-react";
-import { useRef } from "react";
+import { TRADE_ALERT_SETTINGS_PATH } from "@/components/features/pages/TradeAlertSettingsClientPage";
+import { ACTIVE_TRADES_SETTINGS_PATH } from "@/components/features/pages/ActiveTradesSettingsClientPage";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useTradeAlertForm } from "@/hooks/forms";
+import { tradeAlertSettingsService, tradingAlertService, type TradeAlertPair } from "@/services";
+import { useLivePrices } from "@/hooks/useLivePrices";
+import { formatPrice } from "@/lib/technicalLevelsPrice";
+import { deriveSlTp, generateTradeId, getActiveSession } from "@/lib/tradeAlertCalc";
+import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState } from "react";
+
+const TYPE_OPTIONS = ["Swing", "Scalping", "Intraday"] as const;
+const SESSION_OPTIONS = ["Tokyo", "London", "New York"] as const;
+
+const DIRECTION_TYPES = {
+    Buy: [
+        { value: "Buy", label: "Buy" },
+        { value: "Buy Limit", label: "Buy Limit" },
+        { value: "Buy Stop", label: "Stock Buy" },
+    ],
+    Sell: [
+        { value: "Sell", label: "Sell" },
+        { value: "Sell Limit", label: "Limit Sell" },
+        { value: "Sell Stop", label: "Stock Sell" },
+    ],
+} as const;
+
+const DIRECTION_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+    [...DIRECTION_TYPES.Buy, ...DIRECTION_TYPES.Sell].map((t) => [t.value, t.label]),
+);
+
+const TRADE_GREEN = "#05df72";
+const TRADE_RED = "#fa003f";
 
 export default function TradingTerminalClientPage() {
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    const handleFocus = () => document.getElementById("search-icon")?.classList.add("hidden");
-    const handleBlur = () => document.getElementById("search-icon")?.classList.remove("hidden");
-
-    const handleSearch = () => {
-        if (inputRef.current) {
-            inputRef.current.focus();
-        }
-    };
+    const { isAdmin } = useAuth();
+    const [refreshKey, setRefreshKey] = useState(0);
+    const refresh = () => setRefreshKey((k) => k + 1);
 
     return (
         <Container>
-            <Section className="flex justify-between items-center">
-                <div className="bg-black/20 dark:bg-white/10 rounded-xl px-[10px] py-2 flex items-center gap-4 text-foreground">
-                    <div className="flex items-center gap-2 font-semibold">
-                        <span>From</span>
-                        <Button variant="dark-grey" size="dark-grey">
-                            01/01/2024
-                        </Button>
-                        <span>To</span>
-                        <Button variant="dark-grey" size="dark-grey">
-                            01/01/2024
-                        </Button>
-                    </div>
+            <TradingTerminalPerformanceSection refreshKey={refreshKey} />
 
-                    <div className="flex items-center gap-2 font-semibold">
-                        <span>Pips Growth</span>
-                        <Button variant="dark-grey" size="dark-grey">
-                            20,0000
-                        </Button>
-                    </div>
-                </div>
-
-                <div className="relative">
-                    <Input type="search" variant="dark-grey" onFocus={handleFocus} onBlur={handleBlur} ref={inputRef} />
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground size-5" id="search-icon" onClick={handleSearch} />
-                </div>
+            <Section>
+                <ActiveTradesTable
+                    showSettings={isAdmin}
+                    settingsHref={ACTIVE_TRADES_SETTINGS_PATH}
+                    canManage={isAdmin}
+                    refreshKey={refreshKey}
+                    onChanged={refresh}
+                />
             </Section>
 
             <Section>
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex flex-col border-r border-solid border-black pr-12">
-                        <div className="flex justify-between gap-8 py-2">
-                            <span className="font-arima">Total Trades</span>
-                            <span className="text-[#FFDF20] font-semibold">35</span>
-                        </div>
-                        <div className="flex justify-between items-center gap-8 py-2">
-                            <span className="font-arima">Weekly trades</span>
-                            <span className="text-[#FFDF20] font-semibold">79%</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col border-r border-solid border-black pr-12">
-                        <div className="flex justify-between gap-8 py-2">
-                            <span className="font-arima">Total Trades</span>
-                            <span className="text-[#FB64B6] font-semibold">35</span>
-                        </div>
-                        <div className="flex justify-between items-center gap-8 py-2">
-                            <span className="font-arima">Weekly trades</span>
-                            <span className="text-[#FB64B6] font-semibold">79%</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col border-r border-solid border-black pr-12">
-                        <div className="flex justify-between gap-8 py-2">
-                            <span className="font-arima">Total Trades</span>
-                            <span className="text-[#FFDF20] font-semibold">35</span>
-                        </div>
-                        <div className="flex justify-between gap-8 py-2">
-                            <span className="font-arima">Weekly trades</span>
-                            <span className="text-[#FFDF20] font-semibold">79%</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col border-r border-solid border-black pr-12">
-                        <div className="flex justify-between gap-8 py-2">
-                            <span className="font-arima">Total Trades</span>
-                            <span className="text-[#FFDF20] font-semibold">28</span>
-                        </div>
-                        <div className="flex justify-between gap-8 py-2">
-                            <span className="font-arima">Weekly trades</span>
-                            <span className="text-[#FFDF20] font-semibold">7</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col border-r border-solid border-black pr-12">
-                        <div className="flex justify-between gap-8 py-2">
-                            <span className="font-arima">Total Trades</span>
-                            <span className="text-[#FFDF20] font-semibold">3</span>
-                        </div>
-                        <div className="flex gap-8 py-2">
-                            <span className="font-arima">Weekly trades</span>
-                            <span className="text-[#FFDF20] font-semibold">9%</span>
-                        </div>
-                    </div>
-                </div>
+                <TradeHistoryTable canManage={isAdmin} refreshKey={refreshKey} onChanged={refresh} />
             </Section>
 
-            <Section>
-                <PipsGrowthChart />
-            </Section>
-
-            <Section>
-                <ActiveTradesTable />
-            </Section>
-
-            <Section>
-                <TradeHistoryTable />
-            </Section>
+            <TradingTerminalInsightsSection refreshKey={refreshKey} />
 
             <Section padding={false}>
-                <TradeAlertForm />
+                <TradeAlertForm onSent={refresh} />
             </Section>
         </Container>
     );
 }
 
-function TradeAlertForm() {
-    const { form, control, isSubmitting } = useTradeAlertForm();
+function TradeAlertForm({ onSent }: { onSent: () => void }) {
+    const { form, control } = useTradeAlertForm();
+    const { isAdmin } = useAuth();
+    const { getPrice } = useLivePrices();
+    const [sending, setSending] = useState(false);
+    const [sendError, setSendError] = useState<string | null>(null);
+    const [pairs, setPairs] = useState<TradeAlertPair[]>([]);
+    const [presetMode, setPresetMode] = useState<string>("Swing");
+    const [enabledTypes, setEnabledTypes] = useState<Record<string, boolean>>({});
+    // Local placeholder: freezes live price/session updates once an alert is "sent".
+    const sentRef = useRef(false);
+
+    const symbol = form.watch("symbol");
+    const direction = form.watch("direction");
+    const directionType = form.watch("directionType");
+    const entryPrice = form.watch("entryPrice");
+    const livePrice = getPrice(symbol);
+    // Pending orders (Limit/Stop) keep an admin-set entry; only market Buy/Sell track the live price.
+    const isPendingType = /limit|stop/i.test(directionType);
+
+    // Load pairs, settings and existing alerts; seed the form (Trade ID, session, defaults).
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            try {
+                const [list, settings, alerts] = await Promise.all([
+                    tradeAlertSettingsService.listPairs(),
+                    tradeAlertSettingsService.getSettings(),
+                    tradingAlertService.list().catch(() => []),
+                ]);
+                if (!active) return;
+                setPairs(list);
+
+                const defaultType = typeof settings?.defaultType === "string" ? settings.defaultType : undefined;
+                const defaultRisk = typeof settings?.defaultRisk === "string" ? settings.defaultRisk : undefined;
+                if (typeof settings?.presetMode === "string") setPresetMode(settings.presetMode);
+                if (settings?.tradeTypes && typeof settings.tradeTypes === "object") {
+                    setEnabledTypes(settings.tradeTypes as Record<string, boolean>);
+                }
+
+                const existingIds = alerts.map((a) => a.trade_id ?? "");
+                const current = form.getValues();
+                form.reset({
+                    ...current,
+                    tradeId: generateTradeId(existingIds),
+                    session: getActiveSession(),
+                    symbol: list.some((p) => p.name === current.symbol) ? current.symbol : (list[0]?.name ?? current.symbol),
+                    type: defaultType ?? current.type,
+                    riskPerTrade: defaultRisk ? `${defaultRisk}%` : current.riskPerTrade,
+                });
+            } catch {
+                // keep form defaults on failure
+            }
+        })();
+        return () => {
+            active = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Current Price always tracks live; Entry only auto-fills for market orders (pending keeps admin's entry).
+    useEffect(() => {
+        if (sentRef.current || livePrice === null || !symbol) return;
+        const priceStr = formatPrice(livePrice, symbol);
+        form.setValue("currentPrice", priceStr);
+        if (!isPendingType) form.setValue("entryPrice", priceStr);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [livePrice, symbol, isPendingType]);
+
+    // Derive SL/TP from whatever the Entry currently is (live for market, admin-set for pending).
+    useEffect(() => {
+        if (sentRef.current || !symbol) return;
+        const entry = parseFloat(entryPrice);
+        if (!Number.isFinite(entry)) return;
+        const pair = pairs.find((p) => p.name === symbol);
+        const slPips = presetMode === "Scalping" ? pair?.scalping_sl : pair?.swing_sl;
+        const derived = deriveSlTp({ entry, pair: symbol, direction, slPips: slPips ?? 0 });
+        if (derived) {
+            form.setValue("stockLoss", derived.sl);
+            form.setValue("tp1", derived.tp1);
+            form.setValue("tp2", derived.tp2);
+            form.setValue("tp3", derived.tp3);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [entryPrice, symbol, direction, presetMode, pairs]);
+
+    // Keep the session aligned with the current Pakistan-time window.
+    useEffect(() => {
+        const id = window.setInterval(() => {
+            if (!sentRef.current) form.setValue("session", getActiveSession());
+        }, 60_000);
+        return () => window.clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const selectDirection = (side: "Buy" | "Sell", typeValue: string) => {
+        form.setValue("direction", side);
+        form.setValue("directionType", typeValue);
+        if (/limit|stop/i.test(typeValue)) {
+            // Pending order: admin must set the entry level it waits for (don't default to current price).
+            form.setValue("entryPrice", "");
+            form.setValue("stockLoss", "");
+            form.setValue("tp1", "");
+            form.setValue("tp2", "");
+            form.setValue("tp3", "");
+        } else if (livePrice !== null && symbol) {
+            // Market order: snap entry back to the live price.
+            form.setValue("entryPrice", formatPrice(livePrice, symbol));
+        }
+    };
+
+    const num = (v: string) => {
+        const n = parseFloat(String(v).replace(/[^0-9.-]/g, ""));
+        return Number.isFinite(n) ? n : null;
+    };
+
+    const handleSend = async () => {
+        const v = form.getValues();
+        setSending(true);
+        setSendError(null);
+        sentRef.current = true; // freeze live updates for this trade
+        try {
+            await tradingAlertService.create({
+                trade_id: v.tradeId,
+                pair: v.symbol,
+                direction: v.direction.toLowerCase() === "sell" ? "sell" : "buy",
+                direction_type: v.directionType || v.direction,
+                type: v.type,
+                session: v.session,
+                entry_level: num(v.entryPrice),
+                current_price: num(v.currentPrice),
+                stop_loss: num(v.stockLoss),
+                tp1: num(v.tp1),
+                tp2: num(v.tp2),
+                tp3: num(v.tp3),
+                risk: v.riskPerTrade,
+                comment: v.notes || v.tradeNotes || null,
+                status: "open",
+                date: new Date().toISOString(),
+            });
+
+            // Prepare a fresh Trade ID for the next alert and resume live pricing.
+            const alerts = await tradingAlertService.list().catch(() => []);
+            form.reset({
+                ...form.getValues(),
+                tradeId: generateTradeId(alerts.map((a) => a.trade_id ?? "")),
+                notes: "",
+                tradeNotes: "",
+            });
+            sentRef.current = false;
+            onSent();
+        } catch (err) {
+            sentRef.current = false;
+            const message = err instanceof Error ? err.message : "Failed to send alert";
+            setSendError(message);
+        } finally {
+            setSending(false);
+        }
+    };
 
     return (
         <div className="bg-darkGrey rounded-[12px] overflow-hidden text-foreground">
-            <div className="border-b border-solid border-stroke p-2">
-                <h6 className="text-center">Trade Alert</h6>
+            <div className="px-4 py-3 flex items-center gap-2">
+                <h6 className="font-semibold text-sm text-foreground">Trade Alert / Quick Entry</h6>
+                {isAdmin ? (
+                    <Link
+                        href={TRADE_ALERT_SETTINGS_PATH}
+                        className="text-foreground/80 hover:text-foreground"
+                        aria-label="Trade alert settings"
+                    >
+                        <Icon name="trading-settings.svg" width={18} height={18} />
+                    </Link>
+                ) : null}
             </div>
 
-            <div className="p-4 relative">
+            <div className="px-4 pb-4">
                 <Form {...form}>
-                    <div className="flex flex-col gap-4 pb-5 w-[80%]">
-                        <div className="grid grid-cols-3 gap-3">
+                    <div className="flex flex-col gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                            <FormField
+                                control={control}
+                                name="tradeId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Trade ID</FormLabel>
+                                        <FormControl>
+                                            <Input type="text" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
                             <FormField
                                 control={control}
                                 name="symbol"
@@ -164,37 +289,28 @@ function TradeAlertForm() {
                                         <FormControl>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select a symbol" />
+                                                    <SelectValue placeholder="Symbol" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="USD/JPY">USD/JPY</SelectItem>
-                                                    <SelectItem value="EUR/USD">EUR/USD</SelectItem>
-                                                    <SelectItem value="GBP/USD">GBP/USD</SelectItem>
+                                                    {pairs.map((p) => (
+                                                        <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         </FormControl>
                                     </FormItem>
-                                )} />
+                                )}
+                            />
 
-                            <FormField
-                                control={control}
-                                name="direction"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Direction</FormLabel>
-                                        <FormControl>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a direction" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Buy">Buy</SelectItem>
-                                                    <SelectItem value="Sell">Sell</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                    </FormItem>
-                                )} />
+                            <div className="space-y-2">
+                                <span className="text-sm font-medium leading-none">Direction</span>
+                                <DirectionSelector
+                                    direction={direction}
+                                    directionType={directionType}
+                                    enabledTypes={enabledTypes}
+                                    onSelect={selectDirection}
+                                />
+                            </div>
 
                             <FormField
                                 control={control}
@@ -205,20 +321,54 @@ function TradeAlertForm() {
                                         <FormControl>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select a type" />
+                                                    <SelectValue placeholder="Type" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="Market">Swing</SelectItem>
-                                                    <SelectItem value="Limit">Limit</SelectItem>
-                                                    <SelectItem value="Stop">Stop</SelectItem>
+                                                    {TYPE_OPTIONS.map((t) => (
+                                                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         </FormControl>
                                     </FormItem>
-                                )} />
-                        </div >
+                                )}
+                            />
 
-                        <div className="grid grid-cols-6 gap-3">
+                            <FormField
+                                control={control}
+                                name="session"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Session</FormLabel>
+                                        <FormControl>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Session" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {SESSION_OPTIONS.map((s) => (
+                                                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={control}
+                                name="currentPrice"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Current Price</FormLabel>
+                                        <FormControl>
+                                            <Input type="text" className="font-semibold" style={{ color: TRADE_GREEN }} {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
                             <FormField
                                 control={control}
                                 name="entryPrice"
@@ -226,158 +376,203 @@ function TradeAlertForm() {
                                     <FormItem>
                                         <FormLabel>Entry Price</FormLabel>
                                         <FormControl>
-                                            <Input type="text" {...field} />
+                                            <Input type="text" placeholder={isPendingType ? "Set pending entry" : undefined} {...field} />
                                         </FormControl>
                                     </FormItem>
-                                )} />
+                                )}
+                            />
+                        </div>
 
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                             <FormField
                                 control={control}
                                 name="stockLoss"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Stock Loss</FormLabel>
+                                        <FormLabel>SL</FormLabel>
                                         <FormControl>
-                                            <Input type="text" {...field} />
+                                            <Input type="text" className="font-semibold" style={{ color: TRADE_RED }} {...field} />
                                         </FormControl>
                                     </FormItem>
-                                )} />
-
-                            <FormField
-                                control={control}
-                                name="riskPerTrade"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Risk Per Trade</FormLabel>
-                                        <FormControl>
-                                            <Input type="text" {...field} />
-                                        </FormControl>
-                                    </FormItem>
-                                )} />
+                                )}
+                            />
 
                             <FormField
                                 control={control}
                                 name="tp1"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>TP 1</FormLabel>
+                                        <FormLabel>TP1</FormLabel>
                                         <FormControl>
-                                            <Input type="text" {...field} />
+                                            <Input type="text" className="font-semibold" style={{ color: TRADE_GREEN }} {...field} />
                                         </FormControl>
                                     </FormItem>
-                                )} />
+                                )}
+                            />
 
                             <FormField
                                 control={control}
                                 name="tp2"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>TP 2</FormLabel>
+                                        <FormLabel>TP2</FormLabel>
                                         <FormControl>
                                             <Input type="text" {...field} />
                                         </FormControl>
                                     </FormItem>
-                                )} />
+                                )}
+                            />
 
                             <FormField
                                 control={control}
                                 name="tp3"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>TP 3</FormLabel>
+                                        <FormLabel>TP3</FormLabel>
                                         <FormControl>
                                             <Input type="text" {...field} />
                                         </FormControl>
                                     </FormItem>
-                                )} />
-                        </div>
-                        <div className="border-t border-solid border-stroke pt-3 flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 12 13" fill="none">
-                                    <path d="M8.16761 2.91633L3.25945 7.92483C3.04073 8.14361 2.91786 8.44031 2.91786 8.74966C2.91786 9.05902 3.04073 9.35571 3.25945 9.5745C3.47823 9.79321 3.77492 9.91608 4.08428 9.91608C4.39364 9.91608 4.69033 9.79321 4.90911 9.5745L9.81728 4.566C10.2547 4.12843 10.5004 3.53505 10.5004 2.91633C10.5004 2.29761 10.2547 1.70423 9.81728 1.26666C9.37972 0.829232 8.78633 0.583496 8.16761 0.583496C7.5489 0.583496 6.95551 0.829232 6.51795 1.26666L1.6092 6.27458C0.952764 6.93101 0.583984 7.82133 0.583984 8.74966C0.583984 9.678 0.952764 10.5683 1.6092 11.2247C2.26563 11.8812 3.15594 12.25 4.08428 12.25C5.01262 12.25 5.90293 11.8812 6.55936 11.2247" stroke="currentColor" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                <span className="font-arimo">ATTACHMENTS</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Button variant="save-to-history" size="save-to-history">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                        <path d="M8.86667 1.75C9.1744 1.75438 9.46793 1.88018 9.68333 2.1L11.9 4.31667C12.1198 4.53207 12.2456 4.8256 12.25 5.13333V11.0833C12.25 11.3928 12.1271 11.6895 11.9083 11.9083C11.6895 12.1271 11.3928 12.25 11.0833 12.25H2.91667C2.60725 12.25 2.3105 12.1271 2.09171 11.9083C1.87292 11.6895 1.75 11.3928 1.75 11.0833V2.91667C1.75 2.60725 1.87292 2.3105 2.09171 2.09171C2.3105 1.87292 2.60725 1.75 2.91667 1.75H8.86667Z" stroke="currentColor" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M9.91732 12.2497V8.16634C9.91732 8.01163 9.85586 7.86326 9.74646 7.75386C9.63707 7.64447 9.48869 7.58301 9.33398 7.58301H4.66732C4.51261 7.58301 4.36424 7.64447 4.25484 7.75386C4.14544 7.86326 4.08398 8.01163 4.08398 8.16634V12.2497" stroke="currentColor" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M4.08398 1.75V4.08333C4.08398 4.23804 4.14544 4.38642 4.25484 4.49581C4.36424 4.60521 4.51261 4.66667 4.66732 4.66667H8.75065" stroke="currentColor" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    Save to History
-                                </Button>
+                                )}
+                            />
 
-                                <Button variant="send-alert" size="send-alert">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                        <g clipPath="url(#clip0_121_3205)">
-                                            <path d="M8.47857 12.65C8.50073 12.7052 8.53926 12.7524 8.58898 12.7851C8.6387 12.8178 8.69723 12.8345 8.75673 12.833C8.81622 12.8314 8.87382 12.8117 8.9218 12.7765C8.96978 12.7413 9.00585 12.6923 9.02515 12.636L12.8168 1.55266C12.8355 1.50098 12.8391 1.44504 12.8271 1.3914C12.8151 1.33776 12.7881 1.28864 12.7493 1.24978C12.7104 1.21092 12.6613 1.18393 12.6077 1.17197C12.554 1.16001 12.4981 1.16358 12.4464 1.18225L1.36307 4.97391C1.30677 4.99322 1.25773 5.02928 1.22253 5.07726C1.18732 5.12524 1.16764 5.18285 1.16611 5.24234C1.16459 5.30183 1.1813 5.36037 1.214 5.41009C1.24671 5.45981 1.29384 5.49833 1.34907 5.5205L5.9749 7.3755C6.12114 7.43404 6.254 7.5216 6.36548 7.63288C6.47696 7.74416 6.56476 7.87687 6.62357 8.023L8.47857 12.65Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                            <path d="M12.7489 1.25244L6.36719 7.63353" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_121_3205">
-                                                <rect width="14" height="14" fill="white" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                    Send
-                                </Button>
+                            <FormField
+                                control={control}
+                                name="riskPerTrade"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Risk %</FormLabel>
+                                        <FormControl>
+                                            <Input type="text" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
 
-                                <Button variant="telegram" size="social">
-                                    <svg className="!w-5 !h-5" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 18 18" fill="none">
-                                        <g clip-path="url(#clip0_121_3210)">
-                                            <path d="M10.9019 16.2644C10.9303 16.3354 10.9799 16.396 11.0438 16.4381C11.1077 16.4801 11.183 16.5016 11.2595 16.4997C11.336 16.4977 11.41 16.4724 11.4717 16.4271C11.5334 16.3818 11.5798 16.3188 11.6046 16.2464L16.4796 1.99642C16.5036 1.92997 16.5082 1.85805 16.4928 1.78909C16.4774 1.72012 16.4427 1.65697 16.3928 1.607C16.3428 1.55704 16.2797 1.52234 16.2107 1.50696C16.1417 1.49159 16.0698 1.49617 16.0034 1.52017L1.75335 6.39517C1.68098 6.41999 1.61792 6.46636 1.57266 6.52805C1.52739 6.58974 1.50208 6.6638 1.50012 6.74029C1.49816 6.81678 1.51965 6.89204 1.5617 6.95597C1.60375 7.01989 1.66434 7.06943 1.73535 7.09792L7.68285 9.48292C7.87087 9.5582 8.04169 9.67077 8.18503 9.81384C8.32836 9.95692 8.44124 10.1275 8.51685 10.3154L10.9019 16.2644Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                            <path d="M16.3905 1.61035L8.18555 9.8146" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_121_3210">
-                                                <rect width="18" height="18" fill="white" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                </Button>
-
-                                <Button variant="whatsapp" size="social">
-                                    <svg className="!w-5 !h-5" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 18 18" fill="none">
-                                        <g clipPath="url(#clip0_121_3214)">
-                                            <path d="M5.925 15C7.35643 15.7343 9.00306 15.9332 10.5682 15.5609C12.1333 15.1885 13.5139 14.2694 14.4613 12.9692C15.4087 11.6689 15.8606 10.0731 15.7354 8.46916C15.6103 6.86524 14.9164 5.35876 13.7789 4.22118C12.6413 3.0836 11.1348 2.38972 9.53088 2.2646C7.92697 2.13947 6.3311 2.59132 5.03086 3.53872C3.73063 4.48612 2.81152 5.86677 2.43917 7.43187C2.06682 8.99697 2.26571 10.6436 3 12.075L1.5 16.5L5.925 15Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_121_3214">
-                                                <rect width="18" height="18" fill="white" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                </Button>
-
-                                <Button variant="discord" size="social">
-                                    <svg className="!w-5 !h-5" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 18 18" fill="none">
-                                        <g clip-path="url(#clip0_121_3217)">
-                                            <path d="M9 16.5C13.1421 16.5 16.5 13.1421 16.5 9C16.5 4.85786 13.1421 1.5 9 1.5C4.85786 1.5 1.5 4.85786 1.5 9C1.5 13.1421 4.85786 16.5 9 16.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                            <path d="M9 10.5C9.82843 10.5 10.5 9.82843 10.5 9C10.5 8.17157 9.82843 7.5 9 7.5C8.17157 7.5 7.5 8.17157 7.5 9C7.5 9.82843 8.17157 10.5 9 10.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_121_3217">
-                                                <rect width="18" height="18" fill="white" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                </Button>
-                            </div>
+                            <FormField
+                                control={control}
+                                name="notes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Notes</FormLabel>
+                                        <FormControl>
+                                            <Input type="text" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                     </div>
-                </Form >
 
-                <div
-                    className="absolute top-8 right-6"
-                    role="button"
-                    tabIndex={0}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 19 20" fill="none">
-                        <path d="M7.45008 19.5L7.05792 16.367C6.71197 16.2623 6.33822 16.0983 5.93667 15.8752C5.53439 15.6513 5.19242 15.4115 4.91075 15.1558L2.02042 16.3854L0 12.8646L2.49817 10.9807C2.46567 10.7857 2.43931 10.5842 2.41908 10.3762C2.39742 10.1682 2.38658 9.96631 2.38658 9.77058C2.38658 9.58858 2.39742 9.39719 2.41908 9.19642C2.43931 8.99564 2.46567 8.76958 2.49817 8.51825L0 6.6365L2.02042 3.15683L4.88908 4.36583C5.21264 4.09644 5.56292 3.85342 5.93992 3.63675C6.31547 3.42008 6.68128 3.25253 7.03733 3.13408L7.449 0H11.492L11.8831 3.15467C12.2984 3.30056 12.6652 3.46775 12.9837 3.65625C13.3022 3.84475 13.6305 4.08092 13.9685 4.36475L16.9206 3.15683L18.941 6.63542L16.3605 8.58108C16.4197 8.80497 16.4529 9.01044 16.4602 9.1975C16.4674 9.38456 16.471 9.56872 16.471 9.75C16.471 9.91828 16.4638 10.0956 16.4493 10.2819C16.4356 10.469 16.4038 10.695 16.354 10.9601L18.8933 12.8646L16.8729 16.3854L13.9685 15.1353C13.6312 15.4191 13.2918 15.6621 12.9502 15.8643C12.6086 16.0666 12.2529 16.2273 11.8831 16.3464L11.492 19.5H7.45008ZM9.44125 12.4583C10.1967 12.4583 10.8369 12.1958 11.362 11.6708C11.8871 11.1457 12.1496 10.5054 12.1496 9.75C12.1496 8.99456 11.8871 8.35431 11.362 7.82925C10.8369 7.30419 10.1967 7.04167 9.44125 7.04167C8.68147 7.04167 8.04014 7.30419 7.51725 7.82925C6.99436 8.35431 6.73292 8.99456 6.73292 9.75C6.73292 10.5054 6.99436 11.1457 7.51725 11.6708C8.04014 12.1958 8.68147 12.4583 9.44125 12.4583Z" fill="currentColor" />
-                    </svg>
-                </div>
-            </div >
+                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 pt-4">
+                        <FormField
+                            control={control}
+                            name="tradeNotes"
+                            render={({ field }) => (
+                                <FormItem className="flex-1 min-w-0">
+                                    <FormControl>
+                                        <Input
+                                            type="text"
+                                            placeholder="Add trade notes......."
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+
+                        <Button
+                            variant="send-alert"
+                            size="send-alert"
+                            type="button"
+                            className="shrink-0 uppercase tracking-wide font-bold"
+                            onClick={handleSend}
+                            disabled={sending}
+                        >
+                            {sending ? "Sending…" : "Send Alert"}
+                        </Button>
+                    </div>
+                    {sendError ? (
+                        <p className="text-sm mt-2" style={{ color: TRADE_RED }}>
+                            {sendError}
+                        </p>
+                    ) : null}
+                </Form>
+            </div>
         </div>
     );
 }
+
+function DirectionSelector({
+    direction,
+    directionType,
+    enabledTypes,
+    onSelect,
+}: {
+    direction: string;
+    directionType: string;
+    enabledTypes: Record<string, boolean>;
+    onSelect: (side: "Buy" | "Sell", typeValue: string) => void;
+}) {
+    const [openSide, setOpenSide] = useState<"Buy" | "Sell" | null>(null);
+
+    const renderSide = (side: "Buy" | "Sell", activeClass: string) => {
+        const types = DIRECTION_TYPES[side];
+        const enabled = types.filter((t) => enabledTypes[t.value] !== false);
+        const list = enabled.length ? enabled : [types[0]];
+        const isActive = direction === side;
+        const buttonLabel = isActive && directionType && directionType !== side
+            ? DIRECTION_TYPE_LABELS[directionType] ?? side
+            : side;
+
+        const choose = (value: string) => {
+            onSelect(side, value);
+            setOpenSide(null);
+        };
+
+        return (
+            <div
+                className="relative flex-1"
+                onMouseEnter={() => setOpenSide(side)}
+                onMouseLeave={() => setOpenSide(null)}
+            >
+                <button
+                    type="button"
+                    onClick={() => choose(side)}
+                    className={cn(
+                        "w-full h-10 rounded-[4px] text-[10px] font-bold uppercase",
+                        isActive ? activeClass : "bg-stroke/20 text-foreground border border-stroke/50",
+                    )}
+                >
+                    {buttonLabel}
+                </button>
+                {/* Menu sits flush under the button (no gap) so the cursor can travel into it. */}
+                {openSide === side ? (
+                    <div className="absolute left-0 top-full z-30 min-w-full overflow-hidden rounded-[4px] border border-stroke bg-darkGrey shadow-lg">
+                        {list.map((t) => (
+                            <button
+                                key={t.value}
+                                type="button"
+                                onClick={() => choose(t.value)}
+                                className={cn(
+                                    "block w-full px-2 py-1.5 text-left text-[10px] font-semibold hover:bg-stroke/30",
+                                    directionType === t.value && "bg-stroke/20",
+                                )}
+                            >
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
+                ) : null}
+            </div>
+        );
+    };
+
+    return (
+        <div className="flex gap-1 h-10">
+            {renderSide("Buy", "bg-[#05df72] text-black")}
+            {renderSide("Sell", "bg-[#fa003f] text-white")}
+        </div>
+    );
+}
+

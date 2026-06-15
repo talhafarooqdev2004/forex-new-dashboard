@@ -24,7 +24,7 @@ export const sidebarItems: SidebarItem[] = [
     { icon: "calendar-news-icon", href: "/calendar-news", label: "Calendar & News", navigable: true },
     { icon: "education-svg-icon", href: "/education", label: "Education", navigable: true },
     { icon: "edge-tools-alerts-icon", href: "/trading-analysis", label: "Trading Analysis", navigable: false },
-    { icon: "trading-terminal-icon", href: "/trading-terminal", label: "Trading Terminal & Alerts", navigable: false },
+    { icon: "trading-terminal-icon", href: "/trading-terminal", label: "Trading Terminal & Alerts", navigable: true },
     // { icon: "risk-mode-icon", href: "/risk-mode", label: "Risk Mode", navigable: false },
     { icon: "trading-journal-icon", href: "/trading-journal", label: "Trading Journal", navigable: false },
     { icon: "forum-svg-icon", href: "/forum", label: "Forum", navigable: false },

@@ -1,19 +1,15 @@
 $cot-upper-compact-max: 1349px;
-$cot-sentiment-large-min: 1632px;
 
-/** Overall Sentiment card (left) — fixed height on wide layouts. */
+/** Overall Sentiment card (left) — height from content; defines the row height. */
 .cotOverallSection {
-    @media (min-width: $cot-sentiment-large-min) {
-        height: 373px;
-        min-height: 373px;
-        max-height: 373px;
-        flex: 0 0 373px;
-    }
+    align-self: stretch;
 }
 
 /** Bullish + Bearish stack — match Overall Sentiment height; split 50/50. */
 .cotSentimentColumn {
+    display: flex;
     flex: 1 1 0;
+    flex-direction: column;
     min-height: 0;
     align-self: stretch;
 }
@@ -24,13 +20,16 @@ $cot-sentiment-large-min: 1632px;
     flex: 1 1 0;
     flex-direction: column;
     min-height: 0;
+    overflow: hidden;
     padding-bottom: 1.25rem;
 
-    > div:last-child {
+    >div:last-child {
         display: flex;
         flex: 1 1 auto;
         flex-direction: column;
         min-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
     }
 }
 
@@ -47,26 +46,24 @@ $cot-sentiment-large-min: 1632px;
     width: 100%;
     flex: 1 1 auto;
     flex-direction: column;
+    gap: 0.75rem;
+    justify-content: flex-start;
     min-height: 0;
 }
 
-/** One currency — pin to top of the card body. */
-.cotSentimentRowsGroupSingle {
-    justify-content: flex-start;
-}
-
-/** Two currencies — stretch vertical gap to fill card height (top + bottom). */
-.cotSentimentRowsGroupMulti {
-    justify-content: space-between;
-}
-
+/** Compact currency rows; spacing comes from parent gap, not flex stretch. */
 .cotSentimentRow {
     flex-shrink: 0;
 }
 
 /** Upper row only: Overall Sentiment + Bullish/Bearish (not Pair Bias or tables below). */
 .cotUpperSection {
+    @media (min-width: 768px) {
+        align-items: stretch;
+    }
+
     @media (max-width: $cot-upper-compact-max) {
+
         .cotOverallHeading,
         .cotOverallHeadingInput {
             font-size: 0.875rem;

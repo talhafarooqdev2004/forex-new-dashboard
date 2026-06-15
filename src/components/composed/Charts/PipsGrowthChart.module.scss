@@ -1,0 +1,59 @@
+.chartBody {
+  padding: 12px 14px 10px 12px;
+  overflow: hidden;
+}
+
+.chartPlot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  overflow: hidden;
+}
+
+.chartSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Custom scrollbars — decorative, matches design reference */
+.vScrollTrack {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  bottom: 18px;
+  width: 6px;
+  border-radius: 999px;
+  background: #2f3540;
+}
+
+.vScrollThumb {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32%;
+  border-radius: 999px;
+  background: #b8bcc4;
+}
+
+.hScrollTrack {
+  position: absolute;
+  left: 36px;
+  right: 14px;
+  bottom: 2px;
+  height: 6px;
+  border-radius: 999px;
+  background: #2f3540;
+}
+
+.hScrollThumb {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 42%;
+  border-radius: 999px;
+  background: #b8bcc4;
+}

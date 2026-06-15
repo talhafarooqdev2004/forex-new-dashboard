@@ -31,13 +31,13 @@ const Y_AXIS_LABELS = ["15", "10", "05", "0", "-5", "-10", "-15"];
 const GRID_LINE_OPACITY = 0.08;
 const ZERO_LINE_OPACITY = 0.16;
 /** Y-axis label tops — offset slightly above grid lines. */
-const Y_AXIS_TOPS = [
-  7.68, 19.01, 30.35, 41.68, 53.01, 64.35, 75.68,
-].map((p) => `${p + TITLE_BOTTOM_SPACE_PCT}%`);
+const Y_AXIS_TOPS = [7.68, 19.01, 30.35, 41.68, 53.01, 64.35, 75.68].map(
+  (p) => `${p + TITLE_BOTTOM_SPACE_PCT}%`,
+);
 /** Grid lines for ±15 … 0 … −15 (wider vertical span = taller bars). */
-const GRID_LINE_TOPS = [
-  10, 21.33, 32.67, 44, 55.33, 66.67, 78,
-].map((p) => `${p + TITLE_BOTTOM_SPACE_PCT}%`);
+const GRID_LINE_TOPS = [10, 21.33, 32.67, 44, 55.33, 66.67, 78].map(
+  (p) => `${p + TITLE_BOTTOM_SPACE_PCT}%`,
+);
 
 const BASELINE_TOP = 44 + TITLE_BOTTOM_SPACE_PCT;
 /** Max bar height (% of container) at ±FIXED_RANGE — matches grid extent above/below baseline. */
@@ -131,9 +131,7 @@ export default function COTWeeklyChangeNetPositions({
     <Section padding={false} className="w-full">
       <div className="w-full horizontal-scroll bg-darkGrey rounded-[12px]">
         <div className="relative min-w-[800px] xl:min-w-0 w-full max-w-[1124px] mx-auto aspect-[1124/600] overflow-hidden text-foreground">
-          <div
-            className="absolute left-0 right-0 top-[5.20%] z-10 flex justify-center px-4 pb-4"
-          >
+          <div className="absolute left-0 right-0 top-[5.20%] z-10 flex justify-center px-4 pb-4">
             <p className="font-['Inter',sans-serif] text-center text-[min(2vw,22px)] font-bold leading-6 text-foreground">
               Weekly Change Net Non Commercial Positions
             </p>
@@ -145,7 +143,8 @@ export default function COTWeeklyChangeNetPositions({
             </p>
           ) : points.length === 0 ? (
             <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm text-secondary text-center px-6">
-              No chart data. Sync Currency Pair Sentiment (symbol + position change % columns).
+              No chart data. Sync Currency Pair Sentiment (symbol + position
+              change % columns).
             </p>
           ) : (
             <>
@@ -210,7 +209,8 @@ export default function COTWeeklyChangeNetPositions({
                         top: `${top}%`,
                         height: `${Math.max(height, 0.3)}%`,
                         width: `${BAR_WIDTH_PCT}%`,
-                        backgroundColor: clamped >= 0 ? "#2563eb" : GAUGE_SIGNAL_COLORS.sell,
+                        backgroundColor:
+                          clamped >= 0 ? "#2563eb" : GAUGE_SIGNAL_COLORS.sell,
                       }}
                     />
 

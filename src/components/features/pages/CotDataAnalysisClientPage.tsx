@@ -353,271 +353,259 @@ export default function CotDataAnalysisClientPage({
                 {/* Left block shrinks; Pair Bias keeps natural table width on the right */}
                 <div className="flex min-w-0 flex-1 flex-col gap-6 self-stretch">
                     <div
-                        className={`${styles.cotUpperSection} flex min-h-[min(360px,42vh)] min-w-0 flex-col items-stretch gap-4 md:flex-row md:gap-6 lg:min-h-[min(400px,44vh)]`}
+                        className={`${styles.cotUpperSection} flex min-w-0 flex-col gap-4 md:flex-row md:items-stretch md:gap-6`}
                     >
-                        <Section className={`${styles.cotOverallSection} flex min-h-[280px] min-w-0 flex-1 flex-col md:min-h-0`}>
-                        <div className="flex min-h-0 flex-1 flex-col gap-2">
-                            {/* Header row — same line as design reference */}
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                <span className={`${styles.cotOverallHeading} font-normal text-foreground text-base sm:text-lg`}>
-                                    Overall Sentiment for
-                                    {editingMonth && isAdmin && ready && token ? (
-                                        <input
-                                            ref={monthInputRef}
-                                            type="text"
-                                            className={`${styles.cotOverallHeadingInput} ml-1 inline-block min-w-[6rem] max-w-[14rem] align-baseline rounded border border-stroke bg-background py-0.5 pl-1.5 pr-1.5 text-base font-normal text-foreground sm:text-lg`}
-                                            value={draftMonth}
-                                            onChange={(e) => setDraftMonth(e.target.value)}
-                                            onBlur={() => void commitMonth()}
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Escape") {
-                                                    skipMonthBlurSave.current = true;
-                                                    setEditingMonth(false);
-                                                    setDraftMonth(monthLabelText);
-                                                }
-                                                if (e.key === "Enter") {
-                                                    (e.target as HTMLInputElement).blur();
-                                                }
-                                            }}
-                                            aria-label="Overall sentiment month or date label"
-                                        />
-                                    ) : (
-                                        <>
-                                            {" "}
-                                            <span
-                                                className={
-                                                    isAdmin && ready && token
-                                                        ? `${styles.cotOverallHeading} text-base sm:text-lg cursor-text rounded-sm px-0.5 hover:bg-white/5`
-                                                        : `${styles.cotOverallHeading} text-base sm:text-lg`
-                                                }
-                                                onDoubleClick={() => {
-                                                    if (!ready || !isAdmin || !token) return;
-                                                    setDraftMonth(monthLabelText);
-                                                    setEditingMonth(true);
+                        <Section className={`${styles.cotOverallSection} flex min-w-0 flex-1 flex-col`}>
+                            <div className="flex min-h-0 flex-1 flex-col gap-2">
+                                {/* Header row — same line as design reference */}
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                    <span className={`${styles.cotOverallHeading} font-normal text-foreground text-base sm:text-lg`}>
+                                        Overall Sentiment for
+                                        {editingMonth && isAdmin && ready && token ? (
+                                            <input
+                                                ref={monthInputRef}
+                                                type="text"
+                                                className={`${styles.cotOverallHeadingInput} ml-1 inline-block min-w-[6rem] max-w-[14rem] align-baseline rounded border border-stroke bg-background py-0.5 pl-1.5 pr-1.5 text-base font-normal text-foreground sm:text-lg`}
+                                                value={draftMonth}
+                                                onChange={(e) => setDraftMonth(e.target.value)}
+                                                onBlur={() => void commitMonth()}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Escape") {
+                                                        skipMonthBlurSave.current = true;
+                                                        setEditingMonth(false);
+                                                        setDraftMonth(monthLabelText);
+                                                    }
+                                                    if (e.key === "Enter") {
+                                                        (e.target as HTMLInputElement).blur();
+                                                    }
                                                 }}
-                                            >
-                                                {monthLabelText}
-                                            </span>
-                                        </>
-                                    )}
-                                    <span className={`${styles.cotOverallHeading} text-base sm:text-lg`}>:</span>
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <span
-                                        className={`${styles.cotOverallBias} text-base font-semibold sm:text-lg`}
-                                        style={{ color: biasAccent.color }}
-                                    >
-                                        {biasDisplay}
+                                                aria-label="Overall sentiment month or date label"
+                                            />
+                                        ) : (
+                                            <>
+                                                {" "}
+                                                <span
+                                                    className={
+                                                        isAdmin && ready && token
+                                                            ? `${styles.cotOverallHeading} text-base sm:text-lg cursor-text rounded-sm px-0.5 hover:bg-white/5`
+                                                            : `${styles.cotOverallHeading} text-base sm:text-lg`
+                                                    }
+                                                    onDoubleClick={() => {
+                                                        if (!ready || !isAdmin || !token) return;
+                                                        setDraftMonth(monthLabelText);
+                                                        setEditingMonth(true);
+                                                    }}
+                                                >
+                                                    {monthLabelText}
+                                                </span>
+                                            </>
+                                        )}
+                                        <span className={`${styles.cotOverallHeading} text-base sm:text-lg`}>:</span>
                                     </span>
-                                    {biasAccent.showUpArrow ? (
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className={styles.cotOverallArrow}
-                                            width="23"
-                                            height="23"
-                                            viewBox="0 0 23 23"
-                                            fill="none"
-                                            aria-hidden
+                                    <span className="flex items-center gap-1">
+                                        <span
+                                            className={`${styles.cotOverallBias} text-base font-semibold sm:text-lg`}
+                                            style={{ color: biasAccent.color }}
                                         >
-                                            <path
-                                                d="M6.66602 6.66602H16.1883V16.1883"
-                                                stroke={biasAccent.color}
-                                                strokeWidth="1.90446"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            />
-                                            <path
-                                                d="M6.66602 16.1883L16.1883 6.66602"
-                                                stroke={biasAccent.color}
-                                                strokeWidth="1.90446"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            />
-                                        </svg>
-                                    ) : (
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="23"
-                                            height="23"
-                                            viewBox="0 0 23 23"
-                                            fill="none"
-                                            aria-hidden
-                                        >
-                                            <path
-                                                d="M16.1883 16.1883H6.66602V6.66602"
-                                                stroke={biasAccent.color}
-                                                strokeWidth="1.90446"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            />
-                                            <path
-                                                d="M16.1883 6.66602L6.66602 16.1883"
-                                                stroke={biasAccent.color}
-                                                strokeWidth="1.90446"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            />
-                                        </svg>
-                                    )}
-                                </span>
-                            </div>
-
-                            {editingCommentary && isAdmin && ready && token ? (
-                                <textarea
-                                    ref={commentaryRef}
-                                    className={`${styles.cotOverallCommentary} mt-1 max-w-3xl w-full rounded-md border border-stroke bg-background px-2 py-1.5 text-sm leading-snug text-foreground`}
-                                    rows={4}
-                                    value={draftCommentary}
-                                    onChange={(e) => setDraftCommentary(e.target.value)}
-                                    onBlur={() => void commitCommentary()}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Escape") {
-                                            skipCommentaryBlurSave.current = true;
-                                            setEditingCommentary(false);
-                                            setDraftCommentary(commentaryText);
-                                        }
-                                    }}
-                                    aria-label="Market commentary"
-                                />
-                            ) : (
-                                <p
-                                    className={`${styles.cotOverallCommentary} mt-1 max-w-3xl text-sm leading-snug text-[rgb(var(--secondary))] ${isAdmin && ready && token ? "cursor-text select-text rounded-sm" : ""
-                                        }`}
-                                    onDoubleClick={() => {
-                                        if (!ready || !isAdmin || !token) return;
-                                        setDraftCommentary(commentaryText);
-                                        setEditingCommentary(true);
-                                    }}
-                                >
-                                    {commentaryText}
-                                </p>
-                            )}
-
-                            <div className="mt-3 flex flex-1 flex-col items-center justify-center border-t border-solid border-stroke/60 pt-4">
-                                <div className="flex flex-col items-center gap-3">
-                                    <RiskModeSheetGauge
-                                        riskModeScore={mapCotOverallRiskScoreToGauge0100(cotOverallRiskScore)}
-                                        isDark={isDarkMode}
-                                        onLabelX={146}
-                                        className="flex w-[min(100%,220px)] max-w-[260px] shrink-0 justify-center"
-                                    />
-                                    <span className="text-3xl font-bold tabular-nums leading-none text-foreground">
-                                        {formatCotOverallRiskScoreDisplay(cotOverallRiskScore)}
+                                            {biasDisplay}
+                                        </span>
+                                        {biasAccent.showUpArrow ? (
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className={styles.cotOverallArrow}
+                                                width="23"
+                                                height="23"
+                                                viewBox="0 0 23 23"
+                                                fill="none"
+                                                aria-hidden
+                                            >
+                                                <path
+                                                    d="M6.66602 6.66602H16.1883V16.1883"
+                                                    stroke={biasAccent.color}
+                                                    strokeWidth="1.90446"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                                <path
+                                                    d="M6.66602 16.1883L16.1883 6.66602"
+                                                    stroke={biasAccent.color}
+                                                    strokeWidth="1.90446"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                            </svg>
+                                        ) : (
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="23"
+                                                height="23"
+                                                viewBox="0 0 23 23"
+                                                fill="none"
+                                                aria-hidden
+                                            >
+                                                <path
+                                                    d="M16.1883 16.1883H6.66602V6.66602"
+                                                    stroke={biasAccent.color}
+                                                    strokeWidth="1.90446"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                                <path
+                                                    d="M16.1883 6.66602L6.66602 16.1883"
+                                                    stroke={biasAccent.color}
+                                                    strokeWidth="1.90446"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                            </svg>
+                                        )}
                                     </span>
                                 </div>
+
+                                {editingCommentary && isAdmin && ready && token ? (
+                                    <textarea
+                                        ref={commentaryRef}
+                                        className={`${styles.cotOverallCommentary} mt-1 max-w-3xl w-full rounded-md border border-stroke bg-background px-2 py-1.5 text-sm leading-snug text-foreground`}
+                                        rows={4}
+                                        value={draftCommentary}
+                                        onChange={(e) => setDraftCommentary(e.target.value)}
+                                        onBlur={() => void commitCommentary()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Escape") {
+                                                skipCommentaryBlurSave.current = true;
+                                                setEditingCommentary(false);
+                                                setDraftCommentary(commentaryText);
+                                            }
+                                        }}
+                                        aria-label="Market commentary"
+                                    />
+                                ) : (
+                                    <p
+                                        className={`${styles.cotOverallCommentary} mt-1 max-w-3xl text-sm leading-snug text-[rgb(var(--secondary))] ${isAdmin && ready && token ? "cursor-text select-text rounded-sm" : ""
+                                            }`}
+                                        onDoubleClick={() => {
+                                            if (!ready || !isAdmin || !token) return;
+                                            setDraftCommentary(commentaryText);
+                                            setEditingCommentary(true);
+                                        }}
+                                    >
+                                        {commentaryText}
+                                    </p>
+                                )}
+
+                                <div className="mt-3 flex flex-1 flex-col items-center justify-center border-t border-solid border-stroke/60 pt-4">
+                                    <div className="flex flex-col items-center gap-3">
+                                        <RiskModeSheetGauge
+                                            riskModeScore={mapCotOverallRiskScoreToGauge0100(cotOverallRiskScore)}
+                                            isDark={isDarkMode}
+                                            onLabelX={146}
+                                            className="flex w-[min(100%,220px)] max-w-[260px] shrink-0 justify-center"
+                                        />
+                                        <span className="text-3xl font-bold tabular-nums leading-none text-foreground">
+                                            {formatCotOverallRiskScoreDisplay(cotOverallRiskScore)}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
                         </Section>
 
-                        <div className={`${styles.cotSentimentColumn} flex min-h-[280px] min-w-0 flex-col gap-4 md:min-h-0 md:gap-6`}>
-                        <LabelSection
-                            label="Bullish Sentiment"
-                            icon={
-                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
-                                    <path
-                                        d="M22.7861 7.30078L13.9354 16.1515L8.72913 10.9452L1.96094 17.7134"
-                                        stroke={GAUGE_SIGNAL_COLORS.buy}
-                                        strokeWidth="2.08252"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <path
-                                        d="M16.5391 7.30078L22.7866 7.30078L22.7866 13.5483"
-                                        stroke={GAUGE_SIGNAL_COLORS.buy}
-                                        strokeWidth="2.08252"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                            }
-                            padding={false}
-                            className={`${styles.cotSentimentPanel} flex min-h-0 w-full flex-1 flex-col`}
-                        >
-                            <div className={`${styles.cotSentimentPanelBody} flex flex-1 flex-col`}>
-                                {bullishCurrencies.length === 0 ? (
-                                    <div className={`${styles.cotSentimentEmpty} px-6 py-4 text-sm text-secondary`}>
-                                        No bullish rows (positive values in the Change Position column of Currency Pair Sentiment).
-                                    </div>
-                                ) : (
-                                    <div
-                                        className={`${styles.cotSentimentRowsGroup} ${
-                                            bullishCurrencies.length === 1
-                                                ? styles.cotSentimentRowsGroupSingle
-                                                : styles.cotSentimentRowsGroupMulti
-                                        }`}
-                                    >
-                                        {bullishCurrencies.map((row, index) => (
-                                            <div
-                                                key={`bull-${row.currency}-${index}`}
-                                                className={`${styles.cotSentimentRow} py-3 ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
-                                            >
-                                                <div className="flex items-center justify-between px-6">
-                                                    <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <Icon name="profit-icon.svg" width={11} height={11} />
-                                                        <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.buy }}>{row.valueDisplay}</span>
+                        <div className={`${styles.cotSentimentColumn} min-w-0 gap-4 md:gap-6`}>
+                            <LabelSection
+                                label="Bullish Sentiment"
+                                icon={
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                                        <path
+                                            d="M22.7861 7.30078L13.9354 16.1515L8.72913 10.9452L1.96094 17.7134"
+                                            stroke={GAUGE_SIGNAL_COLORS.buy}
+                                            strokeWidth="2.08252"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                        <path
+                                            d="M16.5391 7.30078L22.7866 7.30078L22.7866 13.5483"
+                                            stroke={GAUGE_SIGNAL_COLORS.buy}
+                                            strokeWidth="2.08252"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                }
+                                padding={false}
+                                className={`${styles.cotSentimentPanel} flex min-h-0 w-full flex-1 flex-col`}
+                            >
+                                <div className={`${styles.cotSentimentPanelBody} flex flex-1 flex-col`}>
+                                    {bullishCurrencies.length === 0 ? (
+                                        <div className={`${styles.cotSentimentEmpty} px-6 py-4 text-sm text-secondary`}>
+                                            No bullish rows (positive values in the Change Position column of Currency Pair Sentiment).
+                                        </div>
+                                    ) : (
+                                        <div className={styles.cotSentimentRowsGroup}>
+                                            {bullishCurrencies.map((row, index) => (
+                                                <div
+                                                    key={`bull-${row.currency}-${index}`}
+                                                    className={`${styles.cotSentimentRow} ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
+                                                >
+                                                    <div className="flex items-center justify-between px-6">
+                                                        <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <Icon name="profit-icon.svg" width={11} height={11} />
+                                                            <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.buy }}>{row.valueDisplay}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </LabelSection>
-                        <LabelSection
-                            label="Bearish Sentiment"
-                            icon={
-                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
-                                    <path
-                                        d="M22.7861 17.6895L13.9354 8.83875L8.72913 14.045L1.96094 7.27686"
-                                        stroke={GAUGE_SIGNAL_COLORS.sell}
-                                        strokeWidth="2.08252"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <path
-                                        d="M16.5391 17.6895H22.7866V11.4419"
-                                        stroke={GAUGE_SIGNAL_COLORS.sell}
-                                        strokeWidth="2.08252"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                            }
-                            padding={false}
-                            className={`${styles.cotSentimentPanel} flex min-h-0 w-full flex-1 flex-col`}
-                        >
-                            <div className={`${styles.cotSentimentPanelBody} flex flex-1 flex-col`}>
-                                {bearishCurrencies.length === 0 ? (
-                                    <div className={`${styles.cotSentimentEmpty} px-6 py-4 text-sm text-secondary`}>
-                                        No bearish rows (negative values in the Change Position column of Currency Pair Sentiment).
-                                    </div>
-                                ) : (
-                                    <div
-                                        className={`${styles.cotSentimentRowsGroup} ${
-                                            bearishCurrencies.length === 1
-                                                ? styles.cotSentimentRowsGroupSingle
-                                                : styles.cotSentimentRowsGroupMulti
-                                        }`}
-                                    >
-                                        {bearishCurrencies.map((row, index) => (
-                                            <div
-                                                key={`bear-${row.currency}-${index}`}
-                                                className={`${styles.cotSentimentRow} py-3 ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
-                                            >
-                                                <div className="flex items-center justify-between px-6">
-                                                    <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <Icon name="loss-icon.svg" width={11} height={11} />
-                                                        <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.sell }}>{row.valueDisplay}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </LabelSection>
+                            <LabelSection
+                                label="Bearish Sentiment"
+                                icon={
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                                        <path
+                                            d="M22.7861 17.6895L13.9354 8.83875L8.72913 14.045L1.96094 7.27686"
+                                            stroke={GAUGE_SIGNAL_COLORS.sell}
+                                            strokeWidth="2.08252"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                        <path
+                                            d="M16.5391 17.6895H22.7866V11.4419"
+                                            stroke={GAUGE_SIGNAL_COLORS.sell}
+                                            strokeWidth="2.08252"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                }
+                                padding={false}
+                                className={`${styles.cotSentimentPanel} flex min-h-0 w-full flex-1 flex-col`}
+                            >
+                                <div className={`${styles.cotSentimentPanelBody} flex flex-1 flex-col`}>
+                                    {bearishCurrencies.length === 0 ? (
+                                        <div className={`${styles.cotSentimentEmpty} px-6 py-4 text-sm text-secondary`}>
+                                            No bearish rows (negative values in the Change Position column of Currency Pair Sentiment).
+                                        </div>
+                                    ) : (
+                                        <div className={styles.cotSentimentRowsGroup}>
+                                            {bearishCurrencies.map((row, index) => (
+                                                <div
+                                                    key={`bear-${row.currency}-${index}`}
+                                                    className={`${styles.cotSentimentRow} ${index > 0 ? "border-t border-solid border-stroke" : ""}`}
+                                                >
+                                                    <div className="flex items-center justify-between px-6">
+                                                        <span className={`${styles.cotSentimentRowCurrency} text-base font-semibold sm:text-lg`}>{row.currency}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <Icon name="loss-icon.svg" width={11} height={11} />
+                                                            <span className={styles.cotSentimentRowValue} style={{ color: GAUGE_SIGNAL_COLORS.sell }}>{row.valueDisplay}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </LabelSection>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </LabelSection>
                         </div>
                     </div>
 

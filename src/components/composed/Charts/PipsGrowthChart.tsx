@@ -1,128 +1,145 @@
 "use client";
 
-import React from "react";
+import styles from "./PipsGrowthChart.module.scss";
+import { cn } from "@/lib/utils";
+import type { TradingAlert } from "@/services";
+import { equitySeries, equityStats, formatPips, niceScale } from "@/lib/tradingTerminalStats";
 
-const lineData = [
-  { x: 0, pips: 0, label: '' },
-  { x: 1, pips: 100, label: '5' },
-  { x: 10, pips: 175, label: '15' },
-  { x: 20, pips: 400, label: '1000' },
-  { x: 22, pips: 600, label: '1500' },
-  { x: 24, pips: 800, label: '2000' },
-];
+const GREEN = "#05df72";
+const RED = "#fa003f";
+const AXIS_TEXT = "rgb(var(--foreground))";
+const GRID_LINE = "rgb(var(--stroke))";
+const ZERO_LINE = "rgba(var(--secondary), 0.55)";
 
-const pieData = [
-  { name: 'Wins', value: 79, color: '#4ADE80' },
-  { name: 'Losses', value: 21, color: '#EF4444' },
-];
+const VIEW_W = 500;
+const VIEW_H = 210;
+const PLOT_LEFT = 44;
+const PLOT_RIGHT = VIEW_W - 18;
+const PLOT_TOP = 8;
+const PLOT_BOTTOM = VIEW_H - 22;
+const PLOT_W = PLOT_RIGHT - PLOT_LEFT;
+const PLOT_H = PLOT_BOTTOM - PLOT_TOP;
 
-export default function PipsGrowthChart() {
-  return (
-    <div className="bg-darkGrey rounded-[12px] w-full border-b-[0.8px] border-stroke overflow-hidden text-foreground">
-      <div className="w-full horizontal-scroll">
-        <div className="flex flex-col lg:flex-row gap-8 p-6 min-w-[800px]">
-          {/* Donut Chart Section (Manual SVG) */}
-          <div className="flex flex-col items-center min-w-[288px]">
-            <div className="relative w-[192px] h-[192px]">
-              <svg viewBox="0 0 192 192" className="w-full h-full transform -rotate-90">
-                {/* Wins Circle */}
-                <circle
-                  cx="96"
-                  cy="96"
-                  r="67.5"
-                  fill="transparent"
-                  stroke="#4ADE80"
-                  strokeWidth="25"
-                  strokeDasharray={`${(79 / 100) * 424} 424`}
-                />
-                {/* Losses Circle */}
-                <circle
-                  cx="96"
-                  cy="96"
-                  r="67.5"
-                  fill="transparent"
-                  stroke="#EF4444"
-                  strokeWidth="25"
-                  strokeDasharray={`${(21 / 100) * 424} 424`}
-                  strokeDashoffset={`${-(79 / 100) * 424}`}
-                />
-                {/* Inner stroke */}
-                <circle cx="96" cy="96" r="55" fill="transparent" stroke="currentColor" strokeWidth="1" />
-                {/* Outer stroke */}
-                <circle cx="96" cy="96" r="80" fill="transparent" stroke="currentColor" strokeWidth="1" />
-              </svg>
-              {/* Center text */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="font-['Arimo',sans-serif] font-bold text-[30px] leading-[36px]">79%</span>
-                <span className="font-['Arimo',sans-serif] font-bold text-[10px] leading-[15px] text-[#05df72]">Wins</span>
-              </div>
-              {/* Loss label on the red slice */}
-              <div className="absolute" style={{ top: '57px', left: '85px' }}>
-                <span className="font-['Arimo',sans-serif] font-bold text-[10px] leading-[15px] text-[#ff6467]">Loss</span>
-              </div>
+function buildSmoothPath(pts: { x: number; y: number }[]): string {
+    if (pts.length < 2) return pts.length === 1 ? `M ${pts[0]!.x} ${pts[0]!.y}` : "";
+    let path = `M ${pts[0]!.x} ${pts[0]!.y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[Math.max(i - 1, 0)]!;
+        const p1 = pts[i]!;
+        const p2 = pts[i + 1]!;
+        const p3 = pts[Math.min(i + 2, pts.length - 1)]!;
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+        path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+    return path;
+}
+
+function shortDate(iso: string): string {
+    const [, m, d] = iso.split("-");
+    return `${m}/${d}`;
+}
+
+export default function PipsGrowthChart({ trades }: { trades: TradingAlert[] }) {
+    const series = equitySeries(trades);
+    const stats = equityStats(trades);
+
+    const cumulatives = series.map((p) => p.cumulative);
+    const scale = niceScale(Math.min(0, ...cumulatives), Math.max(0, ...cumulatives), 4);
+    const xMax = Math.max(series.length - 1, 1);
+
+    const scaleX = (i: number) => PLOT_LEFT + (i / xMax) * PLOT_W;
+    const scaleY = (v: number) => PLOT_BOTTOM - ((v - scale.min) / (scale.max - scale.min || 1)) * PLOT_H;
+
+    const pts = series.map((p, i) => ({ x: scaleX(i), y: scaleY(p.cumulative) }));
+    const linePath = buildSmoothPath(pts);
+    const lineColor = (cumulatives[cumulatives.length - 1] ?? 0) >= 0 ? GREEN : RED;
+
+    // X labels: first, last and a couple in between.
+    const xLabelIdx = series.length <= 6
+        ? series.map((_, i) => i)
+        : [0, Math.round(xMax / 3), Math.round((2 * xMax) / 3), xMax];
+
+    const footer: { label: string; value: string; color?: string }[] = [
+        { label: "Best Day", value: stats.bestDay !== null ? formatPips(stats.bestDay) : "—", color: GREEN },
+        { label: "Worst", value: stats.worstDay !== null ? formatPips(stats.worstDay) : "—", color: RED },
+        { label: "Avg Daily", value: stats.avgDaily !== null ? formatPips(stats.avgDaily) : "—" },
+        { label: "Expectancy", value: stats.expectancy !== null ? formatPips(stats.expectancy) : "—" },
+    ];
+
+    return (
+        <div className="bg-darkGrey rounded-[12px] w-full h-full min-w-0 overflow-hidden flex flex-col">
+            <div className="px-5 pt-4 pb-3 border-b border-solid border-stroke shrink-0 min-h-[52px] flex items-center">
+                <h6 className="font-semibold text-foreground text-sm">Pips Growth — Equity Curve</h6>
             </div>
-            {/* Legend */}
-            <div className="flex gap-4 items-center mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-[6px] bg-[#00c950]" />
-                <span className="font-['Arima',sans-serif] text-[10px] leading-[15px]">Wins</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-[6px] bg-[#fb2c36]" />
-                <span className="font-['Arima',sans-serif] text-[10px] leading-[15px]">Losses</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Line Chart Section (Manual SVG) */}
-          <div className="flex-1 flex flex-col gap-4 min-w-0 pr-12">
-            <h3 className="font-['Inter',sans-serif] font-bold text-[20px] leading-[24px] tracking-normal">
-              Pips Growth
-            </h3>
-            <div className="w-full h-[192px] relative">
-              <svg viewBox="0 0 600 200" className="w-full h-full" preserveAspectRatio="none">
-                {/* Grid Lines */}
-                {[0, 50, 100, 150, 200].map((y) => (
-                  <line key={y} x1="0" y1={y} x2="600" y2={y} stroke="#6A7282" strokeWidth="0.5" strokeDasharray="3 3" />
-                ))}
-                {/* Line Path */}
-                <path
-                  d="M 0 200 L 25 175 L 250 156.25 L 500 100 L 550 50 L 600 0"
-                  fill="none"
-                  stroke="#60A5FA"
-                  strokeWidth="2"
-                />
-                {/* Dots and Labels */}
-                {[
-                  { x: 0, y: 200, label: '' },
-                  { x: 25, y: 175, label: '5' },
-                  { x: 250, y: 156.25, label: '15' },
-                  { x: 500, y: 100, label: '1000' },
-                  { x: 550, y: 50, label: '1500' },
-                  { x: 600, y: 0, label: '2000' },
-                ].map((p, i) => (
-                  <g key={i}>
-                    <circle cx={p.x} cy={p.y} r="4" fill="#60A5FA" />
-                    {p.label && (
-                      <text x={p.x} y={p.y - 10} fill="currentColor" fontSize="10" textAnchor="middle">
-                        {p.label}
-                      </text>
+            <div className={cn(styles.chartBody, "flex-1 min-h-0")}>
+                <div className={styles.chartPlot}>
+                    {series.length === 0 ? (
+                        <div className="flex h-full items-center justify-center text-xs text-secondary">No closed trades yet.</div>
+                    ) : (
+                        <svg
+                            viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+                            className={styles.chartSvg}
+                            preserveAspectRatio="xMidYMid meet"
+                            role="img"
+                            aria-label="Cumulative pips equity curve"
+                        >
+                            {scale.ticks.map((tick) => {
+                                const y = scaleY(tick);
+                                return (
+                                    <g key={tick}>
+                                        <text x={PLOT_LEFT - 6} y={y + 4} fill={AXIS_TEXT} fontSize="10" textAnchor="end">
+                                            {tick > 0 ? `+${tick}` : tick}
+                                        </text>
+                                        <line
+                                            x1={PLOT_LEFT}
+                                            y1={y}
+                                            x2={PLOT_RIGHT}
+                                            y2={y}
+                                            stroke={tick === 0 ? ZERO_LINE : GRID_LINE}
+                                            strokeWidth="1"
+                                            strokeDasharray={tick === 0 ? undefined : "4 4"}
+                                        />
+                                    </g>
+                                );
+                            })}
+
+                            {xLabelIdx.map((i) => (
+                                <text key={i} x={scaleX(i)} y={VIEW_H - 4} fill={AXIS_TEXT} fontSize="10" textAnchor="middle">
+                                    {series[i] ? shortDate(series[i]!.date) : ""}
+                                </text>
+                            ))}
+
+                            <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+                            {pts.map((p, i) => (
+                                <g key={i}>
+                                    <circle cx={p.x} cy={p.y} r="3" fill={lineColor} />
+                                    {series.length <= 8 ? (
+                                        <text x={p.x} y={p.y - 9} fill={AXIS_TEXT} fontSize="9" textAnchor="middle">
+                                            {Math.round(series[i]!.cumulative)}
+                                        </text>
+                                    ) : null}
+                                </g>
+                            ))}
+                        </svg>
                     )}
-                  </g>
-                ))}
-              </svg>
-              {/* Y-Axis Labels (Right) */}
-              <div className="absolute right-0 top-0 h-full flex flex-col justify-between text-[10px] pr-1 translate-x-full">
-                <span>+800</span>
-                <span>+600</span>
-                <span>+400</span>
-                <span>+200</span>
-                <span>+0</span>
-              </div>
+                </div>
             </div>
-          </div>
+
+            <div className="grid grid-cols-4 shrink-0 border-t border-stroke">
+                {footer.map((stat, index) => (
+                    <div key={stat.label} className={cn("px-2 py-2 text-center", index > 0 && "border-l border-stroke")}>
+                        <p className="text-[10px] text-secondary leading-tight mb-1">{stat.label}</p>
+                        <p className="text-[12px] font-semibold leading-tight" style={{ color: stat.color ?? "rgb(var(--foreground))" }}>
+                            {stat.value}
+                        </p>
+                    </div>
+                ))}
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
