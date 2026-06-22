@@ -108,26 +108,66 @@ function PaginationControls({
     totalPages: number;
     onPageChange?: (page: number) => void;
 }) {
-    const go = (p: number) => {
-        if (onPageChange && p >= 1 && p <= totalPages && p !== page) onPageChange(p);
+    const current = Math.max(1, Math.min(totalPages, Number(page) || 1));
+
+    const go = (target: number) => {
+        const next = Math.max(1, Math.min(totalPages, target));
+        if (onPageChange && next !== current) onPageChange(next);
     };
-    const arrow = (disabled: boolean) =>
-        cn("w-[14px] h-[14px]", disabled ? "opacity-30 cursor-default" : "cursor-pointer opacity-80 hover:opacity-100");
-    const atStart = page <= 1;
-    const atEnd = page >= totalPages;
+
+    const btnClass = (disabled: boolean) =>
+        cn(
+            "inline-flex items-center justify-center w-8 h-8 rounded-[4px] transition-opacity",
+            disabled ? "opacity-30 cursor-not-allowed" : "opacity-80 hover:opacity-100 hover:bg-stroke/20",
+        );
+
+    const atStart = current <= 1;
+    const atEnd = current >= totalPages;
 
     return (
         <>
-            <span className="font-bold text-[11px] leading-[15px]">Page {page}</span>
+            <span className="font-bold text-[11px] leading-[15px]">Page {current}</span>
             <div className="flex items-center gap-2">
-                <ChevronLeft className={arrow(atStart)} onClick={() => go(page - 1)} />
-                <span className="bg-stroke/20 rounded-[4px] px-2 py-[1px] font-bold text-[11px] leading-[15px]">{page}</span>
+                <button
+                    type="button"
+                    className={btnClass(atStart)}
+                    disabled={atStart}
+                    aria-label="Previous page"
+                    onClick={() => go(current - 1)}
+                >
+                    <ChevronLeft className="w-[14px] h-[14px]" />
+                </button>
+                <span className="bg-stroke/20 rounded-[4px] px-2 py-[1px] font-bold text-[11px] leading-[15px]">{current}</span>
                 <span className="font-bold text-[11px] leading-[15px] text-secondary">of {totalPages}</span>
-                <ChevronRight className={arrow(atEnd)} onClick={() => go(page + 1)} />
+                <button
+                    type="button"
+                    className={btnClass(atEnd)}
+                    disabled={atEnd}
+                    aria-label="Next page"
+                    onClick={() => go(current + 1)}
+                >
+                    <ChevronRight className="w-[14px] h-[14px]" />
+                </button>
             </div>
-            <div className="flex items-center gap-1 pl-4 border-l border-stroke">
-                <ChevronsLeft className={arrow(atStart)} onClick={() => go(1)} />
-                <ChevronsRight className={arrow(atEnd)} onClick={() => go(totalPages)} />
+            <div className="flex items-center gap-2 pl-4 ml-2 border-l border-stroke">
+                <button
+                    type="button"
+                    className={btnClass(atStart)}
+                    disabled={atStart}
+                    aria-label="First page"
+                    onClick={() => go(1)}
+                >
+                    <ChevronsLeft className="w-[14px] h-[14px]" />
+                </button>
+                <button
+                    type="button"
+                    className={btnClass(atEnd)}
+                    disabled={atEnd}
+                    aria-label="Last page"
+                    onClick={() => go(totalPages)}
+                >
+                    <ChevronsRight className="w-[14px] h-[14px]" />
+                </button>
             </div>
         </>
     );

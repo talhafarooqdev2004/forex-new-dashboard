@@ -297,6 +297,17 @@ export default function TradeHistoryTable({
     const currentPage = Math.min(page, totalPages);
     const pageRows = historyRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+    const handlePageChange = useCallback(
+        (next: number) => {
+            setPage(Math.max(1, Math.min(totalPages, next)));
+        },
+        [totalPages],
+    );
+
+    useEffect(() => {
+        setPage((p) => Math.min(p, totalPages));
+    }, [totalPages]);
+
     const handleDelete = async (trade: TradingAlert) => {
         if (!window.confirm(`Delete trade ${trade.trade_id ?? ""}?`)) return;
         await tradingAlertService.remove(trade.id);
@@ -335,7 +346,7 @@ export default function TradeHistoryTable({
                         currentPage={currentPage}
                         totalPages={totalPages}
                         totalPips={totalPips}
-                        onPageChange={setPage}
+                        onPageChange={handlePageChange}
                     />
                 }
             >
@@ -386,7 +397,7 @@ export default function TradeHistoryTable({
                             currentPage={currentPage}
                             totalPages={totalPages}
                             totalPips={totalPips}
-                            onPageChange={setPage}
+                            onPageChange={handlePageChange}
                         />
                     </div>
                 </div>
