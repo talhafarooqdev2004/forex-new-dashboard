@@ -264,11 +264,14 @@ export default function TradeAlertSettingsClientPage() {
                     <SettingsSection number={2} title="Stop Loss Setup">
                         <div className="flex flex-col gap-4">
                             <div>
-                                <FieldLabel>Preset Mode</FieldLabel>
+                                <FieldLabel>Preset Mode (Intraday only)</FieldLabel>
                                 <div className="flex flex-wrap gap-4 mt-1">
                                     <SettingsRadio name="presetMode" value="Scalping" checked={settings.presetMode === "Scalping"} onChange={(v) => update("presetMode", v)} label="Scalping" />
                                     <SettingsRadio name="presetMode" value="Swing" checked={settings.presetMode === "Swing"} onChange={(v) => update("presetMode", v)} label="Swing" />
                                 </div>
+                                <p className="mt-2 text-[10px] text-secondary leading-relaxed">
+                                    Intraday alerts use the Scalping or Swing SL preset for the selected pair. Swing and Scalping alerts always use their own preset column.
+                                </p>
                             </div>
 
                             <div>
@@ -341,6 +344,7 @@ export default function TradeAlertSettingsClientPage() {
                                 <div>
                                     <FieldLabel>TSL Activate After</FieldLabel>
                                     <div className="flex flex-col gap-2 mt-1">
+                                        <SettingsRadio name="tslAfter" value="inactive" checked={settings.tslActivateAfter === "inactive"} onChange={(v) => update("tslActivateAfter", v)} label="Inactive" />
                                         <SettingsRadio name="tslAfter" value="tp1" checked={settings.tslActivateAfter === "tp1"} onChange={(v) => update("tslActivateAfter", v)} label="After TP1" />
                                         <SettingsRadio name="tslAfter" value="tp2" checked={settings.tslActivateAfter === "tp2"} onChange={(v) => update("tslActivateAfter", v)} label="After TP2" />
                                         <SettingsRadio name="tslAfter" value="tp3" checked={settings.tslActivateAfter === "tp3"} onChange={(v) => update("tslActivateAfter", v)} label="After TP3" />
@@ -351,6 +355,11 @@ export default function TradeAlertSettingsClientPage() {
                                     <Input type="text" value={settings.tslChaseDistance} onChange={(e) => update("tslChaseDistance", e.target.value)} />
                                 </div>
                             </div>
+                            <p className="mt-3 text-[11px] text-secondary leading-relaxed">
+                                {settings.tslActivateAfter === "inactive"
+                                    ? "Automatic TSL is disabled. Use Enable TSL on a trade to activate trailing stop immediately."
+                                    : `TSL will activate automatically after ${settings.tslActivateAfter.toUpperCase()} is hit, trailing SL ${settings.tslChaseDistance || 0} pips behind price.`}
+                            </p>
                         </SettingsSection>
                     </div>
                 </div>

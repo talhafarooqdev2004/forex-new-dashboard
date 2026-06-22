@@ -8,7 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui";
-import type { TradingAlert } from "@/services";
+import type { TradingAlert, TradePartialClose } from "@/services";
 import { availableYears, monthlyTotals } from "@/lib/tradingTerminalStats";
 
 const GREEN = "#05df72";
@@ -34,8 +34,14 @@ function slotCenter(index: number): number {
     return PLOT_LEFT + index * SLOT_W + SLOT_W / 2;
 }
 
-export default function TradingTerminalMonthlyGrowth({ trades }: { trades: TradingAlert[] }) {
-    const years = useMemo(() => availableYears(trades), [trades]);
+export default function TradingTerminalMonthlyGrowth({
+    trades,
+    partials = [],
+}: {
+    trades: TradingAlert[];
+    partials?: TradePartialClose[];
+}) {
+    const years = useMemo(() => availableYears(trades, partials), [trades, partials]);
     const yearOptions = years.length > 0 ? years : [new Date().getFullYear()];
     const [year, setYear] = useState<string>(String(yearOptions[0]));
 
@@ -43,7 +49,10 @@ export default function TradingTerminalMonthlyGrowth({ trades }: { trades: Tradi
     // Fall back to the most recent year with trades so a year is always selected.
     const activeYear = yearOptions.some((y) => String(y) === year) ? year : String(yearOptions[0]);
 
-    const totals = useMemo(() => monthlyTotals(trades, Number(activeYear)), [trades, activeYear]);
+    const totals = useMemo(
+        () => monthlyTotals(trades, Number(activeYear), partials),
+        [trades, activeYear, partials],
+    );
     const scale = MONTHLY_SCALE;
     const scaleY = (v: number) => PLOT_BOTTOM - ((v - scale.min) / (scale.max - scale.min || 1)) * PLOT_H;
     const zeroY = scaleY(0);

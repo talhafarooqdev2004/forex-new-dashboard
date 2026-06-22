@@ -2,7 +2,7 @@
 
 import styles from "./PipsGrowthChart.module.scss";
 import { cn } from "@/lib/utils";
-import type { TradingAlert } from "@/services";
+import type { TradingAlert, TradePartialClose } from "@/services";
 import { equitySeries, equityStats, formatPips, niceScale } from "@/lib/tradingTerminalStats";
 
 const GREEN = "#05df72";
@@ -42,9 +42,15 @@ function shortDate(iso: string): string {
     return `${m}/${d}`;
 }
 
-export default function PipsGrowthChart({ trades }: { trades: TradingAlert[] }) {
-    const series = equitySeries(trades);
-    const stats = equityStats(trades);
+export default function PipsGrowthChart({
+    trades,
+    partials = [],
+}: {
+    trades: TradingAlert[];
+    partials?: TradePartialClose[];
+}) {
+    const series = equitySeries(trades, partials);
+    const stats = equityStats(trades, partials);
 
     const cumulatives = series.map((p) => p.cumulative);
     const scale = niceScale(Math.min(0, ...cumulatives), Math.max(0, ...cumulatives), 4);

@@ -29,7 +29,7 @@ import { useTradeAlertForm } from "@/hooks/forms";
 import { tradeAlertSettingsService, tradingAlertService, type TradeAlertPair } from "@/services";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import { formatPrice } from "@/lib/technicalLevelsPrice";
-import { deriveSlTp, generateTradeId, getActiveSession } from "@/lib/tradeAlertCalc";
+import { deriveSlTp, generateTradeId, getActiveSession, resolveSlPipsForTradeType } from "@/lib/tradeAlertCalc";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 
@@ -99,10 +99,13 @@ function TradeAlertForm({ onSent }: { onSent: () => void }) {
     const [enabledTypes, setEnabledTypes] = useState<Record<string, boolean>>({});
     // Local placeholder: freezes live price/session updates once an alert is "sent".
     const sentRef = useRef(false);
+    // When true, entry was typed by the admin — keep it instead of syncing live price.
+    const entryManualRef = useRef(false);
 
     const symbol = form.watch("symbol");
     const direction = form.watch("direction");
     const directionType = form.watch("directionType");
+    const tradeType = form.watch("type");
     const entryPrice = form.watch("entryPrice");
     const livePrice = getPrice(symbol);
     // Pending orders (Limit/Stop) keep an admin-set entry; only market Buy/Sell track the live price.
@@ -148,22 +151,18 @@ function TradeAlertForm({ onSent }: { onSent: () => void }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Current Price always tracks live; Entry only auto-fills for market orders (pending keeps admin's entry).
+    // Current Price always tracks live; Entry auto-fills from live only until the admin types a custom entry.
     useEffect(() => {
         if (sentRef.current || livePrice === null || !symbol) return;
         const priceStr = formatPrice(livePrice, symbol);
         form.setValue("currentPrice", priceStr);
-        if (!isPendingType) form.setValue("entryPrice", priceStr);
+        if (!isPendingType && !entryManualRef.current) form.setValue("entryPrice", priceStr);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [livePrice, symbol, isPendingType]);
 
-    // Derive SL/TP from whatever the Entry currently is (live for market, admin-set for pending).
-    useEffect(() => {
-        if (sentRef.current || !symbol) return;
-        const entry = parseFloat(entryPrice);
-        if (!Number.isFinite(entry)) return;
+    const applyDerivedSlTp = (entry: number) => {
         const pair = pairs.find((p) => p.name === symbol);
-        const slPips = presetMode === "Scalping" ? pair?.scalping_sl : pair?.swing_sl;
+        const slPips = resolveSlPipsForTradeType(tradeType, pair, presetMode);
         const derived = deriveSlTp({ entry, pair: symbol, direction, slPips: slPips ?? 0 });
         if (derived) {
             form.setValue("stockLoss", derived.sl);
@@ -171,8 +170,16 @@ function TradeAlertForm({ onSent }: { onSent: () => void }) {
             form.setValue("tp2", derived.tp2);
             form.setValue("tp3", derived.tp3);
         }
+    };
+
+    // Derive SL/TP from entry (live-filled or admin-typed) using pair presets from admin settings.
+    useEffect(() => {
+        if (sentRef.current || !symbol) return;
+        const entry = parseFloat(entryPrice);
+        if (!Number.isFinite(entry)) return;
+        applyDerivedSlTp(entry);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [entryPrice, symbol, direction, presetMode, pairs]);
+    }, [entryPrice, symbol, direction, tradeType, presetMode, pairs]);
 
     // Keep the session aligned with the current Pakistan-time window.
     useEffect(() => {
@@ -188,14 +195,18 @@ function TradeAlertForm({ onSent }: { onSent: () => void }) {
         form.setValue("directionType", typeValue);
         if (/limit|stop/i.test(typeValue)) {
             // Pending order: admin must set the entry level it waits for (don't default to current price).
+            entryManualRef.current = false;
             form.setValue("entryPrice", "");
             form.setValue("stockLoss", "");
             form.setValue("tp1", "");
             form.setValue("tp2", "");
             form.setValue("tp3", "");
-        } else if (livePrice !== null && symbol) {
-            // Market order: snap entry back to the live price.
-            form.setValue("entryPrice", formatPrice(livePrice, symbol));
+        } else {
+            entryManualRef.current = false;
+            if (livePrice !== null && symbol) {
+                // Market order: snap entry back to the live price until admin overrides it.
+                form.setValue("entryPrice", formatPrice(livePrice, symbol));
+            }
         }
     };
 
@@ -224,7 +235,7 @@ function TradeAlertForm({ onSent }: { onSent: () => void }) {
                 tp2: num(v.tp2),
                 tp3: num(v.tp3),
                 risk: v.riskPerTrade,
-                comment: v.notes || v.tradeNotes || null,
+                comment: v.notes || null,
                 status: "open",
                 date: new Date().toISOString(),
             });
@@ -235,9 +246,9 @@ function TradeAlertForm({ onSent }: { onSent: () => void }) {
                 ...form.getValues(),
                 tradeId: generateTradeId(alerts.map((a) => a.trade_id ?? "")),
                 notes: "",
-                tradeNotes: "",
             });
             sentRef.current = false;
+            entryManualRef.current = false;
             onSent();
         } catch (err) {
             sentRef.current = false;
@@ -376,7 +387,17 @@ function TradeAlertForm({ onSent }: { onSent: () => void }) {
                                     <FormItem>
                                         <FormLabel>Entry Price</FormLabel>
                                         <FormControl>
-                                            <Input type="text" placeholder={isPendingType ? "Set pending entry" : undefined} {...field} />
+                                            <Input
+                                                type="text"
+                                                placeholder={isPendingType ? "Set pending entry" : undefined}
+                                                {...field}
+                                                onChange={(e) => {
+                                                    entryManualRef.current = true;
+                                                    field.onChange(e);
+                                                    const entry = parseFloat(e.target.value);
+                                                    if (Number.isFinite(entry) && symbol) applyDerivedSlTp(entry);
+                                                }}
+                                            />
                                         </FormControl>
                                     </FormItem>
                                 )}
@@ -464,23 +485,7 @@ function TradeAlertForm({ onSent }: { onSent: () => void }) {
                         </div>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 pt-4">
-                        <FormField
-                            control={control}
-                            name="tradeNotes"
-                            render={({ field }) => (
-                                <FormItem className="flex-1 min-w-0">
-                                    <FormControl>
-                                        <Input
-                                            type="text"
-                                            placeholder="Add trade notes......."
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-
+                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-end gap-3 pt-4">
                         <Button
                             variant="send-alert"
                             size="send-alert"

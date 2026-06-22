@@ -1,7 +1,8 @@
 "use client";
 
-import type { TradingAlert } from "@/services";
+import type { TradingAlert, TradePartialClose } from "@/services";
 import { availableMonths, monthStats } from "@/lib/tradingTerminalStats";
+import { cn } from "@/lib/utils";
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -11,14 +12,18 @@ const RED = "#fa003f";
 
 type StatRow = { label: string; value: string; color?: string };
 
-export default function TradingTerminalStatisticsPanel({ trades }: { trades: TradingAlert[] }) {
+export default function TradingTerminalStatisticsPanel({
+    trades,
+    partials = [],
+}: {
+    trades: TradingAlert[];
+    partials?: TradePartialClose[];
+}) {
     const now = new Date();
-    // Show the most recent month that has closed trades; fall back to the current month
-    // so the panel still renders a sensible header when there is no activity yet.
-    const recent = availableMonths(trades)[0];
+    const recent = availableMonths(trades, partials)[0];
     const year = recent?.year ?? now.getFullYear();
     const month = recent?.month ?? now.getMonth();
-    const s = monthStats(trades, year, month);
+    const s = monthStats(trades, year, month, partials);
 
     const pf = Number.isFinite(s.profitFactor) ? s.profitFactor.toFixed(2) : "∞";
     const stats: StatRow[] = [
@@ -53,11 +58,20 @@ export default function TradingTerminalStatisticsPanel({ trades }: { trades: Tra
                 </h6>
             </div>
 
-            <div className="px-5 py-4 flex flex-col gap-2.5 flex-1 min-h-0 overflow-y-auto">
-                {stats.map((row) => (
-                    <div key={row.label} className="flex items-center justify-between gap-2 text-xs">
-                        <span className="text-secondary">{row.label}</span>
-                        <span className="font-medium" style={row.color ? { color: row.color } : undefined}>
+            <div className="px-5 py-2 flex flex-col flex-1 min-h-0 overflow-hidden">
+                {stats.map((row, index) => (
+                    <div
+                        key={row.label}
+                        className={cn(
+                            "grid grid-cols-[minmax(0,1fr)_minmax(4.5rem,38%)] items-center gap-x-3 flex-1 min-h-0",
+                            index < stats.length - 1 && "border-b border-stroke",
+                        )}
+                    >
+                        <span className="text-secondary text-xs leading-tight">{row.label}</span>
+                        <span
+                            className="text-xs font-medium text-right pr-4 leading-tight"
+                            style={row.color ? { color: row.color } : undefined}
+                        >
                             {row.value}
                         </span>
                     </div>

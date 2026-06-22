@@ -1,13 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { TradingAlert } from "@/services";
+import type { TradingAlert, TradePartialClose } from "@/services";
 import { activeCount, computeSummary, formatPips, profitFactorLabel } from "@/lib/tradingTerminalStats";
 
 const GREEN = "#05df72";
 const CYAN = "#22d3ee";
 const RED = "#fa003f";
-const TITLE_COLOR = "#9ca3af";
 const YELLOW = "#facc15";
 
 /** Jagged upward sparkline — matches design reference */
@@ -29,7 +28,7 @@ function SummaryCard({ children, className }: React.PropsWithChildren<{ classNam
 
 function CardTitle({ children }: React.PropsWithChildren) {
     return (
-        <span className="text-[13px] leading-none" style={{ color: TITLE_COLOR }}>
+        <span className="text-[13px] font-semibold leading-none text-foreground">
             {children}
         </span>
     );
@@ -96,8 +95,14 @@ function WinRateDonut({ percentage }: { percentage: number }) {
     );
 }
 
-export default function TradingTerminalSummaryCards({ trades }: { trades: TradingAlert[] }) {
-    const summary = computeSummary(trades);
+export default function TradingTerminalSummaryCards({
+    trades,
+    partials = [],
+}: {
+    trades: TradingAlert[];
+    partials?: TradePartialClose[];
+}) {
+    const summary = computeSummary(trades, partials);
     const active = activeCount(trades);
     const netColor = summary.netPips >= 0 ? GREEN : RED;
     const pfText = Number.isFinite(summary.profitFactor) ? summary.profitFactor.toFixed(2) : "∞";

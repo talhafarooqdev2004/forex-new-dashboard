@@ -16,8 +16,7 @@ export default function useTradeAlertForm(overrides?: Partial<{ type: string; ri
             tp1: "1.0780",
             tp2: "1.0780",
             tp3: "1.0780",
-            notes: "London breakout",
-            tradeNotes: "",
+            notes: "",
         },
     });
 

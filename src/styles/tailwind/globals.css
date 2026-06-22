@@ -137,6 +137,17 @@
   }
 }
 
+/* Native date picker icon — white on dark theme (outside @layer for reliable override). */
+html.dark input[type="date"] {
+  color-scheme: dark;
+}
+
+html.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.95;
+}
+
 /* Ticker */
 .ticker {
   @apply flex items-center gap-2.5 h-10 px-4 rounded-[10px] bg-darkGrey min-w-[100px] flex-shrink-0;
@@ -234,4 +245,31 @@
 
 .rich-text-prose p {
   margin: 0.45em 0;
+}
+
+/* Active Trades — brief highlight when live price / pips update */
+@keyframes live-value-flash {
+  0% {
+    box-shadow: inset 0 0 0 9999px rgba(59, 130, 246, 0.28);
+  }
+  100% {
+    box-shadow: inset 0 0 0 9999px transparent;
+  }
+}
+
+.live-value-flash {
+  animation: live-value-flash 0.75s ease-out;
+}
+
+html.dark .live-value-flash {
+  animation-name: live-value-flash-dark;
+}
+
+@keyframes live-value-flash-dark {
+  0% {
+    box-shadow: inset 0 0 0 9999px rgba(96, 165, 250, 0.32);
+  }
+  100% {
+    box-shadow: inset 0 0 0 9999px transparent;
+  }
 }

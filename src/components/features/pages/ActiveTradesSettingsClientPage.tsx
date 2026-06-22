@@ -49,9 +49,11 @@ const CLIENT_ALERTS = [
 ] as const;
 
 const MOVE_SL_LABELS: Record<string, string> = {
+    inactive: "Automatic breakeven is disabled. Use Enable Breakeven on a trade to move SL immediately.",
     tp1: "After TP1 is achieved, Stop Loss will move to Entry Price (Breakeven).",
     tp2: "After TP2 is achieved, Stop Loss will move to Entry Price (Breakeven).",
     tp3: "After TP3 is achieved, Stop Loss will move to Entry Price (Breakeven).",
+    manual: "After TP1 is achieved, Stop Loss will move to Entry Price plus the manual pip offset below.",
 };
 
 const DEFAULT_STATE = {
@@ -159,10 +161,11 @@ export default function ActiveTradesSettingsClientPage() {
                         <Select value={settings.moveSlAfter} onValueChange={(v) => update("moveSlAfter", v)}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="inactive">Inactive</SelectItem>
                                 <SelectItem value="tp1">After TP1 Achieved</SelectItem>
                                 <SelectItem value="tp2">After TP2 Achieved</SelectItem>
                                 <SelectItem value="tp3">After TP3 Achieved</SelectItem>
-                                <SelectItem value="manual">Manual</SelectItem>
+                                <SelectItem value="manual">Manual (Entry + Pips)</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -179,8 +182,8 @@ export default function ActiveTradesSettingsClientPage() {
 
                         <StatusBox>
                             {settings.moveSlAfter === "manual"
-                                ? `Stop Loss will move to Entry Price + ${settings.moveSlManualPips || 0} pips (manual).`
-                                : MOVE_SL_LABELS[settings.moveSlAfter]}
+                                ? `Stop Loss will move to Entry Price + ${settings.moveSlManualPips || 0} pips after TP1 is achieved.`
+                                : MOVE_SL_LABELS[settings.moveSlAfter] ?? MOVE_SL_LABELS.inactive}
                         </StatusBox>
                     </SettingsSection>
 

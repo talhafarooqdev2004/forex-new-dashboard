@@ -23,15 +23,30 @@ export type TradingAlert = {
     close_reason: string | null;
     tsl_enabled: boolean;
     breakeven_enabled: boolean;
+    breakeven_done: boolean;
     activated: boolean;
     activation_side: string | null;
     max_tp_hit: number;
+    accumulated_pips?: number;
+    manual_partial_closed?: boolean;
     last_alert_event: string | null;
     status: "open" | "completed" | "stopped";
     comment: string | null;
     date: string | null;
     created_at: string;
     updated_at: string;
+};
+
+export type TradePartialClose = {
+    id: number;
+    trading_alert_id: number;
+    tp_level: number;
+    pips: number;
+    exit_price: number | null;
+    outcome: string | null;
+    close_reason: string | null;
+    created_at: string;
+    trading_alert?: TradingAlert;
 };
 
 export type TradingAlertPayload = Partial<Omit<TradingAlert, "id" | "created_at" | "updated_at">>;
@@ -73,6 +88,24 @@ class TradingAlertService {
             method: "POST",
             body: JSON.stringify({ event }),
         });
+    };
+
+    partialClose = async (id: number | string, level: 1 | 2 | 3): Promise<void> => {
+        await fetchAPI<ApiResponse<unknown>>(`${URL}/${id}/partial-close`, {
+            method: "POST",
+            body: JSON.stringify({ level }),
+        });
+    };
+
+    fullClose = async (id: number | string): Promise<void> => {
+        await fetchAPI<ApiResponse<unknown>>(`${URL}/${id}/full-close`, {
+            method: "POST",
+        });
+    };
+
+    listPartials = async (): Promise<TradePartialClose[]> => {
+        const res = await fetchAPI<ApiResponse<TradePartialClose[]>>(`${URL}/partial-closes`, { method: "GET" });
+        return res?.data ?? [];
     };
 }
 

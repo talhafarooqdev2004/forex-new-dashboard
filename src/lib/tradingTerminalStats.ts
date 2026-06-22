@@ -1,4 +1,5 @@
-import type { TradingAlert } from "@/services";
+import type { TradingAlert, TradePartialClose } from "@/services";
+import { partialToHistoryRow } from "@/lib/tradeHistoryMerge";
 import { pipSize } from "@/lib/technicalLevelsPrice";
 
 const toNum = (v: number | string | null | undefined): number | null => {
@@ -39,6 +40,22 @@ export function formatRR(r: number | null): string {
 /** A trade counts toward history/stats once it is closed and has a recorded pips value. */
 export function closedTrades(trades: TradingAlert[]): TradingAlert[] {
     return trades.filter((t) => t.status !== "open" && t.pips !== null && t.pips !== undefined);
+}
+
+/** Closed trades plus open-trade partial closes (excludes partials once parent is fully closed). */
+export function closedTradesWithPartials(trades: TradingAlert[], partials: TradePartialClose[] = []): TradingAlert[] {
+    const completedParentIds = new Set(
+        trades.filter((t) => t.status === "completed").map((t) => t.id),
+    );
+    const partialRows = partials
+        .filter((p) => !completedParentIds.has(p.trading_alert_id))
+        .map(partialToHistoryRow)
+        .filter((r): r is TradingAlert => r !== null);
+    return [...closedTrades(trades), ...partialRows];
+}
+
+function closedForStats(trades: TradingAlert[], partials: TradePartialClose[] = []): TradingAlert[] {
+    return partials.length > 0 ? closedTradesWithPartials(trades, partials) : closedTrades(trades);
 }
 
 export function activeCount(trades: TradingAlert[]): number {
@@ -84,8 +101,8 @@ export type Summary = {
     total: number;
 };
 
-export function computeSummary(trades: TradingAlert[]): Summary {
-    const closed = closedTrades(trades);
+export function computeSummary(trades: TradingAlert[], partials: TradePartialClose[] = []): Summary {
+    const closed = closedForStats(trades, partials);
     const netPips = closed.reduce((s, t) => s + pipsOf(t), 0);
     const wins = closed.filter(isWin).length;
     const losses = closed.filter(isLoss).length;
@@ -115,9 +132,9 @@ export function profitFactorLabel(pf: number): string {
 }
 
 /** Sums pips per calendar day, sorted ascending. */
-export function dailyTotals(trades: TradingAlert[]): { date: string; pips: number }[] {
+export function dailyTotals(trades: TradingAlert[], partials: TradePartialClose[] = []): { date: string; pips: number }[] {
     const map = new Map<string, number>();
-    for (const t of closedTrades(trades)) {
+    for (const t of closedForStats(trades, partials)) {
         const key = dayKey(tradeDate(t));
         map.set(key, (map.get(key) ?? 0) + pipsOf(t));
     }
@@ -127,9 +144,9 @@ export function dailyTotals(trades: TradingAlert[]): { date: string; pips: numbe
 export type EquityPoint = { date: string; daily: number; cumulative: number };
 
 /** Cumulative pips equity curve, one point per trading day. */
-export function equitySeries(trades: TradingAlert[]): EquityPoint[] {
+export function equitySeries(trades: TradingAlert[], partials: TradePartialClose[] = []): EquityPoint[] {
     let running = 0;
-    return dailyTotals(trades).map(({ date, pips }) => {
+    return dailyTotals(trades, partials).map(({ date, pips }) => {
         running += pips;
         return { date, daily: pips, cumulative: running };
     });
@@ -137,9 +154,9 @@ export function equitySeries(trades: TradingAlert[]): EquityPoint[] {
 
 export type EquityStats = { bestDay: number | null; worstDay: number | null; avgDaily: number | null; expectancy: number | null };
 
-export function equityStats(trades: TradingAlert[]): EquityStats {
-    const days = dailyTotals(trades);
-    const closed = closedTrades(trades);
+export function equityStats(trades: TradingAlert[], partials: TradePartialClose[] = []): EquityStats {
+    const days = dailyTotals(trades, partials);
+    const closed = closedForStats(trades, partials);
     if (days.length === 0) return { bestDay: null, worstDay: null, avgDaily: null, expectancy: null };
     const totals = days.map((d) => d.pips);
     const net = totals.reduce((s, v) => s + v, 0);
@@ -170,8 +187,8 @@ function inMonth(t: TradingAlert, year: number, month: number): boolean {
     return d.getFullYear() === year && d.getMonth() === month;
 }
 
-export function monthStats(trades: TradingAlert[], year: number, month: number): MonthStats {
-    const closed = closedTrades(trades).filter((t) => inMonth(t, year, month));
+export function monthStats(trades: TradingAlert[], year: number, month: number, partials: TradePartialClose[] = []): MonthStats {
+    const closed = closedForStats(trades, partials).filter((t) => inMonth(t, year, month));
     const summary = computeSummary(closed);
     const winPips = closed.filter((t) => pipsOf(t) > 0).map(pipsOf);
     const lossPips = closed.filter((t) => pipsOf(t) < 0).map(pipsOf);
@@ -191,9 +208,9 @@ export function monthStats(trades: TradingAlert[], year: number, month: number):
 }
 
 /** Pips per month (index 0-11) for a given year. */
-export function monthlyTotals(trades: TradingAlert[], year: number): number[] {
+export function monthlyTotals(trades: TradingAlert[], year: number, partials: TradePartialClose[] = []): number[] {
     const totals = new Array(12).fill(0);
-    for (const t of closedTrades(trades)) {
+    for (const t of closedForStats(trades, partials)) {
         const d = tradeDate(t);
         if (d.getFullYear() === year) totals[d.getMonth()] += pipsOf(t);
     }
@@ -201,9 +218,9 @@ export function monthlyTotals(trades: TradingAlert[], year: number): number[] {
 }
 
 /** Pips per year, ascending by year. */
-export function yearlyTotals(trades: TradingAlert[]): { year: number; pips: number }[] {
+export function yearlyTotals(trades: TradingAlert[], partials: TradePartialClose[] = []): { year: number; pips: number }[] {
     const map = new Map<number, number>();
-    for (const t of closedTrades(trades)) {
+    for (const t of closedForStats(trades, partials)) {
         const y = tradeDate(t).getFullYear();
         map.set(y, (map.get(y) ?? 0) + pipsOf(t));
     }
@@ -211,9 +228,14 @@ export function yearlyTotals(trades: TradingAlert[]): { year: number; pips: numb
 }
 
 /** Pips per day-of-month for a given year/month (1-based day -> summed pips). */
-export function calendarTotals(trades: TradingAlert[], year: number, month: number): Map<number, number> {
+export function calendarTotals(
+    trades: TradingAlert[],
+    year: number,
+    month: number,
+    partials: TradePartialClose[] = [],
+): Map<number, number> {
     const map = new Map<number, number>();
-    for (const t of closedTrades(trades)) {
+    for (const t of closedForStats(trades, partials)) {
         const d = tradeDate(t);
         if (d.getFullYear() === year && d.getMonth() === month) {
             map.set(d.getDate(), (map.get(d.getDate()) ?? 0) + pipsOf(t));
@@ -223,9 +245,9 @@ export function calendarTotals(trades: TradingAlert[], year: number, month: numb
 }
 
 /** Distinct year-months present in closed trades, most recent first. */
-export function availableMonths(trades: TradingAlert[]): { year: number; month: number }[] {
+export function availableMonths(trades: TradingAlert[], partials: TradePartialClose[] = []): { year: number; month: number }[] {
     const set = new Set<string>();
-    for (const t of closedTrades(trades)) {
+    for (const t of closedForStats(trades, partials)) {
         const d = tradeDate(t);
         set.add(`${d.getFullYear()}-${d.getMonth()}`);
     }
@@ -237,9 +259,9 @@ export function availableMonths(trades: TradingAlert[]): { year: number; month: 
         .sort((a, b) => b.year - a.year || b.month - a.month);
 }
 
-export function availableYears(trades: TradingAlert[]): number[] {
+export function availableYears(trades: TradingAlert[], partials: TradePartialClose[] = []): number[] {
     const set = new Set<number>();
-    for (const t of closedTrades(trades)) set.add(tradeDate(t).getFullYear());
+    for (const t of closedForStats(trades, partials)) set.add(tradeDate(t).getFullYear());
     return [...set].sort((a, b) => b - a);
 }
 

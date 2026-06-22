@@ -24,6 +24,8 @@ type EditTradeAlertDialogProps = {
     trade: TradingAlert | null;
     onOpenChange: (open: boolean) => void;
     onSaved: () => void;
+    /** When true (Trade History), allows manual correction of recorded pips. */
+    allowPipsEdit?: boolean;
 };
 
 const TYPE_OPTIONS = ["Swing", "Scalping", "Intraday"];
@@ -34,7 +36,13 @@ const numField = (v: string) => {
     return Number.isFinite(n) ? n : null;
 };
 
-export default function EditTradeAlertDialog({ open, trade, onOpenChange, onSaved }: EditTradeAlertDialogProps) {
+export default function EditTradeAlertDialog({
+    open,
+    trade,
+    onOpenChange,
+    onSaved,
+    allowPipsEdit = false,
+}: EditTradeAlertDialogProps) {
     const [form, setForm] = useState({
         direction: "buy",
         type: "Swing",
@@ -46,6 +54,7 @@ export default function EditTradeAlertDialog({ open, trade, onOpenChange, onSave
         tp3: "",
         risk: "",
         notes: "",
+        pips: "",
     });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -65,6 +74,7 @@ export default function EditTradeAlertDialog({ open, trade, onOpenChange, onSave
                 tp3: trade.tp3 != null ? String(trade.tp3) : "",
                 risk: trade.risk ?? "",
                 notes: trade.comment ?? "",
+                pips: trade.pips != null ? String(trade.pips) : "",
             });
         }
     }, [open, trade]);
@@ -76,7 +86,8 @@ export default function EditTradeAlertDialog({ open, trade, onOpenChange, onSave
         setSaving(true);
         setError(null);
         try {
-            await tradingAlertService.update(trade.id, {
+            const pipsValue = numField(form.pips);
+            const patch: Parameters<typeof tradingAlertService.update>[1] = {
                 direction: form.direction === "sell" ? "sell" : "buy",
                 type: form.type,
                 session: form.session,
@@ -87,7 +98,12 @@ export default function EditTradeAlertDialog({ open, trade, onOpenChange, onSave
                 tp3: numField(form.tp3),
                 risk: form.risk,
                 comment: form.notes || null,
-            });
+            };
+            if (allowPipsEdit && pipsValue !== null) {
+                patch.pips = pipsValue;
+                patch.outcome = pipsValue >= 0 ? "Profit" : "Loss";
+            }
+            await tradingAlertService.update(trade.id, patch);
             onSaved();
             onOpenChange(false);
         } catch (err) {
@@ -159,6 +175,16 @@ export default function EditTradeAlertDialog({ open, trade, onOpenChange, onSave
                         <FieldLabel>TP3</FieldLabel>
                         <Input value={form.tp3} onChange={(e) => set("tp3", e.target.value)} />
                     </div>
+                    {allowPipsEdit ? (
+                        <div>
+                            <FieldLabel>Pips</FieldLabel>
+                            <Input
+                                value={form.pips}
+                                onChange={(e) => set("pips", e.target.value)}
+                                placeholder="e.g. 20 or -15"
+                            />
+                        </div>
+                    ) : null}
                     <div className="col-span-2">
                         <FieldLabel>Notes</FieldLabel>
                         <Input value={form.notes} onChange={(e) => set("notes", e.target.value)} />

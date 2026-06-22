@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { TradingAlert } from "@/services";
+import type { TradingAlert, TradePartialClose } from "@/services";
 import { formatPips, yearlyTotals } from "@/lib/tradingTerminalStats";
 
 const GREEN = "#05df72";
@@ -20,8 +20,14 @@ const PLOT_H = PLOT_BOTTOM - PLOT_TOP;
 const BAR_W = 22;
 const YEARLY_SCALE = { min: -6000, max: 6000, ticks: [6000, 3000, 0, -3000, -6000] };
 
-export default function TradingTerminalYearlyPerformancePips({ trades }: { trades: TradingAlert[] }) {
-    const data = useMemo(() => yearlyTotals(trades), [trades]);
+export default function TradingTerminalYearlyPerformancePips({
+    trades,
+    partials = [],
+}: {
+    trades: TradingAlert[];
+    partials?: TradePartialClose[];
+}) {
+    const data = useMemo(() => yearlyTotals(trades, partials), [trades, partials]);
     const values = data.map((d) => d.pips);
     const scale = YEARLY_SCALE;
     const scaleY = (v: number) => PLOT_BOTTOM - ((v - scale.min) / (scale.max - scale.min || 1)) * PLOT_H;

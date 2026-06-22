@@ -5,4 +5,6 @@ export { forumPostService } from "./forumPost.service";
 export { dynamicTableService } from "./dynamicTable.service";
 export { tradeAlertSettingsService, type TradeAlertPair } from "./tradeAlertSettings.service";
 export { activeTradesSettingsService } from "./activeTradesSettings.service";
-export { tradingAlertService, type TradingAlert, type TradingAlertPayload } from "./tradingAlert.service";
+export { dailyPnlCalendarSettingsService } from "./dailyPnlCalendarSettings.service";
+export { tradingAlertService, type TradingAlert, type TradingAlertPayload, type TradePartialClose } from "./tradingAlert.service";
+export { userPreferenceService } from "./userPreference.service";

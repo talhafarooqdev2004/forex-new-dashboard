@@ -2,20 +2,29 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { tradingAlertService, type TradingAlert } from "@/services";
+import { tradingAlertService, type TradingAlert, type TradePartialClose } from "@/services";
 
 /**
  * Shared source of all trading alerts (open + closed) for the terminal dashboard widgets.
  * Re-fetches when `refreshKey` changes (e.g. after a trade is sent/closed) and on a 30s interval.
  */
-export function useTradingTerminalData(refreshKey = 0): { trades: TradingAlert[]; ready: boolean } {
+export function useTradingTerminalData(refreshKey = 0): {
+    trades: TradingAlert[];
+    partials: TradePartialClose[];
+    ready: boolean;
+} {
     const [trades, setTrades] = useState<TradingAlert[]>([]);
+    const [partials, setPartials] = useState<TradePartialClose[]>([]);
     const [ready, setReady] = useState(false);
 
     const load = useCallback(async () => {
         try {
-            const all = await tradingAlertService.list();
+            const [all, partialRows] = await Promise.all([
+                tradingAlertService.list(),
+                tradingAlertService.listPartials(),
+            ]);
             setTrades(all);
+            setPartials(partialRows);
         } catch {
             /* keep last data */
         } finally {
@@ -32,5 +41,5 @@ export function useTradingTerminalData(refreshKey = 0): { trades: TradingAlert[]
         return () => window.clearInterval(id);
     }, [load]);
 
-    return { trades, ready };
+    return { trades, partials, ready };
 }

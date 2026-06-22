@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 
+import ActiveTradesColumnPicker from "./ActiveTradesColumnPicker";
+import { LiveFlashTd } from "./LiveFlashTd";
 import {
     ActiveDirectionPill,
     StatusPill,
@@ -11,34 +13,25 @@ import {
     TradingTableShell,
     activeTdClass,
     activeThClass,
+    activeTradesTableScrollClass,
+    ACTIVE_TRADES_VERTICAL_SCROLL_THRESHOLD,
+    tradingTerminalEmptyTdClass,
+    activeTradesTerminalTableClass,
 } from "./tradingTerminalTableShared";
-import { tradingAlertService, type TradingAlert } from "@/services";
+import { tradingAlertService, userPreferenceService, type TradingAlert } from "@/services";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import { evaluateTrade, floatingPips } from "@/lib/tradeAlertCalc";
+import { cn } from "@/lib/utils";
 import { formatRR } from "@/lib/tradingTerminalStats";
 import { formatPrice } from "@/lib/technicalLevelsPrice";
+import {
+    defaultActiveTradesColumnVisibility,
+    type ActiveTradeColumnId,
+    type ActiveTradesColumnVisibility,
+    visibleActiveTradeColumns,
+} from "@/lib/activeTradesColumns";
 import EditTradeAlertDialog from "@/components/features/dialogs/EditTradeAlertDialog";
-
-const ACTIVE_TRADE_HEADERS = [
-    "Date",
-    "Trade ID",
-    "Symbol",
-    "Direction",
-    "Type",
-    "Session",
-    "Current Price",
-    "Entry",
-    "SL",
-    "TP1",
-    "TP2",
-    "TP3",
-    "Risk %",
-    "R:R",
-    "Status",
-    "Pips",
-    "Duration",
-    "Actions",
-] as const;
 
 function formatDate(iso: string | null): string {
     if (!iso) return "-";
@@ -64,6 +57,19 @@ function formatPips(value: number | null): string {
 
 const num = (v: number | null | undefined): number | null => (v == null ? null : Number(v));
 
+function activeTradeSortTime(trade: TradingAlert): number {
+    const created = new Date(trade.created_at).getTime();
+    if (Number.isFinite(created)) return created;
+    const fallback = new Date(trade.date ?? "").getTime();
+    return Number.isFinite(fallback) ? fallback : 0;
+}
+
+function sortActiveTradesOldestFirst(a: TradingAlert, b: TradingAlert): number {
+    const byCreatedAt = activeTradeSortTime(a) - activeTradeSortTime(b);
+    if (byCreatedAt !== 0) return byCreatedAt;
+    return Number(a.id) - Number(b.id);
+}
+
 export default function ActiveTradesTable({
     showSettings = false,
     settingsHref,
@@ -77,15 +83,26 @@ export default function ActiveTradesTable({
     refreshKey?: number;
     onChanged?: () => void;
 }) {
+    const { user, ready } = useAuth();
     const [trades, setTrades] = useState<TradingAlert[]>([]);
     const [editTrade, setEditTrade] = useState<TradingAlert | null>(null);
+    const [columnVisibility, setColumnVisibility] = useState<ActiveTradesColumnVisibility>(
+        defaultActiveTradesColumnVisibility,
+    );
+    const [columnsLoaded, setColumnsLoaded] = useState(false);
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { getPrice } = useLivePrices();
     const closingRef = useRef<Set<number>>(new Set());
+
+    const visibleColumns = visibleActiveTradeColumns(columnVisibility);
 
     const load = useCallback(async () => {
         try {
             const all = await tradingAlertService.list();
-            setTrades(all.filter((t) => t.status === "open"));
+            const open = all
+                .filter((t) => t.status === "open")
+                .sort(sortActiveTradesOldestFirst);
+            setTrades(open);
         } catch {
             /* keep last data */
         }
@@ -95,32 +112,66 @@ export default function ActiveTradesTable({
         void load();
     }, [load, refreshKey]);
 
-    // Periodic refresh so durations/new data stay reasonably fresh.
     useEffect(() => {
         const id = window.setInterval(() => void load(), 30_000);
         return () => window.clearInterval(id);
     }, [load]);
 
+    useEffect(() => {
+        if (!ready) return;
+        if (!user) {
+            setColumnVisibility(defaultActiveTradesColumnVisibility());
+            setColumnsLoaded(true);
+            return;
+        }
+
+        let active = true;
+        (async () => {
+            try {
+                const visibility = await userPreferenceService.getActiveTradesColumnVisibility();
+                if (active) setColumnVisibility(visibility);
+            } catch {
+                if (active) setColumnVisibility(defaultActiveTradesColumnVisibility());
+            } finally {
+                if (active) setColumnsLoaded(true);
+            }
+        })();
+
+        return () => {
+            active = false;
+        };
+    }, [ready, user?.id]);
+
+    const persistColumnVisibility = useCallback(
+        (next: ActiveTradesColumnVisibility) => {
+            if (!user) return;
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+            saveTimerRef.current = setTimeout(() => {
+                void userPreferenceService.saveActiveTradesColumnVisibility(next).catch(() => undefined);
+            }, 400);
+        },
+        [user],
+    );
+
+    const handleColumnVisibilityChange = (next: ActiveTradesColumnVisibility) => {
+        const visibleCount = Object.values(next).filter(Boolean).length;
+        if (visibleCount < 1) return;
+        setColumnVisibility(next);
+        persistColumnVisibility(next);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        };
+    }, []);
+
     const closeTrade = useCallback(
-        async (trade: TradingAlert, exitPrice: number, outcome: "Profit" | "Loss", reason: string, event: string) => {
+        async (trade: TradingAlert) => {
             if (closingRef.current.has(trade.id)) return;
             closingRef.current.add(trade.id);
             try {
-                const pips = floatingPips({
-                    entry: num(trade.entry_level),
-                    currentPrice: exitPrice,
-                    pair: trade.pair ?? "",
-                    direction: trade.direction ?? "buy",
-                });
-                await tradingAlertService.update(trade.id, {
-                    status: "completed",
-                    exit_price: exitPrice,
-                    outcome,
-                    pips: pips !== null ? Number(pips.toFixed(2)) : null,
-                    close_reason: reason,
-                });
-                // Deliver the close alert (backend dedupes); status is now persisted with exit/pips.
-                await tradingAlertService.notify(trade.id, event).catch(() => undefined);
+                await tradingAlertService.fullClose(trade.id);
                 await load();
                 onChanged?.();
             } finally {
@@ -130,8 +181,39 @@ export default function ActiveTradesTable({
         [load, onChanged],
     );
 
-    // Build the live view rows. Status/SL/close transitions + alerts are owned by the
-    // backend evaluator worker; here we only display live price/status and offer manual actions.
+    const partialCloseTrade = useCallback(
+        async (trade: TradingAlert, level: 1 | 2 | 3) => {
+            if (closingRef.current.has(trade.id)) return;
+            closingRef.current.add(trade.id);
+            try {
+                await tradingAlertService.partialClose(trade.id, level);
+                await load();
+                onChanged?.();
+            } finally {
+                closingRef.current.delete(trade.id);
+            }
+        },
+        [load, onChanged],
+    );
+
+    const handleManualClose = (trade: TradingAlert) => {
+        if (!window.confirm(`Fully close trade ${trade.trade_id ?? ""}?`)) return;
+        void closeTrade(trade);
+    };
+
+    const handlePartialClose = (trade: TradingAlert, level: 1 | 2 | 3) => {
+        const cp = getPrice(trade.pair ?? "");
+        const pips = floatingPips({
+            entry: num(trade.entry_level),
+            currentPrice: cp,
+            pair: trade.pair ?? "",
+            direction: trade.direction ?? "buy",
+        });
+        const pipsLabel = pips !== null ? `${pips >= 0 ? "+" : ""}${pips.toFixed(1)}` : "current";
+        if (!window.confirm(`Record partial close at TP${level} (${pipsLabel} pips)? The trade will remain active.`)) return;
+        void partialCloseTrade(trade, level);
+    };
+
     const rows = trades.map((trade) => {
         const cp = getPrice(trade.pair ?? "");
         const evaluation = evaluateTrade({
@@ -143,26 +225,21 @@ export default function ActiveTradesTable({
             direction: trade.direction ?? "buy",
             directionType: trade.direction_type ?? "",
             currentPrice: cp,
+            maxTpHit: trade.max_tp_hit ?? 0,
             activated: trade.activated,
             activationSide: trade.activation_side,
+            breakevenDone: trade.breakeven_done,
         });
-        const pips = floatingPips({
-            entry: num(trade.entry_level),
-            currentPrice: cp,
-            pair: trade.pair ?? "",
-            direction: trade.direction ?? "buy",
-        });
+        const pips = evaluation.isPending
+            ? null
+            : floatingPips({
+                  entry: num(trade.entry_level),
+                  currentPrice: cp,
+                  pair: trade.pair ?? "",
+                  direction: trade.direction ?? "buy",
+              });
         return { trade, cp, evaluation, pips };
     });
-
-    const handleManualClose = (trade: TradingAlert) => {
-        const cp = getPrice(trade.pair ?? "");
-        if (cp === null) return;
-        const entry = num(trade.entry_level) ?? cp;
-        const isBuy = (trade.direction ?? "buy") === "buy";
-        const profit = isBuy ? cp >= entry : cp <= entry;
-        void closeTrade(trade, cp, profit ? "Profit" : "Loss", "Manually Closed", "closed");
-    };
 
     const toggleFlag = async (trade: TradingAlert, key: "tsl_enabled" | "breakeven_enabled") => {
         await tradingAlertService.update(trade.id, { [key]: !trade[key] });
@@ -176,15 +253,145 @@ export default function ActiveTradesTable({
         onChanged?.();
     };
 
+    const renderCell = (
+        columnId: ActiveTradeColumnId,
+        trade: TradingAlert,
+        cp: number | null,
+        evaluation: ReturnType<typeof evaluateTrade>,
+        pips: number | null,
+    ) => {
+        const entry = num(trade.entry_level);
+        const cpUp = cp !== null && entry !== null ? cp >= entry : true;
+        const pair = trade.pair ?? "";
+
+        switch (columnId) {
+            case "date":
+                return <td className={activeTdClass()}>{formatDate(trade.date ?? trade.created_at)}</td>;
+            case "trade_id":
+                return <td className={activeTdClass("font-bold")}>{trade.trade_id}</td>;
+            case "symbol":
+                return <td className={activeTdClass()}>{pair}</td>;
+            case "direction":
+                return (
+                    <td className={activeTdClass()}>
+                        <ActiveDirectionPill
+                            direction={(trade.direction ?? "buy") === "sell" ? "Sell" : "Buy"}
+                            label={trade.direction_type ?? undefined}
+                        />
+                    </td>
+                );
+            case "type":
+                return <td className={activeTdClass()}>{trade.type ?? "-"}</td>;
+            case "session":
+                return <td className={activeTdClass()}>{trade.session ?? "-"}</td>;
+            case "current_price":
+                return (
+                    <LiveFlashTd
+                        key={`${trade.id}-current_price`}
+                        value={cp}
+                        className="font-bold"
+                        style={{ color: cpUp ? TRADE_GREEN : TRADE_RED }}
+                    >
+                        {cp !== null ? formatPrice(cp, pair) : "-"}
+                    </LiveFlashTd>
+                );
+            case "entry":
+                return <td className={activeTdClass()}>{entry !== null ? formatPrice(entry, pair) : "-"}</td>;
+            case "sl":
+                return (
+                    <td className={activeTdClass("font-semibold")} style={{ color: TRADE_RED }}>
+                        {num(trade.stop_loss) !== null ? formatPrice(num(trade.stop_loss)!, pair) : "-"}
+                    </td>
+                );
+            case "tp1":
+                return (
+                    <td className={activeTdClass("font-semibold")} style={{ color: TRADE_GREEN }}>
+                        {num(trade.tp1) !== null ? formatPrice(num(trade.tp1)!, pair) : "-"}
+                    </td>
+                );
+            case "tp2":
+                return (
+                    <td className={activeTdClass("font-semibold")} style={{ color: TRADE_GREEN }}>
+                        {num(trade.tp2) !== null ? formatPrice(num(trade.tp2)!, pair) : "-"}
+                    </td>
+                );
+            case "tp3":
+                return (
+                    <td className={activeTdClass("font-semibold")} style={{ color: TRADE_GREEN }}>
+                        {num(trade.tp3) !== null ? formatPrice(num(trade.tp3)!, pair) : "-"}
+                    </td>
+                );
+            case "risk":
+                return <td className={activeTdClass()}>{trade.risk ?? "-"}</td>;
+            case "rr":
+                return <td className={activeTdClass("font-semibold")}>{formatRR(trade.max_tp_hit ?? 0)}</td>;
+            case "status":
+                return (
+                    <td className={activeTdClass()}>
+                        <div className="flex flex-col items-start gap-1">
+                            <StatusPill
+                                label={evaluation.statusLabel}
+                                variant={evaluation.isPending ? "pending" : "open"}
+                            />
+                            {evaluation.slStatusLabel ? (
+                                <StatusPill label={evaluation.slStatusLabel} variant="breakeven" />
+                            ) : null}
+                        </div>
+                    </td>
+                );
+            case "pips":
+                return (
+                    <LiveFlashTd
+                        key={`${trade.id}-pips`}
+                        value={pips}
+                        className="font-bold"
+                        style={{ color: (pips ?? 0) >= 0 ? TRADE_GREEN : TRADE_RED }}
+                    >
+                        {formatPips(pips)}
+                    </LiveFlashTd>
+                );
+            case "duration":
+                return <td className={activeTdClass()}>{formatDuration(trade.created_at)}</td>;
+            case "actions":
+                return (
+                    <td className={activeTdClass()}>
+                        {canManage ? (
+                            <RowActionsMenu
+                                trade={trade}
+                                onPartialClose={(level) => handlePartialClose(trade, level)}
+                                onFullClose={() => handleManualClose(trade)}
+                                onToggleTsl={() => void toggleFlag(trade, "tsl_enabled")}
+                                onToggleBe={() => void toggleFlag(trade, "breakeven_enabled")}
+                                onEdit={() => setEditTrade(trade)}
+                                onDelete={() => void handleDelete(trade)}
+                            />
+                        ) : null}
+                    </td>
+                );
+            default:
+                return null;
+        }
+    };
+
     return (
-        <TradingTableShell title="Active Trades" showSettings={showSettings} settingsHref={settingsHref} footer={null}>
-            <div className="horizontal-scroll">
-                <table className="w-full min-w-[1680px]">
-                    <thead>
-                        <tr className="bg-stroke/10">
-                            {ACTIVE_TRADE_HEADERS.map((header) => (
-                                <th key={header} className={activeThClass()}>
-                                    {header}
+        <TradingTableShell
+            title="Active Trades"
+            showSettings={showSettings}
+            settingsHref={settingsHref}
+            headerActions={
+                columnsLoaded && user ? (
+                    <ActiveTradesColumnPicker visibility={columnVisibility} onChange={handleColumnVisibilityChange} />
+                ) : null
+            }
+            footer={null}
+        >
+            <div className={activeTradesTableScrollClass(rows.length)}>
+                <table className={activeTradesTerminalTableClass()}>
+                    <thead className={rows.length > ACTIVE_TRADES_VERTICAL_SCROLL_THRESHOLD ? "sticky top-0 z-10" : undefined}>
+                        <tr>
+                            {visibleColumns.map((col) => (
+                                <th key={col.id} className={activeThClass()}>
+                                    {col.label}
                                 </th>
                             ))}
                         </tr>
@@ -192,73 +399,20 @@ export default function ActiveTradesTable({
                     <tbody>
                         {rows.length === 0 ? (
                             <tr>
-                                <td className={activeTdClass("text-center text-secondary")} colSpan={ACTIVE_TRADE_HEADERS.length}>
+                                <td className={tradingTerminalEmptyTdClass()} colSpan={visibleColumns.length || 1}>
                                     No active trades.
                                 </td>
                             </tr>
                         ) : (
-                            rows.map(({ trade, cp, evaluation, pips }) => {
-                                const entry = num(trade.entry_level);
-                                const cpUp = cp !== null && entry !== null ? cp >= entry : true;
-                                const pair = trade.pair ?? "";
-                                return (
-                                    <tr key={trade.id} className="border-b border-stroke/50">
-                                        <td className={activeTdClass()}>{formatDate(trade.date ?? trade.created_at)}</td>
-                                        <td className={activeTdClass("font-bold")}>{trade.trade_id}</td>
-                                        <td className={activeTdClass()}>{pair}</td>
-                                        <td className={activeTdClass()}>
-                                            <ActiveDirectionPill
-                                                direction={(trade.direction ?? "buy") === "sell" ? "Sell" : "Buy"}
-                                                label={trade.direction_type ?? undefined}
-                                            />
-                                        </td>
-                                        <td className={activeTdClass()}>{trade.type ?? "-"}</td>
-                                        <td className={activeTdClass()}>{trade.session ?? "-"}</td>
-                                        <td className={activeTdClass("font-bold")} style={{ color: cpUp ? TRADE_GREEN : TRADE_RED }}>
-                                            {cp !== null ? formatPrice(cp, pair) : "-"}
-                                        </td>
-                                        <td className={activeTdClass()}>{entry !== null ? formatPrice(entry, pair) : "-"}</td>
-                                        <td className={activeTdClass("font-semibold")} style={{ color: TRADE_RED }}>
-                                            {num(trade.stop_loss) !== null ? formatPrice(num(trade.stop_loss)!, pair) : "-"}
-                                        </td>
-                                        <td className={activeTdClass("font-semibold")} style={{ color: TRADE_GREEN }}>
-                                            {num(trade.tp1) !== null ? formatPrice(num(trade.tp1)!, pair) : "-"}
-                                        </td>
-                                        <td className={activeTdClass("font-semibold")} style={{ color: TRADE_GREEN }}>
-                                            {num(trade.tp2) !== null ? formatPrice(num(trade.tp2)!, pair) : "-"}
-                                        </td>
-                                        <td className={activeTdClass("font-semibold")} style={{ color: TRADE_GREEN }}>
-                                            {num(trade.tp3) !== null ? formatPrice(num(trade.tp3)!, pair) : "-"}
-                                        </td>
-                                        <td className={activeTdClass()}>{trade.risk ?? "-"}</td>
-                                        <td className={activeTdClass("font-semibold")}>
-                                            {formatRR(trade.max_tp_hit ?? 0)}
-                                        </td>
-                                        <td className={activeTdClass()}>
-                                            <StatusPill
-                                                label={evaluation.statusLabel}
-                                                variant={evaluation.isPending ? "pending" : "open"}
-                                            />
-                                        </td>
-                                        <td className={activeTdClass("font-bold")} style={{ color: (pips ?? 0) >= 0 ? TRADE_GREEN : TRADE_RED }}>
-                                            {formatPips(pips)}
-                                        </td>
-                                        <td className={activeTdClass()}>{formatDuration(trade.created_at)}</td>
-                                        <td className={activeTdClass()}>
-                                            {canManage ? (
-                                                <RowActionsMenu
-                                                    trade={trade}
-                                                    onClose={() => handleManualClose(trade)}
-                                                    onToggleTsl={() => void toggleFlag(trade, "tsl_enabled")}
-                                                    onToggleBe={() => void toggleFlag(trade, "breakeven_enabled")}
-                                                    onEdit={() => setEditTrade(trade)}
-                                                    onDelete={() => void handleDelete(trade)}
-                                                />
-                                            ) : null}
-                                        </td>
-                                    </tr>
-                                );
-                            })
+                            rows.map(({ trade, cp, evaluation, pips }) => (
+                                <tr key={trade.id}>
+                                    {visibleColumns.map((col) => (
+                                        <Fragment key={col.id}>
+                                            {renderCell(col.id, trade, cp, evaluation, pips)}
+                                        </Fragment>
+                                    ))}
+                                </tr>
+                            ))
                         )}
                     </tbody>
                 </table>
@@ -279,14 +433,16 @@ export default function ActiveTradesTable({
 
 function RowActionsMenu({
     trade,
-    onClose,
+    onPartialClose,
+    onFullClose,
     onToggleTsl,
     onToggleBe,
     onEdit,
     onDelete,
 }: {
     trade: TradingAlert;
-    onClose: () => void;
+    onPartialClose: (level: 1 | 2 | 3) => void;
+    onFullClose: () => void;
     onToggleTsl: () => void;
     onToggleBe: () => void;
     onEdit: () => void;
@@ -295,11 +451,13 @@ function RowActionsMenu({
     const [open, setOpen] = useState(false);
     const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
     const btnRef = useRef<HTMLButtonElement>(null);
+    const afterPartial = Boolean(trade.manual_partial_closed);
 
     const toggle = () => {
         if (!open && btnRef.current) {
             const r = btnRef.current.getBoundingClientRect();
-            setCoords({ top: r.bottom + 4, left: Math.max(8, r.right - 176) });
+            const menuWidth = afterPartial ? 160 : 200;
+            setCoords({ top: r.bottom + 4, left: Math.max(8, r.right - menuWidth) });
         }
         setOpen((o) => !o);
     };
@@ -326,18 +484,42 @@ function RowActionsMenu({
                 <>
                     <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
                     <div
-                        className="fixed z-50 w-44 overflow-hidden rounded-[6px] border border-stroke bg-darkGrey shadow-lg"
+                        className={cn(
+                            "fixed z-50 overflow-hidden rounded-[6px] border border-stroke bg-darkGrey shadow-lg",
+                            afterPartial ? "w-40" : "w-52",
+                        )}
                         style={{ top: coords.top, left: coords.left }}
                     >
-                        <button type="button" className={itemClass} onClick={run(onClose)}>Close Trade</button>
-                        <button type="button" className={itemClass} onClick={run(onToggleTsl)}>
-                            {trade.tsl_enabled ? "Disable TSL" : "Enable TSL"}
-                        </button>
-                        <button type="button" className={itemClass} onClick={run(onToggleBe)}>
-                            {trade.breakeven_enabled ? "Disable Breakeven" : "Enable Breakeven"}
-                        </button>
-                        <button type="button" className={itemClass} onClick={run(onEdit)}>Edit</button>
-                        <button type="button" className={`${itemClass} text-[#fa003f]`} onClick={run(onDelete)}>Delete</button>
+                        {afterPartial ? (
+                            <button type="button" className={itemClass} onClick={run(onFullClose)}>
+                                Full Close
+                            </button>
+                        ) : (
+                            <>
+                                <button type="button" className={itemClass} onClick={run(() => onPartialClose(1))}>
+                                    Partial Close TP1
+                                </button>
+                                <button type="button" className={itemClass} onClick={run(() => onPartialClose(2))}>
+                                    Partial Close TP2
+                                </button>
+                                <button type="button" className={itemClass} onClick={run(() => onPartialClose(3))}>
+                                    Partial Close TP3
+                                </button>
+                                <button type="button" className={itemClass} onClick={run(onFullClose)}>
+                                    Full Close
+                                </button>
+                                <button type="button" className={itemClass} onClick={run(onToggleTsl)}>
+                                    {trade.tsl_enabled ? "Disable TSL" : "Enable TSL"}
+                                </button>
+                                <button type="button" className={itemClass} onClick={run(onToggleBe)}>
+                                    {trade.breakeven_enabled ? "Disable Breakeven" : "Enable Breakeven"}
+                                </button>
+                                <button type="button" className={itemClass} onClick={run(onEdit)}>Edit</button>
+                                <button type="button" className={`${itemClass} text-[#fa003f]`} onClick={run(onDelete)}>
+                                    Delete
+                                </button>
+                            </>
+                        )}
                     </div>
                 </>
             ) : null}

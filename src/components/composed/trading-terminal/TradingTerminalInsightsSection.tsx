@@ -9,16 +9,16 @@ import TradingTerminalYearlyPerformancePips from "./TradingTerminalYearlyPerform
 const PANEL_HEIGHT = "h-[340px]";
 
 export default function TradingTerminalInsightsSection({ refreshKey = 0 }: { refreshKey?: number }) {
-    const { trades } = useTradingTerminalData(refreshKey);
+    const { trades, partials } = useTradingTerminalData(refreshKey);
 
     return (
         <div className={cn("grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch", PANEL_HEIGHT)}>
             <div className={cn("min-w-0", PANEL_HEIGHT)}>
-                <TradingTerminalMonthlyGrowth trades={trades} />
+                <TradingTerminalMonthlyGrowth trades={trades} partials={partials} />
             </div>
 
             <div className={cn("min-w-0", PANEL_HEIGHT)}>
-                <TradingTerminalYearlyPerformancePips trades={trades} />
+                <TradingTerminalYearlyPerformancePips trades={trades} partials={partials} />
             </div>
 
             <div className={cn("min-w-0", PANEL_HEIGHT)}>

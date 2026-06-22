@@ -20,29 +20,49 @@ export function TradingTableShell({
     title,
     showSettings = false,
     settingsHref,
+    headerLink,
+    headerActions,
     children,
     footer,
 }: {
     title: string;
     showSettings?: boolean;
     settingsHref?: string;
+    /** Optional link shown in the table header (e.g. Export Trade History). */
+    headerLink?: { href: string; label: string };
+    /** Optional header controls (zoom, export, etc.) — takes precedence over headerLink when set. */
+    headerActions?: React.ReactNode;
     children: React.ReactNode;
     /** Pass `null` to render no footer (e.g. Active Trades). Omit for the default pagination. */
     footer?: React.ReactNode;
 }) {
     return (
         <div className="bg-darkGrey rounded-[12px] w-full border border-stroke overflow-hidden text-foreground">
-            <div className="flex items-center justify-center py-3 border-b border-stroke relative px-12">
-                <h2 className="font-bold text-[20px] leading-[24px]">{title}</h2>
-                {showSettings && settingsHref ? (
-                    <Link
-                        href={settingsHref}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/80 hover:text-foreground"
-                        aria-label={`${title} settings`}
-                    >
-                        <Icon name="trading-settings.svg" width={22} height={22} />
-                    </Link>
-                ) : null}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 border-b border-stroke px-4">
+                <div className="flex items-center justify-start min-h-[22px]">
+                    {showSettings && settingsHref ? (
+                        <Link
+                            href={settingsHref}
+                            className="text-foreground/80 hover:text-foreground"
+                            aria-label={`${title} settings`}
+                        >
+                            <Icon name="trading-settings.svg" width={22} height={22} />
+                        </Link>
+                    ) : null}
+                </div>
+                <h2 className="font-bold text-[20px] leading-[24px] text-center">{title}</h2>
+                <div className="flex items-center justify-end gap-2 min-h-[22px]">
+                    {headerActions ? (
+                        headerActions
+                    ) : headerLink ? (
+                        <Link
+                            href={headerLink.href}
+                            className="rounded-[8px] border border-stroke bg-stroke/10 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-stroke/20"
+                        >
+                            {headerLink.label}
+                        </Link>
+                    ) : null}
+                </div>
             </div>
 
             {children}
@@ -140,7 +160,7 @@ export function StatusPill({
     variant,
 }: {
     label: string;
-    variant: "open" | "profit" | "closed" | "loss" | "pending";
+    variant: "open" | "profit" | "closed" | "loss" | "pending" | "breakeven";
 }) {
     const styles = {
         open: "bg-[rgba(59,130,246,0.18)] border-[rgba(59,130,246,0.4)] text-[#60a5fa]",
@@ -148,6 +168,7 @@ export function StatusPill({
         closed: "bg-stroke/15 border-stroke/50 text-secondary",
         loss: RED_PILL,
         pending: "bg-[rgba(250,204,21,0.18)] border-[rgba(250,204,21,0.4)] text-[#facc15]",
+        breakeven: "bg-[rgba(59,130,246,0.18)] border-[rgba(59,130,246,0.45)] text-[#3b82f6]",
     }[variant];
 
     return (
@@ -186,19 +207,87 @@ export function TableActionButton({ kind }: { kind: "edit" | "delete" }) {
     );
 }
 
-// Consistent header/cell styles across both tables (same font family as the rest of the app + one size).
+// Consistent header/cell styles across both tables — gap-separated cells (heatmap-style).
+const terminalThCell = "rounded-[4px] border border-stroke bg-stroke/10 dark:border-stroke/60";
+const terminalTdCell =
+    "rounded-[4px] border border-stroke bg-chartInnerBg dark:bg-[#2A2E37] dark:border-[#2A2E37]";
+
+/** Shared table layout: visible gaps between columns/rows instead of merged borders. */
+export function tradingTerminalTableClass(
+    minWidthClass?: string,
+    opts?: { width?: "full" | "max" },
+) {
+    return cn(
+        opts?.width === "max" ? "w-max table-auto" : "w-full",
+        "border-separate [border-spacing:4px_6px]",
+        minWidthClass,
+    );
+}
+
+/** Active Trades: columns stay content-sized when visibility changes. */
+export function activeTradesTerminalTableClass() {
+    return cn(
+        "w-max max-w-none table-auto border-separate [border-spacing:4px_6px]",
+    );
+}
+
+/** Wrapper padding so edge cell spacing is not clipped by the scroll container. */
+export const tradingTerminalTableScrollClass = "horizontal-scroll px-1.5 pb-1.5";
+
+/** Active Trades: vertical scroll after this many rows (header excluded). */
+export const ACTIVE_TRADES_VERTICAL_SCROLL_THRESHOLD = 15;
+
+/** ≈ sticky header + 15 gap-separated body rows. */
+export const ACTIVE_TRADES_SCROLL_MAX_HEIGHT = "max-h-[728px]";
+
+export function activeTradesTableScrollClass(rowCount: number) {
+    const scrollVertically = rowCount > ACTIVE_TRADES_VERTICAL_SCROLL_THRESHOLD;
+    return cn(
+        tradingTerminalTableScrollClass,
+        scrollVertically && ACTIVE_TRADES_SCROLL_MAX_HEIGHT,
+        scrollVertically && "!overflow-y-auto",
+    );
+}
+
+export function tradingTerminalEmptyTdClass(extra = "") {
+    return cn(
+        "px-3 py-6 text-center text-[13px] leading-[16px] text-secondary rounded-[4px] bg-transparent border-0",
+        extra,
+    );
+}
+
 export function activeThClass(extra = "") {
-    return cn("px-3 py-2.5 text-left font-bold text-[13px] leading-[15px] border-r border-stroke last:border-r-0 whitespace-nowrap", extra);
+    return cn(
+        "w-px px-3 py-2.5 text-left font-bold text-[13px] leading-[15px] whitespace-nowrap",
+        terminalThCell,
+        extra,
+    );
 }
 
 export function activeTdClass(extra = "") {
-    return cn("px-3 py-3 border-l border-b border-t border-stroke text-[13px] leading-[16px] whitespace-nowrap", extra);
+    return cn("w-px px-3 py-3 text-[13px] leading-[16px] whitespace-nowrap", terminalTdCell, extra);
 }
 
 export function historyThClass(extra = "") {
-    return cn("px-3 py-2.5 text-center font-bold text-[13px] leading-[15px] border border-stroke whitespace-nowrap", extra);
+    return cn(
+        "px-3 py-2.5 text-center font-bold text-[13px] leading-[15px] whitespace-nowrap",
+        terminalThCell,
+        extra,
+    );
 }
 
 export function historyTdClass(extra = "") {
-    return cn("px-3 py-3 text-center text-[13px] leading-[16px] border border-stroke whitespace-nowrap", extra);
+    return cn("px-3 py-3 text-center text-[13px] leading-[16px] whitespace-nowrap", terminalTdCell, extra);
+}
+
+export function historyZoomThClass(extra = "") {
+    return cn(
+        "px-5 py-3.5 text-center font-bold text-[16px] leading-[20px] whitespace-nowrap",
+        terminalThCell,
+        extra,
+    );
+}
+
+export function historyZoomTdClass(extra = "") {
+    return cn("px-5 py-4 text-center text-[16px] leading-[22px] whitespace-nowrap", terminalTdCell, extra);
 }
