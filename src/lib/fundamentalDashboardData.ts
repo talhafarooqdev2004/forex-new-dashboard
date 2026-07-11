@@ -464,3 +464,10 @@ export function parseRiskModeSheetValue(value: unknown): number {
     if (!Number.isFinite(n)) return 0;
     return Math.max(0, Math.min(100, n));
 }
+
+/** Calendar & News Risk Mode — same sheet cell, full −100…100 range. */
+export function parseRiskModeSheetValueSigned(value: unknown): number {
+    const n = Number.parseFloat(String(value ?? "").replace(/[^0-9.-]/g, ""));
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(-100, Math.min(100, n));
+}

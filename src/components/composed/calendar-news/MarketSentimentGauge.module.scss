@@ -1,0 +1,34 @@
+.wrap {
+    position: relative;
+    width: 204px;
+    height: 124px;
+    margin-inline: auto;
+    flex-shrink: 0;
+}
+
+.needleWrap {
+    position: absolute;
+    left: 50%;
+    bottom: 11%;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform-origin: center bottom;
+    pointer-events: none;
+}
+
+.needleLine {
+    width: 2px;
+    height: 46px;
+    border-radius: 1px;
+    background: #ffffff;
+}
+
+.needleHub {
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #ffffff;
+}

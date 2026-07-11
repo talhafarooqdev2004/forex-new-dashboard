@@ -2,6 +2,9 @@ import { cookies } from "next/headers";
 
 import { apiConfig } from "@/services/api.config";
 import type { DynamicTable } from "@/services/dynamicTable.service";
+import type { EconomicCalendarEventDTO } from "@/lib/calendarNewsCalendarData";
+import type { GeopoliticalRiskWatch } from "@/lib/calendarNewsPageData";
+import type { CatalystBoardDTO } from "@/lib/calendarNewsScoreboardData";
 
 const AUTH_COOKIE = "forex_jwt";
 
@@ -102,6 +105,48 @@ export async function serverFetchPublicAppConfigValue(configKey: string): Promis
         if (raw === undefined || raw === null) return null;
         const s = String(raw).trim();
         return s.length ? s : null;
+    } catch {
+        return null;
+    }
+}
+
+/** Live Market Driver / Catalyst board (per-asset counts + driver score), no auth — backend classifies + stores it. */
+export async function serverFetchMarketCatalyst(): Promise<CatalystBoardDTO[] | null> {
+    const url = `${apiConfig.baseURL}/api/v1/public/market-catalyst`;
+    try {
+        const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+        if (!res.ok) return null;
+        const json = (await res.json()) as ApiEnvelope<CatalystBoardDTO[]>;
+        if (!json?.success || !Array.isArray(json.data)) return null;
+        return json.data;
+    } catch {
+        return null;
+    }
+}
+
+/** Live Geopolitical Risk Watch (0–1) from AI-classified GEOPOLITICAL headlines. */
+export async function serverFetchGeopoliticalRisk(): Promise<GeopoliticalRiskWatch | null> {
+    const url = `${apiConfig.baseURL}/api/v1/public/geopolitical-risk`;
+    try {
+        const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+        if (!res.ok) return null;
+        const json = (await res.json()) as ApiEnvelope<GeopoliticalRiskWatch>;
+        if (!json?.success || !json.data || typeof json.data.score !== "number") return null;
+        return json.data;
+    } catch {
+        return null;
+    }
+}
+
+/** Live investing.com economic calendar (majors only), no auth — backend scrapes + caches it. */
+export async function serverFetchEconomicCalendar(): Promise<EconomicCalendarEventDTO[] | null> {
+    const url = `${apiConfig.baseURL}/api/v1/public/economic-calendar`;
+    try {
+        const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+        if (!res.ok) return null;
+        const json = (await res.json()) as ApiEnvelope<EconomicCalendarEventDTO[]>;
+        if (!json?.success || !Array.isArray(json.data)) return null;
+        return json.data;
     } catch {
         return null;
     }

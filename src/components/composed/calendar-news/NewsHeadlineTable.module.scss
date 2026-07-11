@@ -1,0 +1,66 @@
+@use "./calendarNewsTableShared" as cn;
+
+.panel {
+    @include cn.panel;
+}
+
+.panelTitle {
+    @include cn.panelTitle;
+}
+
+.tableScroll {
+    @include cn.tableScroll;
+
+    flex: 1;
+    min-height: 0;
+}
+
+.tdIndex {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: rgb(255 255 255 / 0.9);
+}
+
+.tdNews {
+    min-width: 280px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.tdSummary {
+    min-width: 220px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.assetCell {
+    @include cn.assetCell;
+
+    justify-content: center;
+    font-size: 14px;
+}
+
+.impactLabel {
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.biasCell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.scoreLabel {
+    @include cn.tabular;
+
+    font-size: 14px;
+}
+
+.emptyState {
+    @include cn.emptyState;
+}

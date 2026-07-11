@@ -1,0 +1,92 @@
+@use "./calendarNewsTableShared" as cn;
+
+.panel {
+    @include cn.panel;
+}
+
+.panelTitle {
+    @include cn.panelTitleWithIcon;
+}
+
+.titleIcon {
+    @include cn.titleIcon;
+}
+
+.tableScroll {
+    @include cn.tableScroll;
+
+    flex: 1;
+    min-height: 0;
+}
+
+.emptyState {
+    @include cn.emptyState;
+}
+
+.tdEvent {
+    min-width: 180px;
+    max-width: 260px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.tdDate {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.tdPotential {
+    font-size: 14px;
+    font-weight: 700;
+    color: #00c076;
+}
+
+.countryCell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tabular {
+    @include cn.tabular;
+}
+
+.biasLabel {
+    @include cn.biasLabel;
+}
+
+.impactBadge {
+    display: inline-block;
+    border-radius: 5px;
+    background: #0f9d58;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.stars {
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    color: #ef4444;
+    white-space: nowrap;
+}
+
+.starEmpty {
+    color: rgb(255 255 255 / 0.15);
+}
+
+.tablesRow {
+    display: grid;
+    gap: 16px;
+    align-items: stretch;
+}
+
+@media (min-width: 1024px) {
+    .tablesRow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

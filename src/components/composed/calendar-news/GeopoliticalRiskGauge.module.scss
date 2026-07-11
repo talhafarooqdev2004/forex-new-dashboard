@@ -1,0 +1,30 @@
+.wrap {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  aspect-ratio: 200 / 118;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.barLabel {
+  fill: #121417;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-family: inherit;
+}
+
+.needle {
+  fill: #ffffff;
+}
+
+:global(html:not(.dark)) .needle {
+  fill: #010101;
+}

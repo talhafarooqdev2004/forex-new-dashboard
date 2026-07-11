@@ -1,0 +1,165 @@
+@mixin panel {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgb(var(--stroke) / 0.28);
+    border-radius: 14px;
+    background: rgb(var(--dark-grey));
+    padding: 0;
+}
+
+@mixin panelTitle {
+    margin: 0;
+    padding: 20px 16px;
+    /* Same bg as table / panel — no tint strip behind the heading. */
+    background: rgb(var(--dark-grey));
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: rgb(var(--foreground));
+    line-height: 1.25;
+}
+
+@mixin panelTitleWithIcon {
+    @include panelTitle;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+@mixin tableScroll {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    /* Single scrollport so last rows aren’t clipped by nested overflow-y:hidden on admin Table. */
+    overflow: auto;
+    max-height: 560px;
+    background: rgb(var(--dark-grey));
+    padding: 0;
+    scrollbar-width: auto;
+    scrollbar-color: #b8bcc4 #2f3540;
+
+    &::-webkit-scrollbar {
+        width: 14px;
+        height: 14px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #2f3540;
+        border-radius: 999px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #b8bcc4;
+        border: 2px solid #2f3540;
+        border-radius: 999px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: #d1d5db;
+    }
+
+    &::-webkit-scrollbar-corner {
+        background: #2f3540;
+    }
+
+    :global(html:not(.dark)) & {
+        scrollbar-color: #9ca3af #e5e7eb;
+
+        &::-webkit-scrollbar-track {
+            background: #e5e7eb;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-color: #e5e7eb;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        &::-webkit-scrollbar-corner {
+            background: #e5e7eb;
+        }
+    }
+
+    /* Admin Table wrapper only — don’t constrain empty-state centering. */
+    > *:not([class*="emptyState"]) {
+        overflow: visible !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: min-content;
+        cursor: default;
+    }
+
+    /* Match admin body cell borders on headers too (incl. top edge as in design). */
+    :global(th) {
+        text-align: center !important;
+        border-top: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+        border-bottom: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+        border-right: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+        border-left: none !important;
+    }
+
+    :global(th:last-child) {
+        border-right: none !important;
+    }
+
+    :global(td) {
+        text-align: center !important;
+    }
+}
+
+@mixin emptyState {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    width: 100%;
+    min-height: 280px;
+    padding: 32px 24px;
+    text-align: center;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: rgb(255 255 255 / 0.45);
+}
+
+@mixin tabular {
+    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+@mixin assetCell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: rgb(var(--foreground));
+    white-space: nowrap;
+}
+
+@mixin biasLabel {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+@mixin titleIcon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    color: rgb(var(--foreground));
+}

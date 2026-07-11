@@ -1,0 +1,89 @@
+.card {
+    display: flex;
+    min-height: 380px;
+    flex-direction: column;
+    align-items: stretch;
+    border: 1px solid rgb(var(--stroke) / 0.28);
+    border-radius: 14px;
+    background: rgb(var(--dark-grey));
+    padding: 22px 20px 24px;
+}
+
+.title {
+    margin: 0 0 28px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: rgb(var(--foreground));
+    line-height: 1.25;
+}
+
+.titleAccent {
+    font-weight: 600;
+}
+
+.gaugeBlock {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    padding: 0 2px;
+}
+
+.barTrack {
+    position: relative;
+    padding-top: 11px;
+}
+
+.barPointer {
+    position: absolute;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 9px solid #ffffff;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+:global(html:not(.dark)) .barPointer {
+    border-top-color: #010101;
+}
+
+.barSegments {
+    display: flex;
+    height: 14px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 999px;
+}
+
+.barSegment {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.barLabels {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    margin-top: 10px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.labelOff {
+    text-align: left;
+}
+
+.labelNeutral {
+    text-align: center;
+}
+
+.labelOn {
+    text-align: right;
+}

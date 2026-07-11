@@ -1,0 +1,78 @@
+@use "./calendarNewsTableShared" as cn;
+
+.panel {
+    @include cn.panel;
+}
+
+.panelTitle {
+    @include cn.panelTitle;
+}
+
+.tableScroll {
+    @include cn.tableScroll;
+
+    flex: 1;
+    min-height: 0;
+}
+
+.tdComment {
+    min-width: 200px;
+    max-width: 230px;
+    font-size: 14px;
+    line-height: 1.35;
+    color: rgb(255 255 255 / 0.75);
+    text-align: left !important;
+}
+
+.tdCentered {
+    text-align: center !important;
+}
+
+.cellCenter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.assetCell {
+    @include cn.assetCell;
+}
+
+.biasLabel {
+    @include cn.biasLabel;
+}
+
+.tabular {
+    @include cn.tabular;
+}
+
+.emptyState {
+    @include cn.emptyState;
+}
+
+.impactBar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 160px;
+}
+
+.impactSegment {
+    height: 15px;
+    width: 12px;
+    flex-shrink: 0;
+    border-radius: 2px;
+}
+
+.scoreboardsRow {
+    display: grid;
+    gap: 16px;
+}
+
+@media (min-width: 1024px) {
+    .scoreboardsRow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
