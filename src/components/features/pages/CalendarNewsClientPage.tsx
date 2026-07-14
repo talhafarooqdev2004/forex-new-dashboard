@@ -71,11 +71,19 @@ export default function CalendarNewsClientPage({
     const refreshLive = useCallback(async () => {
         const bundle = await fetchCalendarNewsLiveBundle();
         if (!bundle || !mountedRef.current) return;
-        setEconomicCalendarRows(bundle.economicCalendarRows);
-        setUpcomingHighImpactRows(bundle.upcomingHighImpactRows);
-        setMacroScoreboardRows(bundle.macroScoreboardRows);
-        setCatalystScoreboardRows(bundle.catalystScoreboardRows);
-        setHeatmapTiles(bundle.heatmapTiles);
+
+        // Never wipe a good week with an empty response (restart race / failed scrape).
+        if (bundle.economicCalendarRows.length > 0) {
+            setEconomicCalendarRows(bundle.economicCalendarRows);
+            setUpcomingHighImpactRows(bundle.upcomingHighImpactRows);
+            setMacroScoreboardRows(bundle.macroScoreboardRows);
+        }
+        if (bundle.catalystScoreboardRows) {
+            setCatalystScoreboardRows(bundle.catalystScoreboardRows);
+        }
+        if (bundle.heatmapTiles) {
+            setHeatmapTiles(bundle.heatmapTiles);
+        }
         if (bundle.geopoliticalRisk) {
             setGeopoliticalRisk(bundle.geopoliticalRisk);
         }

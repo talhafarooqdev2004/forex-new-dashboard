@@ -1,4 +1,5 @@
 import type { EconomicCalendarEventDTO } from "@/lib/calendarNewsCalendarData";
+import { classifyHealthFactor, scoreCurrencyHealthEvent } from "@/lib/currencyHealthScore";
 
 export const SCOREBOARD_UI = {
     green: "#00c076",
@@ -72,39 +73,148 @@ export const STATIC_MACRO_SCOREBOARD_ROWS: MacroScoreboardRow[] = [
 /** Rows are built for these 8 majors only — Economic Calendar has no Gold/Oil coverage. */
 const MACRO_SCOREBOARD_CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "NZD", "CAD", "CHF"] as const;
 
-/** High-impact releases move the score more than a minor speech or low-tier print. */
-function impactWeight(impact: EconomicCalendarEventDTO["impact"]): number {
-    if (impact === "High") return 3;
-    if (impact === "Medium") return 2;
-    return 1;
-}
-
-function buildTopDriverComment(top: EconomicCalendarEventDTO): string {
+function buildTopDriverComment(top: EconomicCalendarEventDTO, healthScore: number): string {
     if (!top.forecast) {
         return `${top.event} released (${top.actual})`;
     }
-    const verb = top.evidenceScore > 0 ? "beat forecast" : top.evidenceScore < 0 ? "missed forecast" : "in line with forecast";
+    const verb = healthScore > 0 ? "beat forecast" : healthScore < 0 ? "missed forecast" : "mixed / in line";
     return `${top.event} ${verb} (${top.actual} vs ${top.forecast})`;
 }
 
-/** Highest-impact event drives the comment; ties broken by the larger trend+evidence swing. */
-function pickTopDriver(events: EconomicCalendarEventDTO[]): EconomicCalendarEventDTO {
-    return events.reduce((best, e) => {
-        const bestWeight = impactWeight(best.impact);
-        const eWeight = impactWeight(e.impact);
-        if (eWeight !== bestWeight) return eWeight > bestWeight ? e : best;
-        const bestMag = Math.abs(best.trendScore + best.evidenceScore);
-        const eMag = Math.abs(e.trendScore + e.evidenceScore);
-        return eMag > bestMag ? e : best;
+/** Highest |health| contribution drives the comment; ties keep the first max. */
+function pickTopDriver(
+    scored: { event: EconomicCalendarEventDTO; health: number }[],
+): { event: EconomicCalendarEventDTO; health: number } {
+    return scored.reduce((best, cur) => (Math.abs(cur.health) > Math.abs(best.health) ? cur : best));
+}
+
+type ScoredMacroRelease = { event: EconomicCalendarEventDTO; health: number };
+
+function normalizedEventName(event: string): string {
+    return event.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function macroReleaseFamily(event: string): string {
+    const e = normalizedEventName(event);
+    if (/\b(gdp|gdpnow|gross domestic product)\b/.test(e)) return "gdp";
+    if (/\b(cpi|consumer price|headline inflation|inflation rate)\b/.test(e)) return "cpi";
+    if (/\b(ppi|producer price)\b/.test(e)) return "ppi";
+    if (
+        /\b(interest rate decision|rate decision|cash rate|bank rate|fed funds|federal funds|refi rate|refinance rate|deposit facility|ocr|policy rate|overnight rate)\b/.test(
+            e,
+        )
+    ) {
+        return "policy-rate";
+    }
+    if (/\bunemployment rate\b/.test(e)) return "unemployment";
+    // Doc §15 — labour headline vs subcomponents (not unemployment rate).
+    if (
+        /\b(nonfarm|nfp|payroll|employment change|adp employment|adp nonfarm)\b/.test(e) &&
+        !/\bunemployment\b/.test(e)
+    ) {
+        return "employment";
+    }
+    if (/\b(pmi|purchasing managers)\b/.test(e)) return "pmi";
+    if (/\bretail sales\b/.test(e)) return "retail";
+    if (/\b(industrial production|manufacturing production|factory output)\b/.test(e)) {
+        return "industrial";
+    }
+    if (/\b(trade balance|trade surplus|trade deficit|current account)\b/.test(e)) {
+        return "trade";
+    }
+    // Exact-name grouping still prevents duplicate rows without merging unrelated secondary data.
+    return `event:${e}`;
+}
+
+function principalRank(event: EconomicCalendarEventDTO, family: string): number {
+    const e = normalizedEventName(event.event);
+    if (family === "gdp") {
+        if (/\b(gdpnow|gdp now|niesr|tracker|tracking estimate|forecast|projection|estimate)\b/.test(e)) {
+            return 100;
+        }
+        if (/\b(qoq|q q|quarter on quarter)\b/.test(e)) return 0;
+        if (/\b(yoy|y y|year on year)\b/.test(e)) return 1;
+        if (/\b(mom|m m|month on month|3m 3m)\b/.test(e)) return 2;
+        return 3;
+    }
+    if (family === "cpi" || family === "ppi") {
+        return /\bcore\b/.test(e) ? 10 : 0;
+    }
+    if (family === "employment") {
+        if (/\b(adp)\b/.test(e)) return 5;
+        if (/\b(private|ex farm|excluding)\b/.test(e)) return 3;
+        if (/\b(nonfarm|nfp|payroll)\b/.test(e)) return 0;
+        return 2;
+    }
+    if (family === "pmi") {
+        if (/\bcomposite\b/.test(e)) return 0;
+        if (/\bmanufacturing\b/.test(e)) return 1;
+        if (/\bservices\b/.test(e)) return 2;
+        return 3;
+    }
+    if (family === "retail") {
+        if (/\b(ex auto|excluding auto|core|control)\b/.test(e)) return 5;
+        return 0;
+    }
+    if (family === "industrial") {
+        if (/\bmanufacturing\b/.test(e)) return 2;
+        return 0;
+    }
+    return classifyHealthFactor(event.event) === "primary" ? 0 : 10;
+}
+
+function releaseDateKey(event: EconomicCalendarEventDTO): string {
+    const match = /^(\d{4}-\d{2}-\d{2})/.exec(event.timestamp);
+    return match?.[1] ?? event.timestamp ?? "unknown-date";
+}
+
+function scoreMacroRelease(event: EconomicCalendarEventDTO): number {
+    return scoreCurrencyHealthEvent({
+        event: event.event,
+        actual: event.actual,
+        forecast: event.forecast,
+        previous: event.previous,
     });
 }
 
 /**
- * Macro Scoreboard from Economic Calendar (client rule):
- *   per event net = trendScore + evidenceScore
- *   Macro Score   = sum of those nets for the currency (clamped to -10..+10)
- *
- * Bias + Trend follow that score so the three columns stay consistent.
+ * One contribution per currency/date/release family. GDP QoQ/YoY/components are one
+ * release; headline CPI is principal and core CPI can only veto a conflicting signal.
+ */
+export function scoreReleasedMacroEvents(events: EconomicCalendarEventDTO[]): ScoredMacroRelease[] {
+    const groups = new Map<string, EconomicCalendarEventDTO[]>();
+    for (const event of events) {
+        const family = macroReleaseFamily(event.event);
+        const key = `${event.currency}|${releaseDateKey(event)}|${family}`;
+        const group = groups.get(key);
+        if (group) group.push(event);
+        else groups.set(key, [event]);
+    }
+
+    const out: ScoredMacroRelease[] = [];
+    for (const group of groups.values()) {
+        const family = macroReleaseFamily(group[0]!.event);
+        const ranked = [...group].sort((a, b) => principalRank(a, family) - principalRank(b, family));
+        const principal = ranked[0]!;
+        let health = scoreMacroRelease(principal);
+
+        // Doc §9/§15 — headline vs core conflict on same CPI/PPI release → 0 unless clearly aligned.
+        if ((family === "cpi" || family === "ppi") && health !== 0) {
+            const supportingScores = ranked.slice(1).map(scoreMacroRelease).filter((score) => score !== 0);
+            if (supportingScores.some((score) => Math.sign(score) !== Math.sign(health))) health = 0;
+        }
+
+        out.push({ event: principal, health });
+    }
+    return out;
+}
+
+/**
+ * Macro Scoreboard from Economic Calendar — Currency Health Board (doc §§5–17):
+ *   Macro Score = Σ Primary (±1/0) + Σ Secondary (±0.5/0) for released events.
+ *   Primary = GDP, headline CPI, unemployment rate, policy-rate decision only.
+ *   + only when improves vs previous AND beats forecast; − only when worsens AND misses; else 0.
+ *   Same-day GDP/CPI family variants count once (principal release).
  */
 export function buildMacroScoreboardRowsFromEconomicCalendar(events: EconomicCalendarEventDTO[]): MacroScoreboardRow[] {
     return MACRO_SCOREBOARD_CURRENCIES.map((currency) => {
@@ -116,31 +226,31 @@ export function buildMacroScoreboardRowsFromEconomicCalendar(events: EconomicCal
                 bias: "Neutral",
                 macroScore: 0,
                 trend: "flat",
-                comment: "No high-impact data released this week",
+                comment: "Neutral - Insufficient Economic Data",
             };
         }
 
-        let netSum = 0;
-        for (const e of released) {
-            netSum += e.trendScore + e.evidenceScore;
-        }
+        const scored = scoreReleasedMacroEvents(released);
 
-        const macroScore = Number(Math.max(-10, Math.min(10, netSum)).toFixed(1));
+        const netSum = scored.reduce((sum, s) => sum + s.health, 0);
+        const macroScore = Number(netSum.toFixed(1));
         const { bias, trend } = macroBiasAndTrendFromScore(macroScore);
+        const top = pickTopDriver(scored);
 
         return {
             currency,
             bias,
             macroScore,
             trend,
-            comment: buildTopDriverComment(pickTopDriver(released)),
+            comment: buildTopDriverComment(top.event, top.health),
         };
     });
 }
 
 /**
- * Doc §20 Currency Health Bias — applied to the raw Macro Score
- * (sum of trend+evidence nets), not a separately scaled display.
+ * Doc §20 Currency Health Bias — applied to the raw Macro Score.
+ * above +1 Bullish; +0.5..+1 Mild Bullish; -0.49..+0.49 Neutral;
+ * -1..-0.5 Mild Bearish; below -1 Bearish.
  */
 function macroBiasAndTrendFromScore(score: number): {
     bias: string;

@@ -17,6 +17,30 @@
 
     flex: 1;
     min-height: 0;
+
+    /* Base Table sets overflow:hidden on <table>, which kills position:sticky.
+       Keep border-collapse:collapse so row borders stay single (not doubled). */
+    :global(table) {
+        overflow: visible !important;
+    }
+
+    /*
+     * Sticky headers — seal the border-collapse gap above <th> so scrolled
+     * body rows cannot show through between the panel and the header text.
+     */
+    :global(thead th) {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 5 !important;
+        background: rgb(var(--dark-grey)) !important;
+        background-color: rgb(var(--dark-grey)) !important;
+        background-clip: padding-box !important;
+        /* Same top edge as other Calendar & News tables (Date / Time / … row). */
+        border-top: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+        background-clip: border-box !important;
+        /* Opaque mask above the header seals sticky gap under the panel title. */
+        box-shadow: 0 -24px 0 0 rgb(var(--dark-grey)) !important;
+    }
 }
 
 .emptyState {
@@ -31,14 +55,20 @@
     line-height: 1.35;
 }
 
+/* Non-event cells: thinner + smaller; Event column stays at .tdEvent weight. */
+.cellThin {
+    font-weight: 300 !important;
+    font-size: 13px !important;
+}
+
 .tdDate {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 300;
 }
 
 .tdPotential {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 300;
     color: #00c076;
 }
 
@@ -54,6 +84,8 @@
 
 .biasLabel {
     @include cn.biasLabel;
+
+    font-size: 13px;
 }
 
 .impactBadge {
@@ -77,6 +109,70 @@
 
 .starEmpty {
     color: rgb(255 255 255 / 0.15);
+}
+
+/*
+ * Economic Calendar + Upcoming High Impact — separate borders so sticky column
+ * headers sit flush under the panel title (collapse left a transparent seam
+ * between the main heading and Date/Time/… when scrolling).
+ */
+.econCalendarScroll {
+    :global(table) {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
+
+    /* Keep single row lines: bottom border only on body cells. */
+    :global(tbody td) {
+        border-top: none !important;
+    }
+}
+
+/*
+ * Day banner:
+ * sticks flush under the column header at its normal height (do not grow when stuck).
+ * Date text stays centered in the visible viewport while scrolling horizontally.
+ */
+.dateSeparatorRow {
+    td {
+        position: sticky !important;
+        top: var(--econ-cal-header-height, 48px) !important;
+        z-index: 4 !important;
+        background: #5c636a !important;
+        background-color: #5c636a !important;
+        border: none !important;
+        border-top: none !important;
+        border-bottom: none !important;
+        /* Tiny 1px tuck only — seals seam without increasing banner height. */
+        margin-top: 0 !important;
+        box-shadow: none !important;
+    }
+}
+
+.dateSeparatorCell {
+    padding: 0 !important;
+    text-align: left !important;
+    overflow: visible !important;
+    border: none !important;
+}
+
+.dateSeparatorLabel {
+    position: sticky;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--date-sep-viewport-width, 100%);
+    max-width: var(--date-sep-viewport-width, 100%);
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #ffffff;
+    white-space: nowrap;
+    pointer-events: none;
+    background: #5c636a;
 }
 
 .tablesRow {

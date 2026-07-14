@@ -21,7 +21,7 @@ export const sidebarItems: SidebarItem[] = [
     { icon: "cot-data-analysis-icon", href: "/cot-data-analysis", label: "COT Data & Analysis", navigable: true },
     { icon: "seasonal-trends-icon", href: "/seasonal-trends", label: "Seasonal Trends", navigable: true },
     { icon: "retail-sentiment-icon", href: "/retail-sentiment", label: "Retail Sentiment", navigable: true },
-    { icon: "calendar-news-icon", href: "/calendar-news", label: "Daily Market View", navigable: true },
+    { icon: "calendar-news-icon", href: "/daily-market-view", label: "Daily Market View", navigable: true },
     { icon: "calendar-news-icon", href: "/historical-analysis", label: "Historical Analysis", navigable: true },
     { icon: "trading-terminal-icon", href: "/trading-terminal", label: "Trade Alerts & Terminal", navigable: true },
     { icon: "education-svg-icon", href: "/education", label: "Education", navigable: true },

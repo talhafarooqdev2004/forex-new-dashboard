@@ -47,7 +47,7 @@ export default function TradingTerminalUpcomingEvents() {
                     asChild
                     className="w-full h-9 rounded-[6px] bg-[#1e3a5f] hover:bg-[#254875] text-white text-xs font-medium border-0"
                 >
-                    <Link href="/calendar-news">View Calendar</Link>
+                    <Link href="/daily-market-view">View Calendar</Link>
                 </Button>
             </div>
         </div>

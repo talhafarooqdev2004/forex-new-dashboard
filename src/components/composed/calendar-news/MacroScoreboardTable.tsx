@@ -30,11 +30,7 @@ export default function MacroScoreboardTable({ rows }: MacroScoreboardTableProps
                             <Tr>
                                 <Th style={CN_TH_STYLE}>Currency</Th>
                                 <Th style={CN_TH_STYLE}>Current Bias</Th>
-                                <Th style={{ ...CN_TH_STYLE, whiteSpace: "normal" }}>
-                                    Macro Score
-                                    <br />
-                                    (+10 TO -10)
-                                </Th>
+                                <Th style={CN_TH_STYLE}>Macro Score</Th>
                                 <Th style={CN_TH_STYLE}>Trend</Th>
                                 <Th style={CN_TH_STYLE}>Comment</Th>
                             </Tr>

@@ -13,7 +13,7 @@ import {
 } from "@/lib/calendarNewsScoreboardData";
 import { apiConfig } from "@/services/api.config";
 
-type DayMeta = {
+type DayArchiveMeta = {
     dayKey: string;
     headlineCount: number;
     relevantCount: number;
@@ -27,62 +27,73 @@ type HistoricalDayPayload = {
     isLiveDay: boolean;
     archived: boolean;
     board: CatalystBoardDTO[];
-    meta: DayMeta | null;
+    meta: DayArchiveMeta | null;
 };
 
-type ApiEnvelope<T> = { success?: boolean; data?: T };
+type ApiEnvelope<T> = { success?: boolean; data?: T; message?: string };
+
+function formatDayLabel(dayKey: string): string {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey);
+    if (!match) return dayKey;
+    const d = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12));
+    return d.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "UTC",
+    });
+}
 
 export default function HistoricalAnalysisClientPage() {
-    const [days, setDays] = useState<DayMeta[]>([]);
+    const [days, setDays] = useState<DayArchiveMeta[]>([]);
     const [selectedDay, setSelectedDay] = useState<string>("");
-    const [catalystRows, setCatalystRows] = useState<CatalystScoreboardRow[]>([]);
-    const [meta, setMeta] = useState<DayMeta | null>(null);
-    const [archived, setArchived] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [payload, setPayload] = useState<HistoricalDayPayload | null>(null);
+    const [loadingDays, setLoadingDays] = useState(true);
+    const [loadingDay, setLoadingDay] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const loadDays = useCallback(async () => {
+        setLoadingDays(true);
+        setError(null);
         try {
             const res = await fetch(`${apiConfig.baseURL}/api/v1/public/market-driver-history`, {
-                headers: { Accept: "application/json" },
                 cache: "no-store",
+                credentials: "omit",
             });
             if (!res.ok) throw new Error("Failed to load historical days");
-            const json = (await res.json()) as ApiEnvelope<DayMeta[]>;
+            const json = (await res.json()) as ApiEnvelope<DayArchiveMeta[]>;
             const list = Array.isArray(json.data) ? json.data : [];
             setDays(list);
             setSelectedDay((prev) => prev || list[0]?.dayKey || "");
         } catch {
             setError("Could not load historical days.");
+            setDays([]);
+        } finally {
+            setLoadingDays(false);
         }
     }, []);
 
     const loadDay = useCallback(async (dayKey: string) => {
         if (!dayKey) {
-            setCatalystRows([]);
-            setMeta(null);
-            setLoading(false);
+            setPayload(null);
             return;
         }
-        setLoading(true);
+        setLoadingDay(true);
         setError(null);
         try {
             const res = await fetch(
                 `${apiConfig.baseURL}/api/v1/public/market-driver-history/${encodeURIComponent(dayKey)}`,
-                { headers: { Accept: "application/json" }, cache: "no-store" },
+                { cache: "no-store", credentials: "omit" },
             );
             if (!res.ok) throw new Error("Failed to load day");
             const json = (await res.json()) as ApiEnvelope<HistoricalDayPayload>;
-            if (!json.data) throw new Error("Empty day payload");
-            setCatalystRows(buildCatalystScoreboardRows(json.data.board));
-            setMeta(json.data.meta);
-            setArchived(json.data.archived);
+            setPayload(json.data ?? null);
         } catch {
-            setError("Could not load this day's archive.");
-            setCatalystRows([]);
-            setMeta(null);
+            setError("Could not load that day's archive.");
+            setPayload(null);
         } finally {
-            setLoading(false);
+            setLoadingDay(false);
         }
     }, []);
 
@@ -94,52 +105,71 @@ export default function HistoricalAnalysisClientPage() {
         if (selectedDay) void loadDay(selectedDay);
     }, [selectedDay, loadDay]);
 
+    const catalystRows: CatalystScoreboardRow[] = useMemo(() => {
+        if (!payload?.board?.length) return [];
+        return buildCatalystScoreboardRows(payload.board);
+    }, [payload]);
+
     const statusLine = useMemo(() => {
-        if (!selectedDay) return "No archived UAE days yet — live data stays on Calendar & News until midnight Dubai time.";
-        if (archived && meta) {
-            return `Finalized ${meta.finalizedAt ? new Date(meta.finalizedAt).toLocaleString() : ""} · ${meta.relevantCount} relevant · ${meta.duplicateCount} duplicates · ${meta.irrelevantCount} irrelevant`;
+        if (!selectedDay) {
+            return "No archived UAE days yet — live data stays on Daily Market View until 1:00 AM Dubai time.";
         }
-        return `UAE day ${selectedDay} — not yet finalized (showing reconstructed board from stored headlines)`;
-    }, [selectedDay, archived, meta]);
+        if (!payload) return null;
+        const meta = payload.meta;
+        const parts = [
+            formatDayLabel(selectedDay),
+            payload.archived ? "Finalized UAE day" : "Past day (from headlines)",
+        ];
+        if (meta) {
+            parts.push(
+                `${meta.headlineCount} headlines`,
+                `${meta.relevantCount} relevant`,
+                `${meta.duplicateCount} duplicates`,
+            );
+        }
+        return parts.join(" · ");
+    }, [payload, selectedDay]);
 
     return (
         <Container>
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="text-xl font-semibold text-white">Historical Analysis</h1>
-                    <p className="mt-1 max-w-2xl text-sm text-white/55">
-                        Completed UAE days (Asia/Dubai midnight reset). Live day stays on{" "}
-                        <Link href="/calendar-news" className="text-[#00c076] underline-offset-2 hover:underline">
-                            Calendar & News
+                    <p className="mt-1 text-sm text-[rgb(var(--secondary))]">
+                        Completed UAE market days (1:00 AM → next 1:00 AM Dubai). Live boards stay on{" "}
+                        <Link href="/daily-market-view" className="underline underline-offset-2">
+                            Daily Market View
                         </Link>
                         .
                     </p>
                 </div>
-                <label className="flex flex-col gap-1 text-xs text-white/55">
-                    UAE day
+                <label className="flex flex-col gap-1 text-sm text-[rgb(var(--secondary))]">
+                    Market day
                     <select
-                        className="min-w-[160px] rounded-md border border-white/15 bg-[rgb(var(--dark-grey))] px-3 py-2 text-sm text-white"
+                        className="min-w-[220px] rounded-lg border border-[rgb(var(--stroke)/0.35)] bg-[rgb(var(--dark-grey))] px-3 py-2 text-white"
                         value={selectedDay}
+                        disabled={loadingDays || days.length === 0}
                         onChange={(e) => setSelectedDay(e.target.value)}
-                        disabled={days.length === 0}
                     >
-                        {days.length === 0 ? <option value="">No past days</option> : null}
-                        {days.map((d) => (
-                            <option key={d.dayKey} value={d.dayKey}>
-                                {d.dayKey}
-                                {d.finalizedAt ? " · archived" : ""}
-                            </option>
-                        ))}
+                        {days.length === 0 ? (
+                            <option value="">No past days</option>
+                        ) : (
+                            days.map((d) => (
+                                <option key={d.dayKey} value={d.dayKey}>
+                                    {d.dayKey}
+                                    {d.finalizedAt ? "" : " (pending archive)"}
+                                </option>
+                            ))
+                        )}
                     </select>
                 </label>
             </div>
 
-            <p className="mb-4 text-sm text-white/45">{statusLine}</p>
-
             {error ? <p className="mb-4 text-sm text-[#f84960]">{error}</p> : null}
+            {statusLine ? <p className="mb-4 text-sm text-[rgb(var(--secondary))]">{statusLine}</p> : null}
 
-            {loading ? (
-                <div className="min-h-[200px] rounded-xl bg-darkGrey/60" aria-hidden />
+            {loadingDay ? (
+                <p className="text-sm text-[rgb(var(--secondary))]">Loading day…</p>
             ) : (
                 <>
                     <MarketCatalystScoreboardTable rows={catalystRows} />

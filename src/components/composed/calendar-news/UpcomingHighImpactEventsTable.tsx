@@ -21,7 +21,7 @@ export default function UpcomingHighImpactEventsTable({ rows }: UpcomingHighImpa
                 <Calendar className={styles.titleIcon} strokeWidth={2} aria-hidden />
                 Upcoming High Impact Data &amp; Events
             </h2>
-            <div className={styles.tableScroll}>
+            <div className={`${styles.tableScroll} ${styles.econCalendarScroll}`}>
                 {rows.length === 0 ? (
                     <div className={styles.emptyState}>No upcoming high-impact events right now</div>
                 ) : (
@@ -42,10 +42,10 @@ export default function UpcomingHighImpactEventsTable({ rows }: UpcomingHighImpa
                         <Tbody>
                             {rows.map((row, index) => (
                                 <Tr key={`${row.date}-${index}`}>
-                                    <Td style={CN_TD_STYLE} className={styles.tdDate}>
+                                    <Td style={CN_TD_STYLE} className={`${styles.tdDate} ${styles.cellThin}`}>
                                         {row.date}
                                     </Td>
-                                    <Td style={CN_TD_STYLE} className={styles.tabular}>
+                                    <Td style={CN_TD_STYLE} className={`${styles.tabular} ${styles.cellThin}`}>
                                         {row.time}
                                     </Td>
                                     <Td style={CN_TD_STYLE}>
@@ -60,16 +60,16 @@ export default function UpcomingHighImpactEventsTable({ rows }: UpcomingHighImpa
                                     <Td style={CN_TD_STYLE}>
                                         <span className={styles.impactBadge}>{row.impact}</span>
                                     </Td>
-                                    <Td style={CN_TD_STYLE} className={styles.tabular}>
+                                    <Td style={CN_TD_STYLE} className={`${styles.tabular} ${styles.cellThin}`}>
                                         {row.previous}
                                     </Td>
-                                    <Td style={CN_TD_STYLE} className={styles.tabular}>
+                                    <Td style={CN_TD_STYLE} className={`${styles.tabular} ${styles.cellThin}`}>
                                         {row.forecast}
                                     </Td>
                                     <Td style={CN_TD_STYLE}>
                                         <ImportanceStars count={row.importance} />
                                     </Td>
-                                    <Td style={CN_TD_STYLE} className={styles.tdPotential}>
+                                    <Td style={CN_TD_STYLE} className={`${styles.tdPotential} ${styles.cellThin}`}>
                                         {row.potentialImpact}
                                     </Td>
                                 </Tr>

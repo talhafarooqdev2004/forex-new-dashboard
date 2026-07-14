@@ -33,11 +33,34 @@ export function geoRiskAccentColor(score01: number): string {
 }
 
 /**
- * Continuous needle: score 0.00 → left (−90°), 1.00 → right (+90°).
- * So 0.45 sits in Watch; 0.545 sits in Elevated (not Watch).
+ * Angular mid of each 45° wedge (deg from east, CCW) — center of the zone labels
+ * (LOW / WATCH / ELEVATED / HIGH).
  */
+export const GEO_RISK_WEDGE_MIDS_FROM_EAST = [157.5, 112.5, 67.5, 22.5] as const;
+
+/**
+ * GuageChartIndicator tip is not exactly on +X from the hub (path tip ≈ −1.79° in SVG).
+ * Rotate so the *tip* (not the +X axis) lands on the label mid.
+ */
+export const GEO_RISK_NEEDLE_TIP_LOCAL_DEG = Math.atan2(4.01234 - 5.60434, 56.2 - 5.30035) * (180 / Math.PI);
+
+/**
+ * Hardcoded SVG rotate per zone (do not compute — stays stable after refresh).
+ * LOW / WATCH / ELEVATED / HIGH RISK
+ */
+export const GEO_RISK_NEEDLE_ROTATE_DEG = [
+    -166.708531,
+    -113.708531,
+    -57.708531,
+    -8.708531,
+] as const;
+
+export function geoRiskNeedleDegTowardWedgeCenter(zoneIndex: number): number {
+    return GEO_RISK_NEEDLE_ROTATE_DEG[zoneIndex] ?? GEO_RISK_NEEDLE_ROTATE_DEG[1]!;
+}
+
 export function geoRiskNeedleDeg(score01: number): number {
-    return -90 + clamp01(score01) * 180;
+    return geoRiskNeedleDegTowardWedgeCenter(geoRiskZoneIndex(score01));
 }
 
 function polar(cx: number, cy: number, r: number, degFromEast: number) {
@@ -81,18 +104,22 @@ type GeopoliticalRiskGaugeProps = {
 
 /**
  * Thick 4-bar semicircle with labels inside the bars + theme-aware needle.
- * Needle angle tracks the live 0–1 score continuously (doc §29 bands).
+ * Needle snaps to a fixed angle per risk zone.
  */
 export default function GeopoliticalRiskGauge({ score, style }: GeopoliticalRiskGaugeProps) {
     const s = clamp01(score);
-    const rotation = geoRiskNeedleDeg(s);
     const cx = 100;
     const cy = 100;
     const rOuter = 88;
     const rInner = 52;
     const rLabel = (rOuter + rInner) / 2;
-    /** Scale GuageChartIndicator (63×12, hub at 5.3,5.6) so tip reaches into the arc. */
-    const needleScale = 0.95;
+    /** Tip sits inside the hollow, slightly longer into the gauge. */
+    const needleScale = 0.80;
+    /** Raised hub (axis) — do not move; only needleRotate aims tip at label centers. */
+    const needleLift = 10;
+    const hubY = cy - needleLift;
+    const zoneIndex = geoRiskZoneIndex(s);
+    const needleRotate = geoRiskNeedleDegTowardWedgeCenter(zoneIndex);
 
     const wedges = [
         { start: 180, end: 135, ...GEO_RISK_SEGMENTS[0] },
@@ -131,18 +158,14 @@ export default function GeopoliticalRiskGauge({ score, style }: GeopoliticalRisk
                     </text>
                 ))}
 
-                {/* Theme-aware needle: white in dark, black in light (same idea as SeasonalGaugeNeedle). */}
-                <g
-                    className={styles.needle}
-                    style={{
-                        transformOrigin: `${cx}px ${cy}px`,
-                        transform: `rotate(${rotation}deg)`,
-                        transition: "transform 0.8s ease-out",
-                    }}
-                >
-                    <g transform={`translate(${cx} ${cy}) scale(${needleScale}) rotate(-90) translate(-5.30035 -5.60434)`}>
+                {/* Tip aims at each wedge mid (157.5 / 112.5 / 67.5 / 22.5) after tip-offset correction */}
+                <g className={styles.needle} style={{ transition: "transform 0.8s ease-out" }}>
+                    <g
+                        transform={`translate(${cx} ${hubY}) scale(${needleScale}) rotate(${needleRotate}) translate(-5.30035 -5.60434)`}
+                    >
                         <ellipse cx="5.30035" cy="5.60434" rx="5.30035" ry="5.60434" />
-                        <path d="M10.6016 0.700684L62.9425 4.01234L10.6016 9.80774C13.7499 6.82725 11.9134 2.4945 10.6016 0.700684Z" />
+                        {/* Tip x=56.2 — short enough to clear bars; local tip angle corrected in rotate */}
+                        <path d="M10.6016 0.700684L56.2 4.01234L10.6016 9.80774C13.7499 6.82725 11.9134 2.4945 10.6016 0.700684Z" />
                     </g>
                 </g>
             </svg>

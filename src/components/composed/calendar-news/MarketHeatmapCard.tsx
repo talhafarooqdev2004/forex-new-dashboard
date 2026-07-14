@@ -32,15 +32,19 @@ export default function MarketHeatmapCard({ tiles }: MarketHeatmapCardProps) {
 
 function HeatmapTile({ tile, wide = false }: { tile: MarketHeatmapTile; wide?: boolean }) {
     const backgroundColor = heatmapTileBackgroundFromLabel(tile.label);
+
     const valueLabel =
         Math.abs(tile.value) < 1e-9
             ? "0.0"
             : `${tile.value > 0 ? "+" : ""}${Number.isInteger(tile.value) ? tile.value : tile.value.toFixed(1)}`;
 
     return (
-        <div className={wide ? styles.tileWide : styles.tile} style={{ backgroundColor }}>
+        <div
+            className={wide ? styles.tileWide : styles.tile}
+            style={{ backgroundColor, color: "#000000" }}
+        >
             <span className={styles.iconBadge} aria-hidden>
-                <CalendarNewsAssetIcon asset={tile.symbol} size={22} />
+                <CalendarNewsAssetIcon asset={tile.symbol} size={wide ? 28 : 24} />
             </span>
             <span className={styles.symbol}>{tile.symbol}</span>
             <span className={styles.value}>{valueLabel}</span>

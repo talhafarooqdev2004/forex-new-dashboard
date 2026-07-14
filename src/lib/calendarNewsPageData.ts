@@ -1,4 +1,5 @@
 import { normalizeDriverScore } from "@/lib/calendarNewsScoreboardData";
+import { GAUGE_SIGNAL_COLORS } from "@/lib/gaugeSignalColors";
 
 export type MarketSentimentSummary = {
     bullish: number;
@@ -115,26 +116,40 @@ export function buildRiskModeDisplayFromScore(rawInput: number): RiskModeDisplay
     };
 }
 
-/** Market Heatmap tile backgrounds — matched to design reference. */
+/**
+ * Same technical/gauge signal colors + light pink / light green bands.
+ * Mild Bearish = pink, Neutral Bearish = light pink; greens mirror on the bull side.
+ */
 export const CALENDAR_NEWS_HEATMAP_COLORS = {
-    bullish: "#0f9d58",
-    bearish: "#d93025",
-    neutral: "#f59e0b",
-    neutralBlue: "#3b6ea5",
+    strongBullish: GAUGE_SIGNAL_COLORS.strongBuy,
+    bullish: GAUGE_SIGNAL_COLORS.buy,
+    mildBullish: GAUGE_SIGNAL_COLORS.weakBuy,
+    neutralBullish: "#9AE6B0",
+    /** Gauge / technical Neutral yellow */
+    neutral: GAUGE_SIGNAL_COLORS.neutral,
+    neutralBearish: "#FFC1C1",
+    mildBearish: GAUGE_SIGNAL_COLORS.weakSell,
+    bearish: GAUGE_SIGNAL_COLORS.sell,
+    strongBearish: GAUGE_SIGNAL_COLORS.strongSell,
     placeholder: "rgb(255 255 255 / 0.07)",
 } as const;
 
+/**
+ * Score → label (`heatmapLabelFromValue`) → fixed color.
+ * Each label always gets the same color (other tiles do not shift Neutral to orange).
+ */
 export function heatmapTileBackgroundFromLabel(label: string): string {
     const t = label.trim().toLowerCase();
-    if (t === "—" || t === "n/a") return CALENDAR_NEWS_HEATMAP_COLORS.placeholder;
+    if (t === "—" || t === "n/a" || t === "") return CALENDAR_NEWS_HEATMAP_COLORS.placeholder;
 
-    // Blue: "neutral bullish" / "neutral bearish" — distinct from mild/volatile orange.
-    if (t.includes("neutral bull") || t.includes("neutral bear")) {
-        return CALENDAR_NEWS_HEATMAP_COLORS.neutralBlue;
-    }
+    if (t.includes("neutral bull")) return CALENDAR_NEWS_HEATMAP_COLORS.neutralBullish;
+    if (t.includes("neutral bear")) return CALENDAR_NEWS_HEATMAP_COLORS.neutralBearish;
+    if (t.includes("mild bear")) return CALENDAR_NEWS_HEATMAP_COLORS.mildBearish;
+    if (t.includes("mild bull")) return CALENDAR_NEWS_HEATMAP_COLORS.mildBullish;
+    if (t.includes("strong bear")) return CALENDAR_NEWS_HEATMAP_COLORS.strongBearish;
+    if (t.includes("strong bull")) return CALENDAR_NEWS_HEATMAP_COLORS.strongBullish;
 
-    // Orange: mild bearish / volatile (check before generic bear/bull)
-    if (t.includes("mild bear") || t.includes("volatile")) {
+    if (t === "neutral" || t === "volatile neutral" || t.includes("volatile")) {
         return CALENDAR_NEWS_HEATMAP_COLORS.neutral;
     }
 
@@ -182,14 +197,20 @@ export const STATIC_MARKET_HEATMAP_TILES: MarketHeatmapTile[] = [
 const HEATMAP_CURRENCY_SLOTS = ["USD", "EUR", "GBP", "JPY", "AUD", "NZD", "CAD", "CHF"] as const;
 
 /** Consistent bias vocabulary from a normalized -10..+10 score (doc §31). */
-function heatmapLabelFromValue(value: number): string {
-    if (value >= 5) return "Bullish";
+export function heatmapLabelFromValue(value: number): string {
+    if (value >= 5) return "Strong Bullish";
     if (value >= 2) return "Mild Bullish";
     if (value >= 0.5) return "Neutral Bullish";
     if (value > -0.5) return "Neutral";
     if (value > -2) return "Neutral Bearish";
     if (value > -5) return "Mild Bearish";
     return "Strong Bearish";
+}
+
+/** Raw Currency Health sum → -10..+10 so the documented 60/40 blend compares equal scales. */
+export function normalizeMacroScore(macroScore: number): number {
+    const clamped = Math.max(-5, Math.min(5, Number.isFinite(macroScore) ? macroScore : 0));
+    return Number((clamped * 2).toFixed(1));
 }
 
 /**
@@ -200,7 +221,7 @@ export function buildMarketHeatmapTilesFromBoards(
     macroRows: { currency: string; macroScore: number }[],
     catalystBoard: { asset: string; driverScore: number }[],
 ): MarketHeatmapTile[] {
-    const macroByCurrency = new Map(macroRows.map((r) => [r.currency, r.macroScore]));
+    const macroByCurrency = new Map(macroRows.map((r) => [r.currency, normalizeMacroScore(r.macroScore)]));
     const driverByAsset = new Map(catalystBoard.map((b) => [b.asset, normalizeDriverScore(b.driverScore)]));
 
     const currencyTiles: MarketHeatmapTile[] = HEATMAP_CURRENCY_SLOTS.map((currency) => {

@@ -144,13 +144,25 @@ function summaryForAsset(
     }
     if (bullish) return `Positive catalyst supports ${asset}`;
     if (bearish) return `Negative catalyst weighs on ${asset}`;
-    return cleaned || `Headline leaves ${asset} direction unclear`;
+
+    // Neutral (score 0) — say why bias is flat, not "unclear".
+    if (/\b(inflation|cpi|price).{0,40}(return|back|toward|to)\b.{0,20}(2%|target|medium term)/i.test(h) ||
+        /\binflation expectations?.{0,20}(anchored|firm)/i.test(h)) {
+        return `Inflation on-target keeps ${asset} bias neutral`;
+    }
+    if (/\b(midpoint|fixing|reference rate)\b/i.test(h) && /\b(pboc|yuan|cny)\b/i.test(h)) {
+        return `Yuan fixing estimate leaves ${asset} bias neutral`;
+    }
+    if (/\b(rbnz|boe|ecb|fed|pboc|conway|powell|waller)\b/i.test(h)) {
+        return `Policy comment keeps ${asset} bias neutral`;
+    }
+    return cleaned || `No clear directional signal for ${asset}`;
 }
 
 /**
  * Doc §34: one unique headline → one News table row (primary / highest-|score| asset).
- * Multi-asset scores still feed the Catalyst Scoreboard via `assets[]`; the headline list
- * must not repeat the same story for OIL, GOLD, USD, etc. with a mismatched oil summary.
+ * Market Catalyst uses the same primary asset per headline (backend pickPrimaryAsset),
+ * so the scoreboard stays 1:1 with what this table shows.
  */
 export function mapMarketDriverNews(items: MarketDriverNewsDTO[]): NewsHeadlineRow[] {
     const rows: NewsHeadlineRow[] = [];

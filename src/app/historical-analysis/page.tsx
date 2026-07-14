@@ -3,7 +3,7 @@ import { pageSeo } from "@/lib/seo";
 
 export const metadata = pageSeo(
     "Historical Analysis",
-    "Archived UAE-day market driver boards and headlines after the Asia/Dubai midnight reset.",
+    "Archived UAE market-day catalyst boards and news after the Daily Market View 1:00 AM Dubai reset.",
     "/historical-analysis",
 );
 

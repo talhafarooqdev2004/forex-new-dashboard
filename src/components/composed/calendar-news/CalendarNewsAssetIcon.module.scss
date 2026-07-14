@@ -1,4 +1,4 @@
-/* Circular crop of the 3:2 flag SVG (flag is wider than the box, so sides clip). */
+/* Same circular badge frame as currency flags. */
 .round {
     display: inline-flex;
     flex-shrink: 0;
@@ -6,18 +6,24 @@
     justify-content: center;
     overflow: hidden;
     border-radius: 50%;
+    box-sizing: border-box;
 }
 
-.gold {
-    display: inline-block;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #ffe9a6 0%, #f6c445 42%, #c8871c 78%, #8f5a10 100%);
+/* Light disc + ring so gold bars stay visible on green heatmap tiles. */
+.goldBadge {
+    background: #fff8e6;
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
 }
 
-.oil {
-    display: inline-block;
+/* Light disc + ring so drum stays visible on orange heatmap tiles. */
+.oilBadge {
+    background: #f3f4f6;
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+}
+
+.commoditySvg {
+    display: block;
     flex-shrink: 0;
-    border-radius: 50%;
-    background: repeating-linear-gradient(90deg, #e23b2e 0 14%, #f6b23c 14% 28%);
 }

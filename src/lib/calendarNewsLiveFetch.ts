@@ -25,8 +25,8 @@ export type CalendarNewsLiveBundle = {
     economicCalendarRows: EconomicCalendarRow[];
     upcomingHighImpactRows: UpcomingHighImpactRow[];
     macroScoreboardRows: MacroScoreboardRow[];
-    catalystScoreboardRows: CatalystScoreboardRow[];
-    heatmapTiles: MarketHeatmapTile[];
+    catalystScoreboardRows: CatalystScoreboardRow[] | null;
+    heatmapTiles: MarketHeatmapTile[] | null;
     geopoliticalRisk: GeopoliticalRiskWatch | null;
 };
 
@@ -48,17 +48,18 @@ export async function fetchCalendarNewsLiveBundle(): Promise<CalendarNewsLiveBun
             }),
         ]);
 
-        if (!calRes.ok || !catRes.ok) return null;
+        if (!calRes.ok) return null;
 
         const calJson = (await calRes.json()) as ApiEnvelope<EconomicCalendarEventDTO[]>;
-        const catJson = (await catRes.json()) as ApiEnvelope<CatalystBoardDTO[]>;
+        const catJson = catRes.ok
+            ? ((await catRes.json()) as ApiEnvelope<CatalystBoardDTO[]>)
+            : null;
         const geoJson = geoRes.ok
             ? ((await geoRes.json()) as ApiEnvelope<GeopoliticalRiskWatch>)
             : null;
 
-        const liveEvents = Array.isArray(calJson.data) ? calJson.data : null;
-        const catalystBoard = Array.isArray(catJson.data) ? catJson.data : null;
-        if (!liveEvents?.length || !catalystBoard) return null;
+        const liveEvents = Array.isArray(calJson.data) ? calJson.data : [];
+        const catalystBoard = Array.isArray(catJson?.data) ? catJson!.data : null;
 
         const upcoming = mapUpcomingHighImpactEvents(liveEvents);
         const macroScoreboardRows = buildMacroScoreboardRowsFromEconomicCalendar(liveEvents);
@@ -69,8 +70,13 @@ export async function fetchCalendarNewsLiveBundle(): Promise<CalendarNewsLiveBun
             economicCalendarRows: mapEconomicCalendarEvents(liveEvents),
             upcomingHighImpactRows: upcoming,
             macroScoreboardRows,
-            catalystScoreboardRows: buildCatalystScoreboardRows(catalystBoard),
-            heatmapTiles: buildMarketHeatmapTilesFromBoards(macroScoreboardRows, catalystBoard),
+            catalystScoreboardRows: catalystBoard
+                ? buildCatalystScoreboardRows(catalystBoard)
+                : null,
+            heatmapTiles:
+                catalystBoard != null
+                    ? buildMarketHeatmapTilesFromBoards(macroScoreboardRows, catalystBoard)
+                    : null,
             geopoliticalRisk,
         };
     } catch {

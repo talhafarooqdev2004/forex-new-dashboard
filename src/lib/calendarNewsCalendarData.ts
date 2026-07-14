@@ -2,6 +2,14 @@ import { SCOREBOARD_UI } from "@/lib/calendarNewsScoreboardData";
 
 export type EconomicCalendarRow = {
     time: string;
+    /** Display date from event timestamp, e.g. "14 JUL 2026". */
+    date: string;
+    /** ISO calendar day for grouping separators, e.g. "2026-07-14". */
+    dateKey: string;
+    /** Sort key (ms) for chronological order. */
+    sortMs: number;
+    /** Investing.com-style separator label, e.g. "Sunday, July 12, 2026". */
+    dateSeparatorLabel: string;
     /** Asset key for the country icon (USD…CHF, GOLD, OIL). */
     asset: string;
     event: string;
@@ -28,6 +36,10 @@ export type UpcomingHighImpactRow = {
 
 const ECON_ROW_BASE = {
     time: "14:00",
+    date: "21 MAY 2025",
+    dateKey: "2025-05-21",
+    sortMs: Date.UTC(2025, 4, 21, 14, 0),
+    dateSeparatorLabel: "Wednesday, May 21, 2025",
     event: "UK O-Orders (MoM)",
     impact: "High",
     actual: "-1.1",
@@ -106,38 +118,98 @@ function formatSignedInt(n: number): string {
     return n > 0 ? `+${n}` : `${n}`;
 }
 
-export function mapEconomicCalendarEvents(events: EconomicCalendarEventDTO[]): EconomicCalendarRow[] {
-    return events.map((e) => ({
-        time: e.time,
-        asset: e.currency,
-        event: e.event,
-        impact: e.impact,
-        actual: e.actual ?? "—",
-        forecast: e.forecast ?? "—",
-        previous: e.previous ?? "—",
-        trendScore: formatSignedInt(e.trendScore),
-        evidenceScore: formatSignedInt(e.evidenceScore),
-        bias: e.bias,
-    }));
+const MONTHS_ABBR = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"] as const;
+const MONTHS_LONG = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+] as const;
+const WEEKDAYS_LONG = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+] as const;
+
+/** Pad "5:25" / "05:25" → "05:25" for lexicographic time order. */
+function normalizeTimeForSort(time: string): string {
+    const match = /^(\d{1,2}):(\d{2})/.exec(time.trim());
+    if (!match) return time.trim();
+    return `${match[1]!.padStart(2, "0")}:${match[2]}`;
 }
 
-const MONTHS_ABBR = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"] as const;
+/** Wall-clock chronological order: date first, then time (18:30 Sun → 05:25 Mon is correct). */
+function compareCalendarRows(
+    a: { dateKey: string; time: string; sortMs: number },
+    b: { dateKey: string; time: string; sortMs: number },
+): number {
+    const byDate = a.dateKey.localeCompare(b.dateKey);
+    if (byDate !== 0) return byDate;
+    const byTime = normalizeTimeForSort(a.time).localeCompare(normalizeTimeForSort(b.time));
+    if (byTime !== 0) return byTime;
+    return a.sortMs - b.sortMs;
+}
 
-/** "2026-07-06 07:00:00" → { date: "06 JUL 2026", ms }. Falls back gracefully when unparsable. */
-function parseEventTimestamp(timestamp: string): { date: string; ms: number } | null {
+/** "2026-07-06 07:00:00" → display + sort fields. Falls back gracefully when unparsable. */
+function parseEventTimestamp(timestamp: string): {
+    date: string;
+    dateKey: string;
+    sortMs: number;
+    dateSeparatorLabel: string;
+} | null {
     const match = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(timestamp.trim());
     if (!match) return null;
     const [, year, month, day, hour, minute] = match;
     const monthIdx = Number(month) - 1;
     if (monthIdx < 0 || monthIdx > 11) return null;
-    const ms = new Date(
-        Number(year),
-        monthIdx,
-        Number(day),
-        Number(hour),
-        Number(minute),
-    ).getTime();
-    return { date: `${day} ${MONTHS_ABBR[monthIdx]} ${year}`, ms };
+    const y = Number(year);
+    const d = Number(day);
+    // Parse as local wall-clock components from the widget timestamp (no Z / offset).
+    const sortMs = new Date(y, monthIdx, d, Number(hour), Number(minute)).getTime();
+    // Use UTC noon so weekday matches the calendar date label, not local midnight skew.
+    const weekday = new Date(Date.UTC(y, monthIdx, d, 12, 0)).getUTCDay();
+    return {
+        date: `${day} ${MONTHS_ABBR[monthIdx]} ${year}`,
+        dateKey: `${year}-${month}-${day}`,
+        sortMs,
+        dateSeparatorLabel: `${WEEKDAYS_LONG[weekday]}, ${MONTHS_LONG[monthIdx]} ${d}, ${year}`,
+    };
+}
+
+export function mapEconomicCalendarEvents(events: EconomicCalendarEventDTO[]): EconomicCalendarRow[] {
+    return events
+        .map((e) => {
+            const parsed = parseEventTimestamp(e.timestamp);
+            return {
+                time: e.time,
+                date: parsed?.date ?? "—",
+                dateKey: parsed?.dateKey ?? "",
+                sortMs: parsed?.sortMs ?? 0,
+                dateSeparatorLabel: parsed?.dateSeparatorLabel ?? parsed?.date ?? "—",
+                asset: e.currency,
+                event: e.event,
+                impact: e.impact,
+                actual: e.actual ?? "—",
+                forecast: e.forecast ?? "—",
+                previous: e.previous ?? "—",
+                trendScore: formatSignedInt(e.trendScore),
+                evidenceScore: formatSignedInt(e.evidenceScore),
+                bias: e.bias,
+            };
+        })
+        .sort(compareCalendarRows);
 }
 
 /** Investing.com importance is 1–3 bulls; the design shows 5 red stars for High-impact rows. */
@@ -158,8 +230,13 @@ export function mapUpcomingHighImpactEvents(
 ): UpcomingHighImpactRow[] {
     return events
         .map((e) => ({ event: e, parsed: parseEventTimestamp(e.timestamp) }))
-        .filter((x) => x.event.impact === "High" && x.parsed !== null && x.parsed.ms >= now)
-        .sort((a, b) => a.parsed!.ms - b.parsed!.ms)
+        .filter((x) => x.event.impact === "High" && x.parsed !== null && x.parsed.sortMs >= now)
+        .sort((a, b) =>
+            compareCalendarRows(
+                { dateKey: a.parsed!.dateKey, time: a.event.time, sortMs: a.parsed!.sortMs },
+                { dateKey: b.parsed!.dateKey, time: b.event.time, sortMs: b.parsed!.sortMs },
+            ),
+        )
         .map(({ event, parsed }) => ({
             date: parsed!.date,
             time: event.time,
