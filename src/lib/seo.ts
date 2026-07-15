@@ -19,7 +19,7 @@ function resolveMetadataBase(): URL {
 }
 
 /** Root layout: browser tab icon, default OG/Twitter, title template for child routes. */
-export const defaultRootMetadata: Metadata = {
+export const defaultRootMetadata = {
     metadataBase: resolveMetadataBase(),
     title: {
         default: SITE_NAME,
@@ -63,7 +63,7 @@ export const defaultRootMetadata: Metadata = {
         index: true,
         follow: true,
     },
-};
+} satisfies Metadata;
 
 type PageSeoOptions = {
     /** Use for auth, maintenance, and admin tools so they are not indexed. */

@@ -1,0 +1,153 @@
+.dialogContent {
+    display: flex;
+    flex-direction: column;
+    width: calc(100vw - 2rem);
+    max-width: 44rem;
+    max-height: min(85vh, 720px);
+    gap: 0;
+    padding: 1.25rem 1.25rem 0.75rem;
+    overflow: hidden;
+    border-color: rgb(var(--stroke) / 0.35);
+    background: rgb(var(--dark-grey));
+    color: #fff;
+}
+
+.title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.description {
+    margin-top: 0.35rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: rgb(255 255 255 / 0.65);
+}
+
+.note {
+    color: rgb(255 255 255 / 0.45);
+}
+
+.scrollBody {
+    margin-top: 1rem;
+    padding-right: 0.25rem;
+    padding-bottom: 0.75rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.empty {
+    padding: 1.5rem 0.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: rgb(255 255 255 / 0.55);
+}
+
+.section + .section {
+    margin-top: 1.25rem;
+}
+
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.65rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.sectionCount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.08);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgb(255 255 255 / 0.75);
+}
+
+.emptySection {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: rgb(255 255 255 / 0.4);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.item {
+    padding: 0.75rem 0.85rem;
+    border: 1px solid rgb(var(--stroke) / 0.28);
+    border-radius: 8px;
+    background: rgb(0 0 0 / 0.18);
+}
+
+.metaRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: 0.4rem;
+}
+
+.time {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: rgb(255 255 255 / 0.55);
+}
+
+.age {
+    margin-left: 0.15rem;
+    color: rgb(255 255 255 / 0.4);
+}
+
+.badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.impact,
+.score {
+    white-space: nowrap;
+}
+
+.headline {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #fff;
+}
+
+.summary {
+    margin: 0.35rem 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: rgb(255 255 255 / 0.65);
+}
+
+.footerMeta {
+    margin: 0.45rem 0 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.35);
+}

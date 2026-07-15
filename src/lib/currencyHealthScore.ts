@@ -69,12 +69,23 @@ export function classifyHealthFactor(eventName: string): HealthFactorClass {
     }
     if (/\bgdp\b/.test(e) || /gross domestic product/.test(e)) return "primary";
 
-    // Headline CPI / official headline consumer inflation (not PPI, not core).
+    // Headline CPI / official headline consumer inflation rate only —
+    // not CPI Index levels, NSA variants, Cleveland/regional CPI, or PPI.
     if (
         (/\bcpi\b/.test(e) || /consumer price/.test(e) || /headline inflation/.test(e) || /\binflation rate\b/.test(e)) &&
         !/\bppi\b/.test(e) &&
         !/producer/.test(e)
     ) {
+        if (
+            /\bindex\b/.test(e) ||
+            /\bn\s*s\s*a\b/.test(e) ||
+            /\bcleveland\b/.test(e) ||
+            /\btrimmed\b/.test(e) ||
+            /\bmedian cpi\b/.test(e) ||
+            /\bregional\b/.test(e)
+        ) {
+            return "secondary";
+        }
         return "primary";
     }
 

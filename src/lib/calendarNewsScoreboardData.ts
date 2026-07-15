@@ -1,5 +1,5 @@
 import type { EconomicCalendarEventDTO } from "@/lib/calendarNewsCalendarData";
-import { classifyHealthFactor, scoreCurrencyHealthEvent } from "@/lib/currencyHealthScore";
+import { scoreCurrencyHealthEvent } from "@/lib/currencyHealthScore";
 
 export const SCOREBOARD_UI = {
     green: "#00c076",
@@ -19,6 +19,77 @@ export const IMPACT_BAR_UI = {
     empty: "#d9d9d9",
     segments: 10,
 } as const;
+
+/**
+ * Live market day key: Asia/Dubai, window 01:00 → next 01:00 (same as news / Currency Health).
+ * Example: 13 Jul 22:00 Dubai → day `2026-07-13`; 14 Jul 00:30 → still `2026-07-13`;
+ * 14 Jul 01:00 → `2026-07-14`.
+ */
+export function marketDayKey(date: Date = new Date()): string {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Dubai",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        hourCycle: "h23",
+    }).formatToParts(date);
+
+    const num = (type: Intl.DateTimeFormatPartTypes) =>
+        Number(parts.find((p) => p.type === type)?.value ?? NaN);
+
+    let year = num("year");
+    let month = num("month");
+    let day = num("day");
+    const hour = num("hour");
+    if (![year, month, day, hour].every((n) => Number.isFinite(n))) {
+        return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dubai" }).format(date);
+    }
+
+    if (hour < 1) {
+        const civil = new Date(Date.UTC(year, month - 1, day));
+        civil.setUTCDate(civil.getUTCDate() - 1);
+        year = civil.getUTCFullYear();
+        month = civil.getUTCMonth() + 1;
+        day = civil.getUTCDate();
+    }
+
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/**
+ * Assign a Dubai wall-clock calendar timestamp (`YYYY-MM-DD HH:mm:ss`) to the
+ * 01:00→01:00 market day. Used so Macro Scoreboard only scores today's releases.
+ */
+export function marketDayKeyFromDubaiTimestamp(timestamp: string): string | null {
+    const match = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::\d{2})?/.exec(timestamp.trim());
+    if (!match) return null;
+
+    let year = Number(match[1]);
+    let month = Number(match[2]);
+    let day = Number(match[3]);
+    const hour = Number(match[4]);
+    if (![year, month, day, hour].every((n) => Number.isFinite(n))) return null;
+
+    if (hour < 1) {
+        const civil = new Date(Date.UTC(year, month - 1, day));
+        civil.setUTCDate(civil.getUTCDate() - 1);
+        year = civil.getUTCFullYear();
+        month = civil.getUTCMonth() + 1;
+        day = civil.getUTCDate();
+    }
+
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/** Keep only Economic Calendar rows that belong to the live UAE market day. */
+export function filterEconomicEventsForLiveMarketDay(
+    events: EconomicCalendarEventDTO[],
+    now: Date = new Date(),
+): EconomicCalendarEventDTO[] {
+    const liveDay = marketDayKey(now);
+    return events.filter((event) => marketDayKeyFromDubaiTimestamp(event.timestamp) === liveDay);
+}
 
 export type MacroScoreboardRow = {
     currency: string;
@@ -90,84 +161,6 @@ function pickTopDriver(
 
 type ScoredMacroRelease = { event: EconomicCalendarEventDTO; health: number };
 
-function normalizedEventName(event: string): string {
-    return event.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function macroReleaseFamily(event: string): string {
-    const e = normalizedEventName(event);
-    if (/\b(gdp|gdpnow|gross domestic product)\b/.test(e)) return "gdp";
-    if (/\b(cpi|consumer price|headline inflation|inflation rate)\b/.test(e)) return "cpi";
-    if (/\b(ppi|producer price)\b/.test(e)) return "ppi";
-    if (
-        /\b(interest rate decision|rate decision|cash rate|bank rate|fed funds|federal funds|refi rate|refinance rate|deposit facility|ocr|policy rate|overnight rate)\b/.test(
-            e,
-        )
-    ) {
-        return "policy-rate";
-    }
-    if (/\bunemployment rate\b/.test(e)) return "unemployment";
-    // Doc §15 — labour headline vs subcomponents (not unemployment rate).
-    if (
-        /\b(nonfarm|nfp|payroll|employment change|adp employment|adp nonfarm)\b/.test(e) &&
-        !/\bunemployment\b/.test(e)
-    ) {
-        return "employment";
-    }
-    if (/\b(pmi|purchasing managers)\b/.test(e)) return "pmi";
-    if (/\bretail sales\b/.test(e)) return "retail";
-    if (/\b(industrial production|manufacturing production|factory output)\b/.test(e)) {
-        return "industrial";
-    }
-    if (/\b(trade balance|trade surplus|trade deficit|current account)\b/.test(e)) {
-        return "trade";
-    }
-    // Exact-name grouping still prevents duplicate rows without merging unrelated secondary data.
-    return `event:${e}`;
-}
-
-function principalRank(event: EconomicCalendarEventDTO, family: string): number {
-    const e = normalizedEventName(event.event);
-    if (family === "gdp") {
-        if (/\b(gdpnow|gdp now|niesr|tracker|tracking estimate|forecast|projection|estimate)\b/.test(e)) {
-            return 100;
-        }
-        if (/\b(qoq|q q|quarter on quarter)\b/.test(e)) return 0;
-        if (/\b(yoy|y y|year on year)\b/.test(e)) return 1;
-        if (/\b(mom|m m|month on month|3m 3m)\b/.test(e)) return 2;
-        return 3;
-    }
-    if (family === "cpi" || family === "ppi") {
-        return /\bcore\b/.test(e) ? 10 : 0;
-    }
-    if (family === "employment") {
-        if (/\b(adp)\b/.test(e)) return 5;
-        if (/\b(private|ex farm|excluding)\b/.test(e)) return 3;
-        if (/\b(nonfarm|nfp|payroll)\b/.test(e)) return 0;
-        return 2;
-    }
-    if (family === "pmi") {
-        if (/\bcomposite\b/.test(e)) return 0;
-        if (/\bmanufacturing\b/.test(e)) return 1;
-        if (/\bservices\b/.test(e)) return 2;
-        return 3;
-    }
-    if (family === "retail") {
-        if (/\b(ex auto|excluding auto|core|control)\b/.test(e)) return 5;
-        return 0;
-    }
-    if (family === "industrial") {
-        if (/\bmanufacturing\b/.test(e)) return 2;
-        return 0;
-    }
-    return classifyHealthFactor(event.event) === "primary" ? 0 : 10;
-}
-
-function releaseDateKey(event: EconomicCalendarEventDTO): string {
-    const match = /^(\d{4}-\d{2}-\d{2})/.exec(event.timestamp);
-    return match?.[1] ?? event.timestamp ?? "unknown-date";
-}
-
 function scoreMacroRelease(event: EconomicCalendarEventDTO): number {
     return scoreCurrencyHealthEvent({
         event: event.event,
@@ -178,47 +171,43 @@ function scoreMacroRelease(event: EconomicCalendarEventDTO): number {
 }
 
 /**
- * One contribution per currency/date/release family. GDP QoQ/YoY/components are one
- * release; headline CPI is principal and core CPI can only veto a conflicting signal.
+ * Score High/Medium released events for Macro.
+ * Client rule: only medium (★★) and high (★★★) impact prints roll up —
+ * Low (★) stays on the Economic Calendar only and must not inflate Macro.
+ * Each qualifying print keeps its own Primary (±1/0) or Secondary (±0.5/0) score;
+ * scores sum (e.g. −1 + −1 = −2). No family collapse / conflict veto to 0.
  */
 export function scoreReleasedMacroEvents(events: EconomicCalendarEventDTO[]): ScoredMacroRelease[] {
-    const groups = new Map<string, EconomicCalendarEventDTO[]>();
-    for (const event of events) {
-        const family = macroReleaseFamily(event.event);
-        const key = `${event.currency}|${releaseDateKey(event)}|${family}`;
-        const group = groups.get(key);
-        if (group) group.push(event);
-        else groups.set(key, [event]);
-    }
-
     const out: ScoredMacroRelease[] = [];
-    for (const group of groups.values()) {
-        const family = macroReleaseFamily(group[0]!.event);
-        const ranked = [...group].sort((a, b) => principalRank(a, family) - principalRank(b, family));
-        const principal = ranked[0]!;
-        let health = scoreMacroRelease(principal);
-
-        // Doc §9/§15 — headline vs core conflict on same CPI/PPI release → 0 unless clearly aligned.
-        if ((family === "cpi" || family === "ppi") && health !== 0) {
-            const supportingScores = ranked.slice(1).map(scoreMacroRelease).filter((score) => score !== 0);
-            if (supportingScores.some((score) => Math.sign(score) !== Math.sign(health))) health = 0;
-        }
-
-        out.push({ event: principal, health });
+    for (const event of events) {
+        if (event.impact !== "High" && event.impact !== "Medium") continue;
+        if (event.actual === null) continue;
+        out.push({ event, health: scoreMacroRelease(event) });
     }
     return out;
 }
 
 /**
  * Macro Scoreboard from Economic Calendar — Currency Health Board (doc §§5–17):
- *   Macro Score = Σ Primary (±1/0) + Σ Secondary (±0.5/0) for released events.
- *   Primary = GDP, headline CPI, unemployment rate, policy-rate decision only.
+ *   Only releases inside the live UAE market day (01:00→01:00 Asia/Dubai).
+ *   Only High / Medium impact events (Low excluded).
+ *   Macro Score = Σ Primary (±1/0) + Σ Secondary (±0.5/0) for those releases.
+ *   Primary = GDP, headline CPI rate, unemployment rate, policy-rate decision only.
  *   + only when improves vs previous AND beats forecast; − only when worsens AND misses; else 0.
- *   Same-day GDP/CPI family variants count once (principal release).
  */
-export function buildMacroScoreboardRowsFromEconomicCalendar(events: EconomicCalendarEventDTO[]): MacroScoreboardRow[] {
+export function buildMacroScoreboardRowsFromEconomicCalendar(
+    events: EconomicCalendarEventDTO[],
+    now: Date = new Date(),
+): MacroScoreboardRow[] {
+    const dayEvents = filterEconomicEventsForLiveMarketDay(events, now);
+
     return MACRO_SCOREBOARD_CURRENCIES.map((currency) => {
-        const released = events.filter((e) => e.currency === currency && e.actual !== null);
+        const released = dayEvents.filter(
+            (e) =>
+                e.currency === currency &&
+                e.actual !== null &&
+                (e.impact === "High" || e.impact === "Medium"),
+        );
 
         if (released.length === 0) {
             return {

@@ -21,7 +21,7 @@ export default function MacroScoreboardTable({ rows }: MacroScoreboardTableProps
     return (
         <section className={styles.panel} aria-label="Macro Scoreboard">
             <h2 className={styles.panelTitle}>Macro Scoreboard</h2>
-            <div className={styles.tableScroll}>
+            <div className={`${styles.tableScroll} ${styles.scoreboardStickyScroll}`}>
                 {rows.length === 0 ? (
                     <div className={styles.emptyState}>No macro scoreboard data available</div>
                 ) : (
@@ -38,35 +38,41 @@ export default function MacroScoreboardTable({ rows }: MacroScoreboardTableProps
                         <Tbody>
                             {rows.map((row) => (
                                 <Tr key={row.currency}>
-                                    <Td className={styles.tdCentered} style={CN_TD_STYLE}>
+                                    <Td className={`${styles.tdCentered} ${styles.cellThin}`} style={CN_TD_STYLE}>
                                         <span className={styles.assetCell}>
                                             <CalendarNewsAssetIcon asset={row.currency} size={26} />
                                             <span>{row.currency}</span>
                                         </span>
                                     </Td>
-                                    <Td className={styles.tdCentered} style={CN_TD_STYLE}>
+                                    <Td className={`${styles.tdCentered} ${styles.cellThin}`} style={CN_TD_STYLE}>
                                         <div className={styles.cellCenter}>
-                                            <span className={styles.biasLabel} style={{ color: biasTextColor(row.bias) }}>
+                                            <span
+                                                className={`${styles.biasLabel} ${styles.cellThin}`}
+                                                style={{ color: biasTextColor(row.bias) }}
+                                            >
                                                 {row.bias}
                                             </span>
                                         </div>
                                     </Td>
-                                    <Td className={styles.tdCentered} style={CN_TD_STYLE}>
+                                    <Td className={`${styles.tdCentered} ${styles.cellThin}`} style={CN_TD_STYLE}>
                                         <div className={styles.cellCenter}>
                                             <span
-                                                className={styles.tabular}
+                                                className={`${styles.tabular} ${styles.cellThin}`}
                                                 style={{ color: scoreTextColor(row.macroScore) }}
                                             >
                                                 {formatSignedScore(row.macroScore)}
                                             </span>
                                         </div>
                                     </Td>
-                                    <Td className={styles.tdCentered} style={CN_TD_STYLE}>
+                                    <Td className={`${styles.tdCentered} ${styles.cellThin}`} style={CN_TD_STYLE}>
                                         <div className={styles.cellCenter}>
                                             <TrendIcon trend={row.trend} />
                                         </div>
                                     </Td>
-                                    <Td style={CN_TD_WRAP_STYLE} className={styles.tdComment}>
+                                    <Td
+                                        style={CN_TD_WRAP_STYLE}
+                                        className={`${styles.tdComment} ${styles.cellThin}`}
+                                    >
                                         {row.comment}
                                     </Td>
                                 </Tr>

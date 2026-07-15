@@ -13,12 +13,57 @@
 
     flex: 1;
     min-height: 0;
+
+    /* Base Table sets overflow:hidden on <table>, which kills position:sticky. */
+    :global(table) {
+        overflow: visible !important;
+    }
+
+    /*
+     * Sticky headers — seal gap under panel title so scrolled rows cannot show through.
+     * Same treatment as Economic Calendar / Upcoming High Impact.
+     */
+    :global(thead th) {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 5 !important;
+        background: rgb(var(--dark-grey)) !important;
+        background-color: rgb(var(--dark-grey)) !important;
+        background-clip: padding-box !important;
+        border-top: 3px solid var(--table-cell-border, rgb(var(--charcoal))) !important;
+        background-clip: border-box !important;
+        /* Opaque mask above the header seals sticky gap under the panel title. */
+        box-shadow: 0 -24px 0 0 rgb(var(--dark-grey)) !important;
+    }
+}
+
+/*
+ * Separate borders so sticky column headers sit flush under the panel title
+ * (border-collapse leaves a transparent seam / hides th top border when stuck).
+ */
+.scoreboardStickyScroll {
+    :global(table) {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
+
+    /* Keep single row lines: bottom border only on body cells. */
+    :global(tbody td) {
+        border-top: none !important;
+    }
+}
+
+/* Match Economic Calendar / Upcoming High Impact body text weight. */
+.cellThin {
+    font-weight: 300 !important;
+    font-size: 13px !important;
 }
 
 .tdComment {
     min-width: 200px;
     max-width: 230px;
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 300;
     line-height: 1.35;
     color: rgb(255 255 255 / 0.75);
     text-align: left !important;
@@ -37,14 +82,23 @@
 
 .assetCell {
     @include cn.assetCell;
+
+    font-size: 13px;
+    font-weight: 300;
 }
 
 .biasLabel {
     @include cn.biasLabel;
+
+    font-size: 13px;
+    font-weight: 300;
 }
 
 .tabular {
     @include cn.tabular;
+
+    font-size: 13px;
+    font-weight: 300;
 }
 
 .emptyState {
@@ -66,13 +120,25 @@
     border-radius: 2px;
 }
 
-.scoreboardsRow {
-    display: grid;
-    gap: 16px;
+.viewFactorsBtn {
+    height: 1.75rem !important;
+    min-width: 3.5rem;
+    padding: 0 0.65rem !important;
+    border-color: rgb(var(--stroke) / 0.45) !important;
+    background: rgb(0 0 0 / 0.25) !important;
+    color: #fff !important;
+    font-size: 0.75rem !important;
+    font-weight: 600;
 }
 
-@media (min-width: 1024px) {
-    .scoreboardsRow {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+.viewFactorsBtn:hover:not(:disabled) {
+    border-color: rgb(255 255 255 / 0.35) !important;
+    background: rgb(255 255 255 / 0.08) !important;
+}
+
+/* One table per row (Macro, then Market Catalyst). */
+.scoreboardsRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
 }

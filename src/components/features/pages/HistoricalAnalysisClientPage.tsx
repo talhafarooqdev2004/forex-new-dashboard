@@ -172,7 +172,10 @@ export default function HistoricalAnalysisClientPage() {
                 <p className="text-sm text-[rgb(var(--secondary))]">Loading day…</p>
             ) : (
                 <>
-                    <MarketCatalystScoreboardTable rows={catalystRows} />
+                    <MarketCatalystScoreboardTable
+                        rows={catalystRows}
+                        dayKey={selectedDay || undefined}
+                    />
                     <div className="mt-4">
                         <AdminNewsHeadlineSection dayKey={selectedDay || undefined} />
                     </div>

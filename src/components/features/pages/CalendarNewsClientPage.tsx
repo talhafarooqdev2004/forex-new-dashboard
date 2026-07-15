@@ -127,7 +127,11 @@ export default function CalendarNewsClientPage({
                 <RiskModeCard riskMode={riskMode} />
                 <MarketHeatmapCard tiles={heatmapTiles} />
             </div>
-            <CalendarNewsScoreboards macroRows={macroScoreboardRows} catalystRows={catalystScoreboardRows} />
+            <CalendarNewsScoreboards
+                macroRows={macroScoreboardRows}
+                catalystRows={catalystScoreboardRows}
+                refreshKey={newsRefreshKey}
+            />
             <div className="mt-4">
                 <CalendarNewsCalendarSection
                     economicCalendarRows={economicCalendarRows}
