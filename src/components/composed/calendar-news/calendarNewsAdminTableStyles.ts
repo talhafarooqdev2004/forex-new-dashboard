@@ -13,9 +13,9 @@ export const CN_TD_STYLE: CSSProperties = {
     whiteSpace: "nowrap",
 };
 
-/** Multi-line cells — wrap, still centered. */
+/** Keep every Daily Market View row on one line, matching the legacy table layout. */
 export const CN_TD_WRAP_STYLE: CSSProperties = {
     padding: "12px 8px",
     textAlign: "center",
-    whiteSpace: "normal",
+    whiteSpace: "nowrap",
 };
