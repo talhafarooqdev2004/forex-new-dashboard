@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { EconomicCalendarEventDTO } from "./src/lib/calendarNewsCalendarData";
+import { normalizeEconomicImpactScore, type EconomicCalendarEventDTO } from "./src/lib/calendarNewsCalendarData";
 import {
     buildMarketHeatmapTilesFromBoards,
     heatmapLabelFromValue,
@@ -10,6 +10,8 @@ import {
 } from "./src/lib/calendarNewsPageData";
 import {
     buildMacroScoreboardRowsFromEconomicCalendar,
+    buildCatalystScoreboardRows,
+    catalystBias,
     scoreReleasedMacroEvents,
 } from "./src/lib/calendarNewsScoreboardData";
 import { classifyHealthFactor, scoreCurrencyHealthEvent } from "./src/lib/currencyHealthScore";
@@ -31,6 +33,8 @@ function event(overrides: Partial<EconomicCalendarEventDTO>): EconomicCalendarEv
         ...overrides,
     };
 }
+
+const TEST_MARKET_DAY = new Date("2026-07-12T12:00:00+04:00");
 
 test("Primary vs Secondary classification matches doc §6/§12", () => {
     assert.equal(classifyHealthFactor("GDP (QoQ)"), "primary");
@@ -131,19 +135,19 @@ test("doc §16 example: GDP +1, retail +0.5, PPI -0.5, factory +0.5 → Macro +1
         event({ event: "Retail Sales", actual: "2%", forecast: "1%", previous: "0.5%" }),
         event({ event: "PPI (YoY)", actual: "1%", forecast: "2%", previous: "3%" }),
         event({ event: "Factory Orders", actual: "2%", forecast: "1%", previous: "0%" }),
-    ]);
+    ], TEST_MARKET_DAY);
     const usd = rows.find((r) => r.currency === "USD");
     assert.equal(usd?.macroScore, 1.5);
     assert.equal(usd?.bias, "Bullish"); // above +1 (doc §20)
 });
 
-test("same-day GDP variants count as one principal release", () => {
+test("released rows remain individually auditable for the Macro Factor drill-down", () => {
     const scored = scoreReleasedMacroEvents([
         event({ event: "GDP (QoQ)" }),
         event({ event: "GDP (YoY)", actual: "4%", forecast: "3%", previous: "2%" }),
         event({ event: "Atlanta Fed GDPNow", actual: "5%", forecast: "4%", previous: "3%" }),
     ]);
-    assert.equal(scored.length, 1);
+    assert.equal(scored.length, 3);
     assert.equal(scored[0]?.event.event, "GDP (QoQ)");
     assert.equal(scored[0]?.health, 1);
 });
@@ -169,7 +173,7 @@ test("doc §14 jobless claims / trade deficit are lower-better", () => {
     );
 });
 
-test("doc §15 same-day PMI / retail / PPI families score once", () => {
+test("same-day releases retain their own values before they are summed", () => {
     const scored = scoreReleasedMacroEvents([
         event({ event: "Manufacturing PMI", actual: "52", forecast: "50", previous: "49" }),
         event({ event: "Services PMI", actual: "48", forecast: "50", previous: "51" }),
@@ -178,26 +182,61 @@ test("doc §15 same-day PMI / retail / PPI families score once", () => {
         event({ event: "PPI (YoY)", actual: "3%", forecast: "2%", previous: "1%" }),
         event({ event: "Core PPI (YoY)", actual: "1%", forecast: "2%", previous: "3%" }),
     ]);
-    assert.equal(scored.length, 3);
+    assert.equal(scored.length, 6);
     const pmi = scored.find((s) => /pmi/i.test(s.event.event));
     const retail = scored.find((s) => /retail sales$/i.test(s.event.event));
     const ppi = scored.find((s) => /^PPI/i.test(s.event.event));
     assert.equal(pmi?.health, 0.5);
     assert.equal(retail?.health, 0.5);
-    // Headline PPI + conflicting Core → 0 (doc §15 / CPI-style conflict)
-    assert.equal(ppi?.health, 0);
+    assert.equal(ppi?.health, 0.5);
 });
 
 test("doc §20 bias bands and insufficient-data label", () => {
-    const empty = buildMacroScoreboardRowsFromEconomicCalendar([]);
+    const empty = buildMacroScoreboardRowsFromEconomicCalendar([], TEST_MARKET_DAY);
     assert.equal(empty[0]?.bias, "Neutral");
     assert.equal(empty[0]?.comment, "Neutral - Insufficient Economic Data");
 
     const mild = buildMacroScoreboardRowsFromEconomicCalendar([
         event({ event: "Retail Sales", actual: "2%", forecast: "1%", previous: "0.5%" }),
-    ]);
+    ], TEST_MARKET_DAY);
     assert.equal(mild.find((r) => r.currency === "USD")?.bias, "Mild Bullish");
     assert.equal(mild.find((r) => r.currency === "USD")?.macroScore, 0.5);
+});
+
+test("Daily Market impact policy caps individual scores", () => {
+    assert.equal(normalizeEconomicImpactScore(7, "Low"), 0);
+    assert.equal(normalizeEconomicImpactScore(7, "Medium"), 0.5);
+    assert.equal(normalizeEconomicImpactScore(-7, "Medium"), -0.5);
+    assert.equal(normalizeEconomicImpactScore(7, "High"), 1);
+    assert.equal(normalizeEconomicImpactScore(-7, "High"), -1);
+
+    const scored = scoreReleasedMacroEvents([
+        event({ event: "GDP (QoQ)", impact: "Medium" }),
+        event({ event: "GDP (QoQ)", impact: "Low" }),
+    ]);
+    assert.equal(scored.length, 1);
+    assert.equal(scored[0]?.health, 0.5);
+});
+
+test("FFE Catalyst table uses eight currencies and exact bias bands", () => {
+    const rows = buildCatalystScoreboardRows([
+        { asset: "USD", bullishCount: 2, bearishCount: 1, driverScore: 1.5 },
+        { asset: "EUR", bullishCount: 1, bearishCount: 1, driverScore: -0.25 },
+        { asset: "OIL", bullishCount: 3, bearishCount: 0, driverScore: 3 },
+    ]);
+    assert.deepEqual(rows.map((row) => row.currency), ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD"]);
+    assert.equal(rows.find((row) => row.currency === "USD")?.bias, "Strong Bullish");
+    assert.equal(rows.find((row) => row.currency === "EUR")?.bias, "Mild Bearish");
+    assert.equal(catalystBias(0.25, 1, 1), "Mild Bullish");
+    assert.equal(catalystBias(-1.5, 1, 2), "Strong Bearish");
+});
+
+test("top release is exposed as the Macro Factor", () => {
+    const [usd] = buildMacroScoreboardRowsFromEconomicCalendar([
+        event({ event: "GDP (QoQ)", impact: "High" }),
+    ], TEST_MARKET_DAY);
+    assert.equal(usd?.factor?.event, "GDP (QoQ)");
+    assert.equal(usd?.factor?.score, 1);
 });
 
 test("macro and driver scores share the -10 to +10 heatmap scale", () => {

@@ -1,4 +1,4 @@
-import type { EconomicCalendarEventDTO } from "@/lib/calendarNewsCalendarData";
+import { normalizeEconomicImpactScore, type EconomicCalendarEventDTO } from "@/lib/calendarNewsCalendarData";
 import { scoreCurrencyHealthEvent } from "@/lib/currencyHealthScore";
 
 export const SCOREBOARD_UI = {
@@ -97,6 +97,19 @@ export type MacroScoreboardRow = {
     macroScore: number;
     trend: "up" | "down" | "flat";
     comment: string;
+    /** The specific economic release currently driving this currency's macro score. */
+    factor: MacroFactor | null;
+};
+
+export type MacroFactor = {
+    event: string;
+    country: string;
+    timestamp: string;
+    impact: EconomicCalendarEventDTO["impact"];
+    actual: string | null;
+    forecast: string | null;
+    previous: string | null;
+    score: number;
 };
 
 export type CatalystScoreboardRow = {
@@ -130,15 +143,15 @@ export function scoreTextColor(score: number | null): string {
 
 /** Static Macro Scoreboard rows — matches design reference (incl. "GPY" label). */
 export const STATIC_MACRO_SCOREBOARD_ROWS: MacroScoreboardRow[] = [
-    { currency: "USD", bias: "Bullish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD" },
-    { currency: "EUR", bias: "Bearish", macroScore: -6.5, trend: "down", comment: "Hawkish Fed, Strong data & inflation support USD" },
-    { currency: "GPY", bias: "Mild Bearish", macroScore: -6.5, trend: "down", comment: "Hawkish Fed, Strong data & inflation support USD" },
-    { currency: "AUD", bias: "Strong Bearish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD" },
-    { currency: "JPY", bias: "Mild Bullish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD" },
-    { currency: "NZD", bias: "Mild Bullish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD" },
-    { currency: "CHF", bias: "Neutral Bullish", macroScore: 6.5, trend: "flat", comment: "Hawkish Fed, Strong data & inflation support USD" },
-    { currency: "GOLD", bias: "Bullish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD" },
-    { currency: "OIL", bias: "Volatile Neutral", macroScore: 6.5, trend: "flat", comment: "Hawkish Fed, Strong data & inflation support USD" },
+    { currency: "USD", bias: "Bullish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD", factor: null },
+    { currency: "EUR", bias: "Bearish", macroScore: -6.5, trend: "down", comment: "Hawkish Fed, Strong data & inflation support USD", factor: null },
+    { currency: "GPY", bias: "Mild Bearish", macroScore: -6.5, trend: "down", comment: "Hawkish Fed, Strong data & inflation support USD", factor: null },
+    { currency: "AUD", bias: "Strong Bearish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD", factor: null },
+    { currency: "JPY", bias: "Mild Bullish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD", factor: null },
+    { currency: "NZD", bias: "Mild Bullish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD", factor: null },
+    { currency: "CHF", bias: "Neutral Bullish", macroScore: 6.5, trend: "flat", comment: "Hawkish Fed, Strong data & inflation support USD", factor: null },
+    { currency: "GOLD", bias: "Bullish", macroScore: 6.5, trend: "up", comment: "Hawkish Fed, Strong data & inflation support USD", factor: null },
+    { currency: "OIL", bias: "Volatile Neutral", macroScore: 6.5, trend: "flat", comment: "Hawkish Fed, Strong data & inflation support USD", factor: null },
 ];
 
 /** Rows are built for these 8 majors only — Economic Calendar has no Gold/Oil coverage. */
@@ -162,25 +175,25 @@ function pickTopDriver(
 type ScoredMacroRelease = { event: EconomicCalendarEventDTO; health: number };
 
 function scoreMacroRelease(event: EconomicCalendarEventDTO): number {
-    return scoreCurrencyHealthEvent({
+    const raw = scoreCurrencyHealthEvent({
         event: event.event,
         actual: event.actual,
         forecast: event.forecast,
         previous: event.previous,
     });
+    return normalizeEconomicImpactScore(raw, event.impact);
 }
 
 /**
- * Score High/Medium released events for Macro.
- * Client rule: only medium (★★) and high (★★★) impact prints roll up —
- * Low (★) stays on the Economic Calendar only and must not inflate Macro.
- * Each qualifying print keeps its own Primary (±1/0) or Secondary (±0.5/0) score;
- * scores sum (e.g. −1 + −1 = −2). No family collapse / conflict veto to 0.
+ * Score released events using the Daily Market impact policy: Low = 0;
+ * Medium is capped at ±0.5; High is capped at ±1. The cap applies after
+ * the underlying economic-direction calculation, so a medium-impact GDP
+ * surprise cannot contribute a full ±1.
  */
 export function scoreReleasedMacroEvents(events: EconomicCalendarEventDTO[]): ScoredMacroRelease[] {
     const out: ScoredMacroRelease[] = [];
     for (const event of events) {
-        if (event.impact !== "High" && event.impact !== "Medium") continue;
+        if (event.impact === "Low") continue;
         if (event.actual === null) continue;
         out.push({ event, health: scoreMacroRelease(event) });
     }
@@ -190,8 +203,8 @@ export function scoreReleasedMacroEvents(events: EconomicCalendarEventDTO[]): Sc
 /**
  * Macro Scoreboard from Economic Calendar — Currency Health Board (doc §§5–17):
  *   Only releases inside the live UAE market day (01:00→01:00 Asia/Dubai).
- *   Only High / Medium impact events (Low excluded).
- *   Macro Score = Σ Primary (±1/0) + Σ Secondary (±0.5/0) for those releases.
+ *   Low events contribute zero; Medium contributions are capped at ±0.5;
+ *   High contributions are capped at ±1.
  *   Primary = GDP, headline CPI rate, unemployment rate, policy-rate decision only.
  *   + only when improves vs previous AND beats forecast; − only when worsens AND misses; else 0.
  */
@@ -216,6 +229,7 @@ export function buildMacroScoreboardRowsFromEconomicCalendar(
                 macroScore: 0,
                 trend: "flat",
                 comment: "Neutral - Insufficient Economic Data",
+                factor: null,
             };
         }
 
@@ -232,6 +246,16 @@ export function buildMacroScoreboardRowsFromEconomicCalendar(
             macroScore,
             trend,
             comment: buildTopDriverComment(top.event, top.health),
+            factor: {
+                event: top.event.event,
+                country: top.event.country,
+                timestamp: top.event.timestamp,
+                impact: top.event.impact,
+                actual: top.event.actual,
+                forecast: top.event.forecast,
+                previous: top.event.previous,
+                score: top.health,
+            },
         };
     });
 }
@@ -260,17 +284,18 @@ export type CatalystBoardDTO = {
     driverScore: number;
 };
 
-/** Catalyst table asset order (doc §1). */
-const CATALYST_ASSET_ORDER = ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD", "GOLD", "OIL"] as const;
+/** FFE Catalyst Driver rules score these eight currencies only. */
+const CATALYST_ASSET_ORDER = ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD"] as const;
 
-/** Driver Bias from the net driver score + counts (doc §23/§24 — conflicting drivers → Mixed). */
-function catalystBias(driverScore: number, bullishCount: number, bearishCount: number): string {
+/** Exact FFE Catalyst Driver Score bias bands. Opposing drivers remain in the counts and net score. */
+export function catalystBias(driverScore: number, bullishCount: number, bearishCount: number): string {
     if (bullishCount === 0 && bearishCount === 0) return "Neutral";
-    if (bullishCount > 0 && bearishCount > 0 && Math.abs(driverScore) < 0.75) return "Mixed";
-    if (driverScore >= 1.5) return "Bullish";
-    if (driverScore >= 0.5) return "Mild Bullish";
-    if (driverScore <= -1.5) return "Bearish";
-    if (driverScore <= -0.5) return "Mild Bearish";
+    if (driverScore >= 1.5) return "Strong Bullish";
+    if (driverScore >= 0.5) return "Bullish";
+    if (driverScore >= 0.25) return "Mild Bullish";
+    if (driverScore <= -1.5) return "Strong Bearish";
+    if (driverScore <= -0.5) return "Bearish";
+    if (driverScore <= -0.25) return "Mild Bearish";
     return "Neutral";
 }
 
@@ -280,7 +305,7 @@ export function normalizeDriverScore(driverScore: number): number {
     return Number((clamped * 2).toFixed(1));
 }
 
-/** Map the live per-asset board to display rows; always returns all 10 assets in board order. */
+/** Map the live per-currency board to the eight FFE Catalyst rows. */
 export function buildCatalystScoreboardRows(board: CatalystBoardDTO[]): CatalystScoreboardRow[] {
     const byAsset = new Map(board.map((b) => [b.asset, b]));
 

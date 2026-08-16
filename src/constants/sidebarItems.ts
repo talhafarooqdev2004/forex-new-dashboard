@@ -32,5 +32,6 @@ export const sidebarItems: SidebarItem[] = [
 
     { icon: "technical-dashboard-icon", href: "/admin/dashboard", label: "Admin Dashboard", adminOnly: true, navigable: true },
     { icon: "technical-dashboard-icon", href: "/admin/visitor-analytics", label: "Visitor Analytics", adminOnly: true, navigable: true },
+    { icon: "edge-tools-alerts-icon", href: "/admin/ai-usage", label: "AI Usage", adminOnly: true, navigable: true },
     { icon: "user", href: "/admin/settings", label: "Admin Settings", adminOnly: true, navigable: true },
 ];

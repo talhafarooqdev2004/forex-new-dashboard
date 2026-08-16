@@ -30,13 +30,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="flex min-w-[1024px] w-full">
-            <div className="w-[19%] layout-wide:w-[15%]">
+        <div className="flex min-w-0 w-full flex-col lg:flex-row">
+            <div className="w-full lg:w-[19%] layout-wide:w-[15%]">
                 <SideBar />
             </div>
-            <div className="w-[81%] min-w-0 flex flex-col layout-wide:w-[85%]">
+            <div className="w-full min-w-0 flex flex-col lg:w-[81%] layout-wide:w-[85%]">
                 <Header />
-                <main className="min-w-0 flex-1 bg-charcoal p-8">
+                <main className="min-w-0 flex-1 bg-charcoal p-4 sm:p-6 lg:p-8">
                     <div className="mx-auto w-full min-w-0 max-w-dashboard-main">{children}</div>
                 </main>
             </div>

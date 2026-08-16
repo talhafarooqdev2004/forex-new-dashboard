@@ -39,14 +39,9 @@ export function geoRiskAccentColor(score01: number): string {
 export const GEO_RISK_WEDGE_MIDS_FROM_EAST = [157.5, 112.5, 67.5, 22.5] as const;
 
 /**
- * GuageChartIndicator tip is not exactly on +X from the hub (path tip ≈ −1.79° in SVG).
- * Rotate so the *tip* (not the +X axis) lands on the label mid.
- */
-export const GEO_RISK_NEEDLE_TIP_LOCAL_DEG = Math.atan2(4.01234 - 5.60434, 56.2 - 5.30035) * (180 / Math.PI);
-
-/**
- * Hardcoded SVG rotate per zone (do not compute — stays stable after refresh).
- * LOW / WATCH / ELEVATED / HIGH RISK
+ * Calibrated rotations from the original Risk Watch needle. Keep these values
+ * stable: the new FX Analyzer-style line must land on the same visual points
+ * as the previous custom needle in every risk band.
  */
 export const GEO_RISK_NEEDLE_ROTATE_DEG = [
     -166.708531,
@@ -55,8 +50,15 @@ export const GEO_RISK_NEEDLE_ROTATE_DEG = [
     -8.708531,
 ] as const;
 
+/** The old needle tip was angled 1.790° above its local +X axis. */
+export const GEO_RISK_NEEDLE_TIP_LOCAL_DEG = Math.atan2(4.01234 - 5.60434, 56.2 - 5.30035) * (180 / Math.PI);
+
+/** Preserve the old custom path's visible tip distance from the raised hub. */
+export const GEO_RISK_NEEDLE_LENGTH = Math.hypot(56.2 - 5.30035, 4.01234 - 5.60434) * 0.8;
+
 export function geoRiskNeedleDegTowardWedgeCenter(zoneIndex: number): number {
-    return GEO_RISK_NEEDLE_ROTATE_DEG[zoneIndex] ?? GEO_RISK_NEEDLE_ROTATE_DEG[1]!;
+    const rotation = GEO_RISK_NEEDLE_ROTATE_DEG[zoneIndex] ?? GEO_RISK_NEEDLE_ROTATE_DEG[1]!;
+    return rotation + GEO_RISK_NEEDLE_TIP_LOCAL_DEG;
 }
 
 export function geoRiskNeedleDeg(score01: number): number {
@@ -103,8 +105,9 @@ type GeopoliticalRiskGaugeProps = {
 };
 
 /**
- * Thick 4-bar semicircle with labels inside the bars + theme-aware needle.
- * Needle snaps to a fixed angle per risk zone.
+ * Thick 4-bar semicircle with labels inside the bars. The slender line-and-hub
+ * needle intentionally matches the FX Analyzer Pro gauge treatment while this
+ * gauge keeps its existing 200×118 viewbox and card dimensions.
  */
 export default function GeopoliticalRiskGauge({ score, style }: GeopoliticalRiskGaugeProps) {
     const s = clamp01(score);
@@ -113,9 +116,7 @@ export default function GeopoliticalRiskGauge({ score, style }: GeopoliticalRisk
     const rOuter = 88;
     const rInner = 52;
     const rLabel = (rOuter + rInner) / 2;
-    /** Tip sits inside the hollow, slightly longer into the gauge. */
-    const needleScale = 0.80;
-    /** Raised hub (axis) — do not move; only needleRotate aims tip at label centers. */
+    /** Raised hub (axis) — do not move; only needleRotate aims at label centers. */
     const needleLift = 10;
     const hubY = cy - needleLift;
     const zoneIndex = geoRiskZoneIndex(s);
@@ -158,15 +159,10 @@ export default function GeopoliticalRiskGauge({ score, style }: GeopoliticalRisk
                     </text>
                 ))}
 
-                {/* Tip aims at each wedge mid (157.5 / 112.5 / 67.5 / 22.5) after tip-offset correction */}
-                <g className={styles.needle} style={{ transition: "transform 0.8s ease-out" }}>
-                    <g
-                        transform={`translate(${cx} ${hubY}) scale(${needleScale}) rotate(${needleRotate}) translate(-5.30035 -5.60434)`}
-                    >
-                        <ellipse cx="5.30035" cy="5.60434" rx="5.30035" ry="5.60434" />
-                        {/* Tip x=56.2 — short enough to clear bars; local tip angle corrected in rotate */}
-                        <path d="M10.6016 0.700684L56.2 4.01234L10.6016 9.80774C13.7499 6.82725 11.9134 2.4945 10.6016 0.700684Z" />
-                    </g>
+                {/* Same line + ellipse hub construction as the FX Analyzer Pro needle. */}
+                <g transform={`translate(${cx} ${hubY}) rotate(${needleRotate})`} className={styles.needle}>
+                    <line x1="0" y1="0" x2={GEO_RISK_NEEDLE_LENGTH} y2="0" className={styles.needleLine} />
+                    <ellipse cx="0" cy="0" rx="4.2" ry="4.2" className={styles.needleHub} />
                 </g>
             </svg>
         </div>

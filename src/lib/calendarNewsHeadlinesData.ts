@@ -2,6 +2,8 @@ import { SCOREBOARD_UI } from "@/lib/calendarNewsScoreboardData";
 
 export type NewsHeadlineRow = {
     news: string;
+    source: string | null;
+    publishedAt: string | null;
     asset: string;
     assetCode: string | null;
     impact: "High" | "Medium" | "Low";
@@ -15,13 +17,13 @@ const SUMMARY_TEXT = "Energy CPI supports BoC hawkish stance";
 
 /** Static placeholder rows — replace with live data when backend is wired. */
 export const STATIC_NEWS_HEADLINE_ROWS: NewsHeadlineRow[] = [
-  { news: NEWS_TEXT, asset: "CAD", assetCode: "CAD", impact: "Medium", bias: "up", score: 1, summary: SUMMARY_TEXT },
-  { news: NEWS_TEXT, asset: "CAD", assetCode: "CAD", impact: "Low", bias: "up", score: -1, summary: SUMMARY_TEXT },
-  { news: NEWS_TEXT, asset: "CAD", assetCode: "CAD", impact: "High", bias: "up", score: 1, summary: SUMMARY_TEXT },
-  { news: NEWS_TEXT, asset: "CAD", assetCode: "CAD", impact: "Low", bias: "up", score: 1, summary: SUMMARY_TEXT },
-  { news: NEWS_TEXT, asset: "CAD", assetCode: "CAD", impact: "Medium", bias: "up", score: 1, summary: SUMMARY_TEXT },
-  { news: NEWS_TEXT, asset: "CAD", assetCode: "CAD", impact: "High", bias: "up", score: 1, summary: SUMMARY_TEXT },
-  { news: NEWS_TEXT, asset: "CAD", assetCode: "CAD", impact: "Low", bias: "up", score: -1, summary: SUMMARY_TEXT },
+  { news: NEWS_TEXT, source: "Sample feed", publishedAt: null, asset: "CAD", assetCode: "CAD", impact: "Medium", bias: "up", score: 1, summary: SUMMARY_TEXT },
+  { news: NEWS_TEXT, source: "Sample feed", publishedAt: null, asset: "CAD", assetCode: "CAD", impact: "Low", bias: "up", score: -1, summary: SUMMARY_TEXT },
+  { news: NEWS_TEXT, source: "Sample feed", publishedAt: null, asset: "CAD", assetCode: "CAD", impact: "High", bias: "up", score: 1, summary: SUMMARY_TEXT },
+  { news: NEWS_TEXT, source: "Sample feed", publishedAt: null, asset: "CAD", assetCode: "CAD", impact: "Low", bias: "up", score: 1, summary: SUMMARY_TEXT },
+  { news: NEWS_TEXT, source: "Sample feed", publishedAt: null, asset: "CAD", assetCode: "CAD", impact: "Medium", bias: "up", score: 1, summary: SUMMARY_TEXT },
+  { news: NEWS_TEXT, source: "Sample feed", publishedAt: null, asset: "CAD", assetCode: "CAD", impact: "High", bias: "up", score: 1, summary: SUMMARY_TEXT },
+  { news: NEWS_TEXT, source: "Sample feed", publishedAt: null, asset: "CAD", assetCode: "CAD", impact: "Low", bias: "up", score: -1, summary: SUMMARY_TEXT },
 ];
 
 export function newsImpactTextColor(impact: NewsHeadlineRow["impact"]): string {
@@ -67,7 +69,7 @@ function alignDisplayScore(
     rawScore: number,
 ): { bias: NewsHeadlineRow["bias"]; score: number } {
     const biasLower = String(biasRaw ?? "").toLowerCase();
-    if (impact === "Low" || /neutral|mix/.test(biasLower)) {
+    if (/neutral|mix/.test(biasLower)) {
         return { bias: "flat", score: 0 };
     }
 
@@ -77,7 +79,8 @@ function alignDisplayScore(
 
     if (sign === 0) return { bias: "flat", score: 0 };
 
-    const score = sign * (impact === "High" ? 1 : 0.5);
+    const magnitude = Math.abs(Number(rawScore));
+    const score = sign * (magnitude >= 0.75 ? 1 : magnitude >= 0.375 ? 0.5 : 0.25);
     return { bias: score > 0 ? "up" : "down", score };
 }
 
@@ -192,6 +195,8 @@ export function mapMarketDriverNews(items: MarketDriverNewsDTO[]): NewsHeadlineR
         const asset = primary.asset || "—";
         rows.push({
             news: item.headline,
+            source: item.source,
+            publishedAt: item.publishedAt ?? item.createdAt,
             asset,
             assetCode: asset === "GOLD" || asset === "OIL" || asset === "—" ? null : asset,
             impact: item.impact,
@@ -232,37 +237,19 @@ export function mapCatalystFactors(items: MarketDriverNewsDTO[]): CatalystFactor
     const rows: CatalystFactorRow[] = [];
 
     for (const item of items) {
-        const primary = pickPrimaryAsset(item.assets);
-        if (!primary) continue;
-
-        const aligned = alignDisplayScore(item.impact, primary.bias, primary.score);
-        if (aligned.score === 0) continue;
-
-        const asset = primary.asset || "—";
-        rows.push({
-            id: item.id,
-            news: item.headline,
-            asset,
-            impact: item.impact,
-            bias: aligned.bias,
-            score: aligned.score,
-            summary: summaryForAsset(item.headline, asset, aligned.score, item.summary),
-            category: item.category,
-            source: item.source,
-            publishedAt: item.publishedAt,
-            createdAt: item.createdAt,
-        });
-
-        // Mirror backend aggregateCatalystBoard oil→CAD support onto the Factors list.
-        if (primary.asset === "OIL" && aligned.score >= 0.5) {
+        for (const candidate of item.assets) {
+            if (!FFE_CATALYST_CURRENCIES.has(candidate.asset)) continue;
+            const aligned = alignDisplayScore(item.impact, candidate.bias, candidate.score);
+            if (aligned.score === 0) continue;
+            const asset = candidate.asset;
             rows.push({
-                id: `${item.id}:cad-oil`,
+                id: `${item.id}:${asset}`,
                 news: item.headline,
-                asset: "CAD",
+                asset,
                 impact: item.impact,
-                bias: "up",
+                bias: aligned.bias,
                 score: aligned.score,
-                summary: summaryForAsset(item.headline, "CAD", aligned.score, "Oil strength supports CAD"),
+                summary: summaryForAsset(item.headline, asset, aligned.score, item.summary),
                 category: item.category,
                 source: item.source,
                 publishedAt: item.publishedAt,
@@ -279,6 +266,8 @@ export function mapCatalystFactors(items: MarketDriverNewsDTO[]): CatalystFactor
 
     return collapseCatalystFactorsForScoreboard(rows);
 }
+
+const FFE_CATALYST_CURRENCIES = new Set(["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD"]);
 
 /**
  * Mirror backend `oilCatalystCluster` / `eventFingerprint` exactly so Factors dialog

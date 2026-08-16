@@ -12,6 +12,10 @@ export type EconomicCalendarRow = {
     dateSeparatorLabel: string;
     /** Asset key for the country icon (USD…CHF, GOLD, OIL). */
     asset: string;
+    /** Source country from the calendar provider, used by the country filter. */
+    country: string;
+    /** Deterministic display category derived from the provider's event title. */
+    category: EconomicCalendarCategory;
     event: string;
     impact: string;
     actual: string;
@@ -21,6 +25,16 @@ export type EconomicCalendarRow = {
     evidenceScore: string;
     bias: string;
 };
+
+export type EconomicCalendarCategory =
+    | "Employment"
+    | "Inflation"
+    | "Central Banks"
+    | "Credit"
+    | "Growth"
+    | "Consumption"
+    | "Trade"
+    | "Other";
 
 export type UpcomingHighImpactRow = {
     date: string;
@@ -51,15 +65,15 @@ const ECON_ROW_BASE = {
 
 /** Static rows — matches design reference (same figures repeated per asset). */
 export const STATIC_ECONOMIC_CALENDAR_ROWS: EconomicCalendarRow[] = [
-    { ...ECON_ROW_BASE, asset: "USD", bias: "Bearish" },
-    { ...ECON_ROW_BASE, asset: "EUR", bias: "Bullish" },
-    { ...ECON_ROW_BASE, asset: "GBP", bias: "Bearish" },
-    { ...ECON_ROW_BASE, asset: "AUD", bias: "Bearish" },
-    { ...ECON_ROW_BASE, asset: "JPY", bias: "Bearish" },
-    { ...ECON_ROW_BASE, asset: "NZD", bias: "Bearish" },
-    { ...ECON_ROW_BASE, asset: "CHF", bias: "Neutral" },
-    { ...ECON_ROW_BASE, asset: "GOLD", bias: "Bearish" },
-    { ...ECON_ROW_BASE, asset: "OIL", bias: "Bearish" },
+    { ...ECON_ROW_BASE, asset: "USD", country: "United States", category: "Other", bias: "Bearish" },
+    { ...ECON_ROW_BASE, asset: "EUR", country: "Eurozone", category: "Other", bias: "Bullish" },
+    { ...ECON_ROW_BASE, asset: "GBP", country: "United Kingdom", category: "Other", bias: "Bearish" },
+    { ...ECON_ROW_BASE, asset: "AUD", country: "Australia", category: "Other", bias: "Bearish" },
+    { ...ECON_ROW_BASE, asset: "JPY", country: "Japan", category: "Other", bias: "Bearish" },
+    { ...ECON_ROW_BASE, asset: "NZD", country: "New Zealand", category: "Other", bias: "Bearish" },
+    { ...ECON_ROW_BASE, asset: "CHF", country: "Switzerland", category: "Other", bias: "Neutral" },
+    { ...ECON_ROW_BASE, asset: "GOLD", country: "Gold", category: "Other", bias: "Bearish" },
+    { ...ECON_ROW_BASE, asset: "OIL", country: "Oil", category: "Other", bias: "Bearish" },
 ];
 
 const UPCOMING_ROW = {
@@ -97,6 +111,39 @@ export function economicCalendarImpactColor(impact: string): string {
     return "#d93025";
 }
 
+/** Investing-style category groups, derived locally because the source feed supplies an event title, not a category. */
+export function economicCalendarCategory(event: string): EconomicCalendarCategory {
+    const title = event.toLowerCase();
+    if (/employment|payroll|nonfarm|nfp|unemployment|jobless|claims|wage|earnings|labor|labour/.test(title)) {
+        return "Employment";
+    }
+    if (/cpi|consumer price|inflation|ppi|producer price|deflator|price index/.test(title)) {
+        return "Inflation";
+    }
+    if (/interest rate|rate decision|central bank|federal reserve|\bfed\b|ecb|boe|boj|rbnz|rba|boc|monetary policy|fomc/.test(title)) {
+        return "Central Banks";
+    }
+    if (/credit|lending|loan|mortgage|money supply|bank lending/.test(title)) return "Credit";
+    if (/gdp|gross domestic|industrial production|manufacturing|pmi|business activity|factory/.test(title)) {
+        return "Growth";
+    }
+    if (/retail|consumer confidence|consumer spending|household|sales/.test(title)) return "Consumption";
+    if (/trade|exports?|imports?|current account|balance of payments/.test(title)) return "Trade";
+    return "Other";
+}
+
+/**
+ * Economic-table scoring policy: Low does not score; Medium is capped at ±0.5;
+ * High is capped at ±1.  This protects the board from source-side score spikes.
+ */
+export function normalizeEconomicImpactScore(raw: number, impact: string): number {
+    const value = Number.isFinite(raw) ? raw : 0;
+    const normalizedImpact = impact.trim().toLowerCase();
+    if (normalizedImpact === "low") return 0;
+    const limit = normalizedImpact === "medium" ? 0.5 : 1;
+    return Number(Math.max(-limit, Math.min(limit, value)).toFixed(1));
+}
+
 /** Shape returned by `GET /api/v1/public/economic-calendar` (live investing.com scrape). */
 export type EconomicCalendarEventDTO = {
     time: string;
@@ -113,9 +160,10 @@ export type EconomicCalendarEventDTO = {
     bias: "Bullish" | "Bearish" | "Neutral";
 };
 
-function formatSignedInt(n: number): string {
-    if (n === 0) return "0";
-    return n > 0 ? `+${n}` : `${n}`;
+function formatSignedScore(n: number): string {
+    const rounded = Math.abs(n - Math.round(n)) < 1e-9 ? Math.round(n) : Number(n.toFixed(1));
+    if (rounded === 0) return "0";
+    return rounded > 0 ? `+${rounded}` : `${rounded}`;
 }
 
 const MONTHS_ABBR = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"] as const;
@@ -199,13 +247,15 @@ export function mapEconomicCalendarEvents(events: EconomicCalendarEventDTO[]): E
                 sortMs: parsed?.sortMs ?? 0,
                 dateSeparatorLabel: parsed?.dateSeparatorLabel ?? parsed?.date ?? "—",
                 asset: e.currency,
+                country: e.country || e.currency,
+                category: economicCalendarCategory(e.event),
                 event: e.event,
                 impact: e.impact,
                 actual: e.actual ?? "—",
                 forecast: e.forecast ?? "—",
                 previous: e.previous ?? "—",
-                trendScore: formatSignedInt(e.trendScore),
-                evidenceScore: formatSignedInt(e.evidenceScore),
+                trendScore: formatSignedScore(normalizeEconomicImpactScore(e.trendScore, e.impact)),
+                evidenceScore: formatSignedScore(normalizeEconomicImpactScore(e.evidenceScore, e.impact)),
                 bias: e.bias,
             };
         })

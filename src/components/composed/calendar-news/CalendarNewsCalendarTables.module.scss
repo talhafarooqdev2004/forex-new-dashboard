@@ -76,6 +76,14 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 7px;
+}
+
+.currencyCode {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: rgb(var(--foreground));
 }
 
 .tabular {
@@ -178,7 +186,148 @@
 /* One table per row (Economic Calendar, then Upcoming High Impact). */
 .tablesRow {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     align-items: stretch;
+}
+
+@media (min-width: 1024px) {
+    .tablesRow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.calendarToolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    padding: 0 16px 16px;
+    background: rgb(var(--dark-grey));
+}
+
+.filterControls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.filterButton,
+.resetFilters {
+    min-height: 34px;
+    border: 1px solid rgb(var(--stroke) / 0.45);
+    border-radius: 6px;
+    background: rgb(0 0 0 / 0.16);
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgb(var(--foreground));
+}
+
+.filterButton,
+.resetFilters {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.filterControl {
+    position: relative;
+}
+
+.filterButton {
+    justify-content: space-between;
+    min-width: 128px;
+    text-align: left;
+}
+
+.filterButtonLabel {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filterMenu {
+    position: absolute;
+    top: calc(100% + 6px);
+    z-index: 20;
+    width: min(270px, calc(100vw - 48px));
+    border: 1px solid rgb(var(--stroke) / 0.5);
+    border-radius: 8px;
+    background: rgb(var(--dark-grey));
+    box-shadow: 0 12px 28px rgb(0 0 0 / 0.28);
+    padding: 8px;
+}
+
+.filterMenuActions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgb(var(--stroke) / 0.28);
+    padding: 2px 2px 8px;
+
+    button {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font-size: 11px;
+        font-weight: 600;
+        color: #77c0f4;
+        cursor: pointer;
+    }
+}
+
+.filterOptions {
+    display: grid;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-top: 6px;
+}
+
+.filterOption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+    padding: 3px 2px;
+    font-size: 12px;
+    color: rgb(var(--foreground));
+    cursor: pointer;
+
+    input {
+        width: 14px;
+        height: 14px;
+        accent-color: #4ea7e8;
+    }
+}
+
+.resetFilters {
+    color: rgb(var(--foreground) / 0.8);
+}
+
+.currentTimeRow {
+    td {
+        background: rgb(78 167 232 / 0.09) !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .calendarToolbar {
+        align-items: stretch;
+    }
+
+    .filterControls {
+        width: 100%;
+    }
+
+    .filterControl {
+        flex: 1 1 140px;
+    }
+
+    .filterButton {
+        width: 100%;
+    }
+
 }

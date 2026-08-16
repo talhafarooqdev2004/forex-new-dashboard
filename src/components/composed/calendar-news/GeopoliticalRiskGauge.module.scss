@@ -22,9 +22,26 @@
 }
 
 .needle {
-  fill: #ffffff;
+  transform-origin: center;
+  transition: transform 0.8s ease-out;
 }
 
-:global(html:not(.dark)) .needle {
-  fill: #010101;
+.needleLine {
+  stroke: #e5e7eb;
+  stroke-width: 2px;
+  stroke-linecap: round;
+}
+
+.needleHub {
+  fill: #e5e7eb;
+}
+
+:global(html:not(.dark)) {
+  .needleLine {
+    stroke: #121417;
+  }
+
+  .needleHub {
+    fill: #121417;
+  }
 }

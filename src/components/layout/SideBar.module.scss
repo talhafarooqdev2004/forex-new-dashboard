@@ -54,3 +54,26 @@
     margin-right: -4px;
     scrollbar-gutter: stable;
 }
+
+@media (max-width: 1023px) {
+    .sidebarItems {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        max-height: none;
+        padding-right: 0;
+        margin-right: 0;
+        scrollbar-gutter: auto;
+    }
+
+    .sideBarItem,
+    .sideBarItemDisabled {
+        width: max-content;
+        flex-shrink: 0;
+        padding: 0.625rem 0.75rem;
+    }
+
+    .chevronRightIcon {
+        display: none;
+    }
+}

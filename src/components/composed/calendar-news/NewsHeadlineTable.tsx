@@ -27,10 +27,12 @@ export default function NewsHeadlineTable({ rows = STATIC_NEWS_HEADLINE_ROWS }: 
                 {rows.length === 0 ? (
                     <div className={styles.emptyState}>No news headlines available</div>
                 ) : (
-                    <Table enableDragScroll ariaLabel="News Headline" style={{ minWidth: 960 }}>
+                    <Table enableDragScroll ariaLabel="News Headline" style={{ minWidth: 1160 }}>
                         <Thead>
                             <Tr>
                                 <Th style={{ ...CN_TH_STYLE, width: 48 }}>#</Th>
+                                <Th style={{ ...CN_TH_STYLE, minWidth: 116 }}>Time</Th>
+                                <Th style={{ ...CN_TH_STYLE, minWidth: 130 }}>Source</Th>
                                 <Th style={CN_TH_STYLE}>News</Th>
                                 <Th style={{ ...CN_TH_STYLE, minWidth: 110 }}>Asset</Th>
                                 <Th style={{ ...CN_TH_STYLE, minWidth: 100 }}>Impact</Th>
@@ -44,6 +46,14 @@ export default function NewsHeadlineTable({ rows = STATIC_NEWS_HEADLINE_ROWS }: 
                                 <Tr key={`${row.news}-${index}`}>
                                     <Td style={CN_TD_STYLE} className={styles.tdIndex}>
                                         {index + 1}
+                                    </Td>
+                                    <Td style={{ ...CN_TD_STYLE, minWidth: 116 }} className={styles.tdTime}>
+                                        <time dateTime={row.publishedAt ?? undefined}>
+                                            {formatHeadlineTime(row.publishedAt)}
+                                        </time>
+                                    </Td>
+                                    <Td style={{ ...CN_TD_STYLE, minWidth: 130 }} className={styles.tdSource}>
+                                        {row.source?.trim() || "Unknown source"}
                                     </Td>
                                     <Td style={CN_TD_WRAP_STYLE} className={styles.tdNews}>
                                         {row.news}
@@ -86,6 +96,20 @@ export default function NewsHeadlineTable({ rows = STATIC_NEWS_HEADLINE_ROWS }: 
             </div>
         </section>
     );
+}
+
+function formatHeadlineTime(value: string | null): string {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return date.toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Dubai",
+    });
 }
 
 function BiasIcon({ bias }: { bias: NewsHeadlineRow["bias"] }) {

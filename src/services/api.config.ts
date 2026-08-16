@@ -12,6 +12,7 @@ export const apiConfig = {
         dynamicTables: `${API_BASE_URL}/api/v1/admin/dynamic-tables`,
         tableStructure: `${API_BASE_URL}/api/v1/admin/table-structure`,
         tableEditor: `${API_BASE_URL}/api/v1/admin/table-editor`,
+        aiUsage: `${API_BASE_URL}/api/v1/admin/ai-usage`,
     },
 };
 

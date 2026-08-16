@@ -27,7 +27,7 @@ export default function Header() {
 
     return (
         <header
-            className="flex justify-between items-center bg-darkGrey h-20 px-8 py-4 text-foreground"
+            className="flex h-16 items-center justify-between gap-3 bg-darkGrey px-4 py-3 text-foreground sm:h-20 sm:px-8 sm:py-4"
             suppressHydrationWarning
         >
             <h4 className="font-medium">{headerLabel}</h4>
@@ -85,7 +85,7 @@ function QuickProfile() {
                 <ProfileAvatarInitial letter={initial} />
 
                 <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground">{displayName}</span>
+                    <span className="hidden max-w-40 truncate font-semibold text-foreground sm:inline">{displayName}</span>
 
                     <ChevronRight className="w-4 h-4 stroke-[2.5px] text-secondary" />
                 </div>

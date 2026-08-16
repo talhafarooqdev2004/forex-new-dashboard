@@ -18,7 +18,7 @@ export default function SideBar() {
     const visibleItems = sidebarItems.filter((item) => !item.adminOnly || isAdmin);
 
     return (
-        <div className={cn("flex flex-col items-center gap-5 px-4 pt-1.5 pb-6 bg-darkGrey w-full sticky top-0 h-full", styles.sidebar)}>
+        <div className={cn("sticky top-0 z-40 flex w-full flex-row items-center gap-3 overflow-hidden bg-darkGrey px-3 py-2 lg:h-screen lg:flex-col lg:gap-5 lg:px-4 lg:pb-6 lg:pt-1.5", styles.sidebar)}>
             <BrandLogo />
 
             <SideBarItems>
@@ -43,7 +43,7 @@ function BrandLogo() {
     const { theme } = useTheme();
     const logoSrc = theme === "light" ? "/images/brand-logo-black.png" : "/images/brand-logo.png";
     return (
-        <Link href="/" className="w-20 h-20 relative">
+        <Link href="/" className="relative h-12 w-12 shrink-0 lg:h-20 lg:w-20">
             <Image
                 src={logoSrc}
                 alt="Logo"

@@ -136,9 +136,91 @@
     background: rgb(255 255 255 / 0.08) !important;
 }
 
+.noFactor {
+    color: rgb(255 255 255 / 0.38);
+}
+
+.commentButton {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.commentButton:hover {
+    color: #77c0f4;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.macroDialog {
+    width: calc(100vw - 2rem);
+    max-width: 32rem;
+    border-color: rgb(var(--stroke) / 0.35);
+    background: rgb(var(--dark-grey));
+    color: rgb(var(--foreground));
+}
+
+.dialogActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.saveError {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #f84960;
+}
+
+.factorHeadline {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.factorValues {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+
+    div {
+        border: 1px solid rgb(var(--stroke) / 0.28);
+        border-radius: 6px;
+        padding: 8px;
+    }
+
+    dt {
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: rgb(255 255 255 / 0.5);
+    }
+
+    dd {
+        margin: 4px 0 0;
+        font-size: 0.875rem;
+        font-variant-numeric: tabular-nums;
+        color: rgb(var(--foreground));
+    }
+}
+
 /* One table per row (Macro, then Market Catalyst). */
 .scoreboardsRow {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
+}
+
+@media (min-width: 1024px) {
+    .scoreboardsRow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
