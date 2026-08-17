@@ -22,6 +22,8 @@ import { apiConfig } from "@/services/api.config";
 type ApiEnvelope<T> = { success?: boolean; data?: T };
 
 export type CalendarNewsLiveBundle = {
+    snapshotId: string;
+    riskModeScore: number;
     economicCalendarRows: EconomicCalendarRow[];
     upcomingHighImpactRows: UpcomingHighImpactRow[];
     macroScoreboardRows: MacroScoreboardRow[];
@@ -33,40 +35,32 @@ export type CalendarNewsLiveBundle = {
 /** Client-side refetch of public calendar-news boards (used after `calendarNewsUpdate` socket events). */
 export async function fetchCalendarNewsLiveBundle(): Promise<CalendarNewsLiveBundle | null> {
     try {
-        const [calRes, catRes, geoRes] = await Promise.all([
-            fetch(`${apiConfig.baseURL}/api/v1/public/economic-calendar`, {
-                headers: { Accept: "application/json" },
-                cache: "no-store",
-            }),
-            fetch(`${apiConfig.baseURL}/api/v1/public/market-catalyst`, {
-                headers: { Accept: "application/json" },
-                cache: "no-store",
-            }),
-            fetch(`${apiConfig.baseURL}/api/v1/public/geopolitical-risk`, {
-                headers: { Accept: "application/json" },
-                cache: "no-store",
-            }),
-        ]);
-
-        if (!calRes.ok) return null;
-
-        const calJson = (await calRes.json()) as ApiEnvelope<EconomicCalendarEventDTO[]>;
-        const catJson = catRes.ok
-            ? ((await catRes.json()) as ApiEnvelope<CatalystBoardDTO[]>)
-            : null;
-        const geoJson = geoRes.ok
-            ? ((await geoRes.json()) as ApiEnvelope<GeopoliticalRiskWatch>)
-            : null;
-
-        const liveEvents = Array.isArray(calJson.data) ? calJson.data : [];
-        const catalystBoard = Array.isArray(catJson?.data) ? catJson!.data : null;
+        const response = await fetch(`${apiConfig.baseURL}/api/v1/public/daily-market-snapshot`, {
+            headers: { Accept: "application/json" },
+            cache: "no-store",
+        });
+        if (!response.ok) return null;
+        const json = (await response.json()) as ApiEnvelope<{
+            snapshotId: string;
+            calendar: { data: EconomicCalendarEventDTO[] };
+            catalystBoard: CatalystBoardDTO[];
+            geopoliticalRisk: GeopoliticalRiskWatch;
+            riskMode: { score: number };
+        }>;
+        if (!json.success || !json.data || !Array.isArray(json.data.calendar?.data)) return null;
+        const liveEvents = json.data.calendar.data;
+        const catalystBoard = Array.isArray(json.data.catalystBoard) ? json.data.catalystBoard : null;
 
         const upcoming = mapUpcomingHighImpactEvents(liveEvents);
         const macroScoreboardRows = buildMacroScoreboardRowsFromEconomicCalendar(liveEvents);
         const geopoliticalRisk =
-            geoJson?.success && geoJson.data && typeof geoJson.data.score === "number" ? geoJson.data : null;
+            json.data.geopoliticalRisk && typeof json.data.geopoliticalRisk.score === "number"
+                ? json.data.geopoliticalRisk
+                : null;
 
         return {
+            snapshotId: json.data.snapshotId,
+            riskModeScore: Number(json.data.riskMode?.score ?? 0),
             economicCalendarRows: mapEconomicCalendarEvents(liveEvents),
             upcomingHighImpactRows: upcoming,
             macroScoreboardRows,

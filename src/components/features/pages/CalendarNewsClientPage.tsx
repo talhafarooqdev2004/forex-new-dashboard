@@ -20,13 +20,8 @@ import {
     type MarketHeatmapTile,
     type RiskModeDisplay,
 } from "@/lib/calendarNewsPageData";
-import { parseRiskModeSheetValueSigned } from "@/lib/fundamentalDashboardData";
 import type { CatalystScoreboardRow, MacroScoreboardRow } from "@/lib/calendarNewsScoreboardData";
 import { apiConfig } from "@/services/api.config";
-import { googleSheetsService } from "@/services/googleSheets.service";
-
-const RISK_MODE_SCORE_SHEET_ID = "RISK ON/OFF 12";
-const RISK_MODE_SCORE_CELL = "B13";
 
 type CalendarNewsClientPageProps = {
     economicCalendarRows: EconomicCalendarRow[];
@@ -36,6 +31,7 @@ type CalendarNewsClientPageProps = {
     heatmapTiles: MarketHeatmapTile[];
     initialRiskMode?: RiskModeDisplay;
     initialGeopoliticalRisk?: GeopoliticalRiskWatch;
+    initialSnapshotId?: string;
 };
 
 export default function CalendarNewsClientPage({
@@ -46,6 +42,7 @@ export default function CalendarNewsClientPage({
     heatmapTiles: initialHeatmap,
     initialRiskMode = STATIC_RISK_MODE_DISPLAY,
     initialGeopoliticalRisk = STATIC_GEOPOLITICAL_RISK_WATCH,
+    initialSnapshotId,
 }: CalendarNewsClientPageProps) {
     const mountedRef = useRef(false);
     const [economicCalendarRows, setEconomicCalendarRows] = useState(initialEconomic);
@@ -60,6 +57,7 @@ export default function CalendarNewsClientPage({
         () => initialGeopoliticalRisk ?? STATIC_GEOPOLITICAL_RISK_WATCH,
     );
     const [newsRefreshKey, setNewsRefreshKey] = useState(0);
+    const snapshotIdRef = useRef(initialSnapshotId ?? "");
 
     useEffect(() => {
         mountedRef.current = true;
@@ -71,6 +69,8 @@ export default function CalendarNewsClientPage({
     const refreshLive = useCallback(async () => {
         const bundle = await fetchCalendarNewsLiveBundle();
         if (!bundle || !mountedRef.current) return;
+        if (bundle.snapshotId === snapshotIdRef.current) return;
+        snapshotIdRef.current = bundle.snapshotId;
 
         // Never wipe a good week with an empty response (restart race / failed scrape).
         if (bundle.economicCalendarRows.length > 0) {
@@ -87,17 +87,8 @@ export default function CalendarNewsClientPage({
         if (bundle.geopoliticalRisk) {
             setGeopoliticalRisk(bundle.geopoliticalRisk);
         }
+        setRiskMode(buildRiskModeDisplayFromScore(bundle.riskModeScore));
         setNewsRefreshKey((k) => k + 1);
-    }, []);
-
-    const refreshRiskMode = useCallback(async () => {
-        try {
-            const value = await googleSheetsService.getCell(RISK_MODE_SCORE_SHEET_ID, RISK_MODE_SCORE_CELL);
-            if (!mountedRef.current) return;
-            setRiskMode(buildRiskModeDisplayFromScore(parseRiskModeSheetValueSigned(value)));
-        } catch (error) {
-            console.error("Failed to load risk mode score:", error);
-        }
     }, []);
 
     useEffect(() => {
@@ -110,7 +101,7 @@ export default function CalendarNewsClientPage({
             void refreshLive();
         });
         socket.on("riskModeScoreUpdate", () => {
-            void refreshRiskMode();
+            void refreshLive();
         });
 
         return () => {
@@ -118,7 +109,7 @@ export default function CalendarNewsClientPage({
             socket.off("riskModeScoreUpdate");
             socket.disconnect();
         };
-    }, [refreshLive, refreshRiskMode]);
+    }, [refreshLive]);
 
     return (
         <Container>

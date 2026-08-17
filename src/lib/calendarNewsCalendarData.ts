@@ -224,8 +224,9 @@ function parseEventTimestamp(timestamp: string): {
     if (monthIdx < 0 || monthIdx > 11) return null;
     const y = Number(year);
     const d = Number(day);
-    // Parse as local wall-clock components from the widget timestamp (no Z / offset).
-    const sortMs = new Date(y, monthIdx, d, Number(hour), Number(minute)).getTime();
+    // The scraper timestamp is a Dubai wall clock with no offset. Convert explicitly to UTC
+    // (Dubai is UTC+04:00 and has no DST) so ordering is identical in UTC, Karachi, and browser TZs.
+    const sortMs = Date.UTC(y, monthIdx, d, Number(hour) - 4, Number(minute));
     // Use UTC noon so weekday matches the calendar date label, not local midnight skew.
     const weekday = new Date(Date.UTC(y, monthIdx, d, 12, 0)).getUTCDay();
     return {

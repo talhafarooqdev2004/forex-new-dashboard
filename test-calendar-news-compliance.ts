@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { normalizeEconomicImpactScore, type EconomicCalendarEventDTO } from "./src/lib/calendarNewsCalendarData";
+import {
+    mapEconomicCalendarEvents,
+    mapUpcomingHighImpactEvents,
+    normalizeEconomicImpactScore,
+    type EconomicCalendarEventDTO,
+} from "./src/lib/calendarNewsCalendarData";
 import {
     buildMarketHeatmapTilesFromBoards,
     heatmapLabelFromValue,
@@ -260,4 +265,36 @@ test("heatmap labels use the approved color family", () => {
     assert.equal(heatmapTileBackgroundFromLabel("Neutral Bearish"), "#FFC1C1");
     assert.equal(heatmapTileBackgroundFromLabel("Mild Bearish"), "#FF8C8C");
     assert.equal(heatmapTileBackgroundFromLabel("Bearish"), "#FF0000");
+});
+
+test("Dubai wall-clock timestamps sort identically regardless of machine timezone", () => {
+    const rows = mapEconomicCalendarEvents([
+        event({ timestamp: "2026-08-17 00:30:00", time: "00:30", impact: "High" }),
+        event({ timestamp: "2026-08-17 01:00:00", time: "01:00", impact: "High" }),
+    ]);
+    assert.equal(rows[0]?.sortMs, Date.UTC(2026, 7, 16, 20, 30));
+    assert.equal(rows[1]?.sortMs, Date.UTC(2026, 7, 16, 21, 0));
+    const upcoming = mapUpcomingHighImpactEvents(
+        [event({ timestamp: "2026-08-17 00:30:00", time: "00:30", impact: "High" })],
+        Date.UTC(2026, 7, 16, 20, 29),
+    );
+    assert.equal(upcoming[0]?.date, "17 AUG 2026");
+});
+
+test("Calendar Bias remains provider/display semantics while Macro Score requires released evidence", () => {
+    const source = event({ bias: "Bullish", actual: "3%", forecast: null, previous: "1%" });
+    assert.equal(mapEconomicCalendarEvents([source])[0]?.bias, "Bullish");
+    const macro = buildMacroScoreboardRowsFromEconomicCalendar([source], TEST_MARKET_DAY);
+    assert.equal(macro.find((row) => row.currency === "USD")?.macroScore, 0);
+    assert.equal(macro.find((row) => row.currency === "USD")?.bias, "Neutral");
+});
+
+test("one snapshot's macro and Catalyst inputs produce the same GBP heatmap sign", () => {
+    const tiles = buildMarketHeatmapTilesFromBoards(
+        [{ currency: "GBP", macroScore: 0 }],
+        [{ asset: "GBP", driverScore: -0.5 }],
+    );
+    const gbp = tiles.find((tile) => tile.symbol === "GBP");
+    assert.equal(gbp?.value, -0.4);
+    assert.equal(gbp?.label, "Neutral");
 });

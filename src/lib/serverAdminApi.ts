@@ -14,6 +14,18 @@ type ApiEnvelope<T> = {
     data?: T;
 };
 
+export type DailyMarketSnapshotDTO = {
+    snapshotId: string;
+    version: string;
+    asOf: string;
+    dayKey: string;
+    calendar: { data: EconomicCalendarEventDTO[]; scrapedAt: string | null };
+    catalystBoard: CatalystBoardDTO[];
+    geopoliticalRisk: GeopoliticalRiskWatch;
+    riskMode: { score: number; updatedAt: string | null };
+    sources: Record<string, string>;
+};
+
 async function authHeaders(): Promise<Record<string, string>> {
     const jar = await cookies();
     const raw = jar.get(AUTH_COOKIE)?.value;
@@ -147,6 +159,23 @@ export async function serverFetchEconomicCalendar(): Promise<EconomicCalendarEve
         const json = (await res.json()) as ApiEnvelope<EconomicCalendarEventDTO[]>;
         if (!json?.success || !Array.isArray(json.data)) return null;
         return json.data;
+    } catch {
+        return null;
+    }
+}
+
+/** One read-only, versioned response for every Daily Market View card. */
+export async function serverFetchDailyMarketSnapshot(): Promise<DailyMarketSnapshotDTO | null> {
+    const url = `${apiConfig.baseURL}/api/v1/public/daily-market-snapshot`;
+    try {
+        const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+        if (!res.ok) return null;
+        const json = (await res.json()) as ApiEnvelope<DailyMarketSnapshotDTO>;
+        const data = json?.data;
+        if (!json?.success || !data || typeof data.snapshotId !== "string" || !Array.isArray(data.calendar?.data)) {
+            return null;
+        }
+        return data;
     } catch {
         return null;
     }

@@ -11,12 +11,8 @@ import {
     buildMarketHeatmapTilesFromBoards,
     buildRiskModeDisplayFromScore,
 } from "@/lib/calendarNewsPageData";
-import { parseRiskModeSheetValueSigned } from "@/lib/fundamentalDashboardData";
 import {
-    serverFetchEconomicCalendar,
-    serverFetchGeopoliticalRisk,
-    serverFetchGoogleSheetCell,
-    serverFetchMarketCatalyst,
+    serverFetchDailyMarketSnapshot,
 } from "@/lib/serverAdminApi";
 import { pageSeo } from "@/lib/seo";
 
@@ -26,17 +22,11 @@ export const metadata = pageSeo(
     "/daily-market-view",
 );
 
-/** Same sheet cell as Edge Tools / Fundamental Dashboard Risk Mode gauge. */
-const RISK_MODE_SCORE_SHEET_ID = "RISK ON/OFF 12";
-const RISK_MODE_SCORE_CELL = "B13";
-
 export default async function DailyMarketViewPage() {
-    const [liveEvents, catalystBoard, riskRaw, geopoliticalRiskLive] = await Promise.all([
-        serverFetchEconomicCalendar(),
-        serverFetchMarketCatalyst(),
-        serverFetchGoogleSheetCell(RISK_MODE_SCORE_SHEET_ID, RISK_MODE_SCORE_CELL),
-        serverFetchGeopoliticalRisk(),
-    ]);
+    const snapshot = await serverFetchDailyMarketSnapshot();
+    const liveEvents = snapshot?.calendar.data ?? null;
+    const catalystBoard = snapshot?.catalystBoard ?? null;
+    const geopoliticalRiskLive = snapshot?.geopoliticalRisk ?? null;
     const hasLiveCalendar = Boolean(liveEvents?.length);
 
     const economicCalendarRows = hasLiveCalendar
@@ -55,7 +45,7 @@ export default async function DailyMarketViewPage() {
     const catalystScoreboardRows = buildCatalystScoreboardRows(catalystBoard ?? []);
     const heatmapTiles = buildMarketHeatmapTilesFromBoards(macroScoreboardRows, catalystBoard ?? []);
 
-    const riskMode = buildRiskModeDisplayFromScore(parseRiskModeSheetValueSigned(riskRaw));
+    const riskMode = buildRiskModeDisplayFromScore(snapshot?.riskMode.score ?? 0);
     const geopoliticalRisk = geopoliticalRiskLive ?? {
         score: 0,
         band: "Low Risk" as const,
@@ -72,6 +62,7 @@ export default async function DailyMarketViewPage() {
             heatmapTiles={heatmapTiles}
             initialRiskMode={riskMode}
             initialGeopoliticalRisk={geopoliticalRisk}
+            initialSnapshotId={snapshot?.snapshotId}
         />
     );
 }
