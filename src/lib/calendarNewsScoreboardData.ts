@@ -284,8 +284,8 @@ export type CatalystBoardDTO = {
     driverScore: number;
 };
 
-/** FFE Catalyst Driver rules score these eight currencies only. */
-const CATALYST_ASSET_ORDER = ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD"] as const;
+/** Validated FFE Catalyst contract: eight currencies plus GOLD and OIL. */
+const CATALYST_ASSET_ORDER = ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD", "GOLD", "OIL"] as const;
 
 /** Exact FFE Catalyst Driver Score bias bands. Opposing drivers remain in the counts and net score. */
 export function catalystBias(driverScore: number, bullishCount: number, bearishCount: number): string {

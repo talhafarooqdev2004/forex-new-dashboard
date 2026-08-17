@@ -12,9 +12,23 @@ export type MarketSentimentSummary = {
 /** Doc §27–§29 Geopolitical Risk Watch (0.00–1.00). */
 export type GeopoliticalRiskWatch = {
     score: number;
-    band: "Low Risk" | "Watch" | "Elevated" | "High Risk";
+    band: "Low Risk" | "Watch" | "Elevated" | "High Risk" | "Extreme Risk";
+    status?: "Low Risk" | "Watch" | "Elevated" | "High Risk" | "Extreme Risk";
     explanation: string;
     eventCount: number;
+    components?: {
+        directMilitaryEscalation: number;
+        energyHormuzRisk: number;
+        diplomaticDeterioration: number;
+        regionalSpillover: number;
+        sanctionsStrategicConfrontation: number;
+        deEscalationDeduction: number;
+    };
+    escalationThemes?: Array<{ theme: string; state: string; headline: string }>;
+    deEscalationThemes?: Array<{ theme: string; state: string; headline: string }>;
+    fingerprint?: string;
+    asOf?: string;
+    evaluationMode?: "deterministic_reuse";
 };
 
 export type MarketHeatmapTile = {

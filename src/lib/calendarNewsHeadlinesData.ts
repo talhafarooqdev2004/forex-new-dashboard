@@ -57,6 +57,12 @@ export type MarketDriverNewsDTO = {
     assets: { asset: string; bias: string; score: number }[];
     publishedAt: string | null;
     createdAt: string;
+    driverTheme?: string | null;
+    causalThemeId?: string | null;
+    geoState?: string | null;
+    directAssetSignals?: { asset: string; bias: string; score: number }[];
+    transmittedAssetSignals?: { asset: string; bias: string; score: number }[];
+    signValidationStatus?: string;
 };
 
 /**
@@ -222,6 +228,7 @@ export type CatalystFactorRow = {
     source: string | null;
     publishedAt: string | null;
     createdAt: string;
+    causalThemeId?: string | null;
 };
 
 /**
@@ -237,7 +244,8 @@ export function mapCatalystFactors(items: MarketDriverNewsDTO[]): CatalystFactor
     const rows: CatalystFactorRow[] = [];
 
     for (const item of items) {
-        for (const candidate of item.assets) {
+        const candidates = item.transmittedAssetSignals?.length ? item.transmittedAssetSignals : item.assets;
+        for (const candidate of candidates) {
             if (!FFE_CATALYST_CURRENCIES.has(candidate.asset)) continue;
             const aligned = alignDisplayScore(item.impact, candidate.bias, candidate.score);
             if (aligned.score === 0) continue;
@@ -254,6 +262,7 @@ export function mapCatalystFactors(items: MarketDriverNewsDTO[]): CatalystFactor
                 source: item.source,
                 publishedAt: item.publishedAt,
                 createdAt: item.createdAt,
+                causalThemeId: item.causalThemeId ?? null,
             });
         }
     }
@@ -267,7 +276,7 @@ export function mapCatalystFactors(items: MarketDriverNewsDTO[]): CatalystFactor
     return collapseCatalystFactorsForScoreboard(rows);
 }
 
-const FFE_CATALYST_CURRENCIES = new Set(["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD"]);
+const FFE_CATALYST_CURRENCIES = new Set(["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD", "GOLD", "OIL"]);
 
 /**
  * Mirror backend `oilCatalystCluster` / `eventFingerprint` exactly so Factors dialog
@@ -430,6 +439,7 @@ export function collapseCatalystFactorsForScoreboard(rows: CatalystFactorRow[]):
         for (const entry of list) {
             // Same rule as backend collapseSameEventEntries: OIL uses oil cluster first.
             const idx = principals.findIndex((p) => {
+                if (entry.causalThemeId && p.causalThemeId) return entry.causalThemeId === p.causalThemeId;
                 if (entry.asset === "OIL" && p.asset === "OIL") {
                     const ca = oilCatalystClusterKey(p.news);
                     const cb = oilCatalystClusterKey(entry.news);

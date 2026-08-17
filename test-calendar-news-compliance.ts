@@ -223,13 +223,13 @@ test("Daily Market impact policy caps individual scores", () => {
     assert.equal(scored[0]?.health, 0.5);
 });
 
-test("FFE Catalyst table uses eight currencies and exact bias bands", () => {
+test("FFE Catalyst table uses ten tracked assets and exact bias bands", () => {
     const rows = buildCatalystScoreboardRows([
         { asset: "USD", bullishCount: 2, bearishCount: 1, driverScore: 1.5 },
         { asset: "EUR", bullishCount: 1, bearishCount: 1, driverScore: -0.25 },
         { asset: "OIL", bullishCount: 3, bearishCount: 0, driverScore: 3 },
     ]);
-    assert.deepEqual(rows.map((row) => row.currency), ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD"]);
+    assert.deepEqual(rows.map((row) => row.currency), ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD", "GOLD", "OIL"]);
     assert.equal(rows.find((row) => row.currency === "USD")?.bias, "Strong Bullish");
     assert.equal(rows.find((row) => row.currency === "EUR")?.bias, "Mild Bearish");
     assert.equal(catalystBias(0.25, 1, 1), "Mild Bullish");
